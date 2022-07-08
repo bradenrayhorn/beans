@@ -1,0 +1,9 @@
+version: "1"
+packages:
+  - name: "db"
+    path: "internal/db"
+    queries: "./internal/sql/query/"
+    schema: "./internal/sql/migrations/"
+    engine: "postgresql"
+    sql_package: "pgx/v4"
+
