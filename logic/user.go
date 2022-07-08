@@ -14,6 +14,10 @@ type UserService struct {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
+	if err := beans.Validate(username, password); err != nil {
+		return nil, err
+	}
+
 	id := beans.UserID(ksuid.New())
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

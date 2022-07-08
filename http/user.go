@@ -10,8 +10,8 @@ import (
 
 func (s *Server) handleUserRegister() http.HandlerFunc {
 	type request struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username beans.Username `json:"username"`
+		Password beans.Password `json:"password"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.userService.CreateUser(r.Context(), beans.Username(req.Username), beans.Password(req.Password))
+		_, err := s.userService.CreateUser(r.Context(), req.Username, req.Password)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)

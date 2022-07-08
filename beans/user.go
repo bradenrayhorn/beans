@@ -2,6 +2,8 @@ package beans
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/segmentio/ksuid"
 )
@@ -14,7 +16,21 @@ func (u UserID) String() string {
 
 type Username string
 
+func (u Username) Validate() error {
+	if strings.TrimSpace(string(u)) == "" {
+		return errors.New("username is required")
+	}
+	return nil
+}
+
 type Password string
+
+func (p Password) Validate() error {
+	if string(p) == "" {
+		return errors.New("password is required")
+	}
+	return nil
+}
 
 type PasswordHash string
 
