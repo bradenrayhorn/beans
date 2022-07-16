@@ -6,8 +6,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func CreatePool() (*pgxpool.Pool, error) {
-	pgxConfig, err := pgxpool.ParseConfig("postgres://postgres:password@127.0.0.1:5432/beans")
+func CreatePool(url string) (*pgxpool.Pool, error) {
+	pgxConfig, err := pgxpool.ParseConfig(url)
 	if err != nil {
 		return nil, err
 	}
