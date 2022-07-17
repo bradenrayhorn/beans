@@ -25,5 +25,5 @@ func (r *UserRepository) Create(ctx context.Context, id beans.UserID, username b
 }
 
 func (r *UserRepository) Exists(ctx context.Context, username beans.Username) (bool, error) {
-	return false, nil
+	return r.db.UserExists(ctx, string(username))
 }

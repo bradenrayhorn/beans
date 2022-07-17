@@ -11,8 +11,9 @@ import (
 )
 
 type Server struct {
-	router *chi.Mux
-	sv     *http.Server
+	router    *chi.Mux
+	sv        *http.Server
+	boundAddr string
 
 	userService beans.UserService
 }
@@ -39,11 +40,13 @@ func NewServer(us beans.UserService) *Server {
 	return s
 }
 
-func (s *Server) Open() error {
-	ln, err := net.Listen("tcp", ":8000")
+func (s *Server) Open(address string) error {
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
 	}
+
+	s.boundAddr = ln.Addr().String()
 
 	go s.sv.Serve(ln)
 
@@ -54,4 +57,8 @@ func (s *Server) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	return s.sv.Shutdown(ctx)
+}
+
+func (s *Server) GetBoundAddr() string {
+	return s.boundAddr
 }

@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-
-	"github.com/bradenrayhorn/beans/http"
-	"github.com/bradenrayhorn/beans/logic"
-	"github.com/bradenrayhorn/beans/postgres"
 )
 
 func main() {
@@ -16,22 +12,24 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	pool, err := postgres.CreatePool("postgres://postgres:password@127.0.0.1:5432/beans")
-	if err != nil {
-		panic(err)
-	}
-	userRepository := postgres.NewUserRepository(pool)
-	userService := &logic.UserService{UserRepository: userRepository}
+	application := NewApplication(Config{
+		Postgres: PostgresConfig{
+			Addr:     "127.0.0.1:5432",
+			Username: "postgres",
+			Password: "password",
+			Database: "beans",
+		},
+		Port: "8000",
+	})
 
-	httpServer := http.NewServer(userService)
-	if err := httpServer.Open(); err != nil {
+	if err := application.Start(); err != nil {
 		panic(err)
 	}
 
 	<-c
 	fmt.Println("shutting down server")
 
-	if err := httpServer.Close(); err != nil {
+	if err := application.Stop(); err != nil {
 		panic(err)
 	}
 }
