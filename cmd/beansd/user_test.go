@@ -25,3 +25,16 @@ func TestCannotRegisterWithNoData(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
 }
+
+func TestCannotRegisterSameUsernameTwice(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	r, err := ta.PostRequest("api/v1/user/register", map[string]interface{}{"username": "user", "password": "pass"})
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+
+	r, err = ta.PostRequest("api/v1/user/register", map[string]interface{}{"username": "user", "password": "pass"})
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
+}
