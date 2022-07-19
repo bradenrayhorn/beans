@@ -14,7 +14,10 @@ migration:
 	@rm internal/sql/migrations/*.down.sql
 
 gensql:
-	sqlc generate
+	@sqlc generate
 
-.PHONY: default build run migrate migration gensql
+test:
+	@go test -v --count=1 ./... 
+
+.PHONY: default build run migrate migration gensql test
 

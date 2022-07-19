@@ -4,20 +4,24 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type RegisterSuite struct{ suite.Suite }
-
-func TestRegisterSuite(t *testing.T) {
-	suite.Run(t, new(RegisterSuite))
-}
-
-func (s *RegisterSuite) TestRegister() {
-	ta := StartApplication(s.T())
-	defer ta.Stop(s.T())
+func TestRegister(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
 
 	r, err := ta.PostRequest("api/v1/user/register", map[string]interface{}{"username": "user", "password": "pass"})
-	s.Require().Nil(err)
-	s.Assert().Equal(http.StatusOK, r.StatusCode)
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+}
+
+func TestCannotRegisterWithNoData(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	r, err := ta.PostRequest("api/v1/user/register", map[string]interface{}{})
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
 }

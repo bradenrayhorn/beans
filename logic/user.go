@@ -30,7 +30,7 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 		return nil, err
 	}
 	if usernameTaken {
-		return nil, errors.New("invalid username")
+		return nil, beans.WrapError(errors.New("invalid username"), beans.ErrorInvalid)
 	}
 
 	err = s.UserRepository.Create(ctx, id, username, beans.PasswordHash(hashedPassword))

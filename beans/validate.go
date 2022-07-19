@@ -1,22 +1,25 @@
 package beans
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type Validatable interface {
 	Validate() error
 }
 
 func Validate(objects ...Validatable) error {
-	message := ""
+	messages := []string{}
 	for _, o := range objects {
 		if err := o.Validate(); err != nil {
-			message += err.Error()
+			messages = append(messages, err.Error()+".")
 		}
 	}
 
-	if message == "" {
+	if len(messages) == 0 {
 		return nil
 	}
 
-	return errors.New(message)
+	return WrapError(errors.New(strings.Join(messages, " ")), ErrorInvalid)
 }
