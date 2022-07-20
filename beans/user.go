@@ -14,6 +14,14 @@ func (u UserID) String() string {
 	return ksuid.KSUID(u).String()
 }
 
+func UserIDFromString(id string) (UserID, error) {
+	userID, err := ksuid.Parse(id)
+	if err != nil {
+		return UserID(ksuid.Nil), err
+	}
+	return UserID(userID), nil
+}
+
 type Username string
 
 func (u Username) Validate() error {
@@ -43,8 +51,10 @@ type User struct {
 type UserRepository interface {
 	Create(ctx context.Context, id UserID, username Username, passwordHash PasswordHash) error
 	Exists(ctx context.Context, username Username) (bool, error)
+	Get(ctx context.Context, username Username) (*User, error)
 }
 
 type UserService interface {
 	CreateUser(ctx context.Context, username Username, password Password) (*User, error)
+	Login(ctx context.Context, username Username, password Password) error
 }

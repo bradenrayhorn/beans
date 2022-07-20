@@ -6,3 +6,6 @@ INSERT INTO users (
 -- name: UserExists :one
 SELECT EXISTS (SELECT id FROM users WHERE username = $1);
 
+-- name: GetUserByUsername :one
+SELECT * FROM users WHERE username = $1;
+

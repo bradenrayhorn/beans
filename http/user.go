@@ -29,6 +29,22 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 }
 
 func (s *Server) handleUserLogin() http.HandlerFunc {
+	type request struct {
+		Username beans.Username `json:"username"`
+		Password beans.Password `json:"password"`
+	}
 
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			Error(w, err)
+			return
+		}
+
+		err := s.userService.Login(r.Context(), req.Username, req.Password)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+	}
 }

@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var errorInvalidCredentials = beans.NewError(beans.EUNAUTHORIZED, "Invalid username or password")
+
 type UserService struct {
 	UserRepository beans.UserRepository
 }
@@ -43,4 +45,25 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 		Username:     username,
 		PasswordHash: beans.PasswordHash(hashedPassword),
 	}, nil
+}
+
+func (s *UserService) Login(ctx context.Context, username beans.Username, password beans.Password) error {
+	if err := beans.Validate(username, password); err != nil {
+		return err
+	}
+
+	user, err := s.UserRepository.Get(ctx, username)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return beans.WrapError(err, errorInvalidCredentials)
+		}
+		return err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return beans.WrapError(err, errorInvalidCredentials)
+	}
+
+	return nil
 }

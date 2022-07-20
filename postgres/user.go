@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -26,4 +28,25 @@ func (r *UserRepository) Create(ctx context.Context, id beans.UserID, username b
 
 func (r *UserRepository) Exists(ctx context.Context, username beans.Username) (bool, error) {
 	return r.db.UserExists(ctx, string(username))
+}
+
+func (r *UserRepository) Get(ctx context.Context, username beans.Username) (*beans.User, error) {
+	res, err := r.db.GetUserByUsername(ctx, string(username))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, beans.WrapError(err, beans.ErrorNotFound)
+		}
+
+		return nil, err
+	}
+	id, err := beans.UserIDFromString(res.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &beans.User{
+		ID:           id,
+		Username:     beans.Username(res.Username),
+		PasswordHash: beans.PasswordHash(res.Password),
+	}, nil
 }

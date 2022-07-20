@@ -1,16 +1,33 @@
 package beans
 
 const (
-	EINTERNAL = "internal"
-	EINVALID  = "invalid"
+	EINTERNAL     = "internal"
+	EINVALID      = "invalid"
+	ENOTFOUND     = "not_found"
+	EUNAUTHORIZED = "unauthorized"
 )
 
 var (
-	ErrorInternal = &beansError{code: EINTERNAL, msg: "internal error"}
-	ErrorInvalid  = &beansError{code: EINVALID, msg: "invalid data provided"}
+	ErrorInternal     = &beansError{code: EINTERNAL, msg: "Internal error"}
+	ErrorInvalid      = &beansError{code: EINVALID, msg: "Invalid data provided"}
+	ErrorNotFound     = &beansError{code: ENOTFOUND, msg: "Not found"}
+	ErrorUnauthorized = &beansError{code: EUNAUTHORIZED, msg: "Not authenticated"}
 )
 
+var codeToError = map[string]*beansError{
+	EINTERNAL:     ErrorInternal,
+	EINVALID:      ErrorInvalid,
+	ENOTFOUND:     ErrorNotFound,
+	EUNAUTHORIZED: ErrorUnauthorized,
+}
+
+func NewError(code string, msg string) Error {
+	err := codeToError[code]
+	return WrapError(err, &beansError{code, msg})
+}
+
 type Error interface {
+	error
 	BeansError() (string, string)
 }
 
@@ -29,7 +46,7 @@ func (e beansError) BeansError() (string, string) {
 
 type wrappedBeansError struct {
 	error
-	beansError *beansError
+	beansError Error
 }
 
 func (e wrappedBeansError) Is(err error) bool {
@@ -44,6 +61,6 @@ func (e wrappedBeansError) BeansError() (string, string) {
 	return e.beansError.BeansError()
 }
 
-func WrapError(err error, beansError *beansError) error {
-	return wrappedBeansError{error: err, beansError: beansError}
+func WrapError(err error, parent Error) Error {
+	return wrappedBeansError{error: err, beansError: parent}
 }
