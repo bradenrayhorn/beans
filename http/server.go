@@ -15,14 +15,16 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	userService beans.UserService
+	userService       beans.UserService
+	sessionRepository beans.SessionRepository
 }
 
-func NewServer(us beans.UserService) *Server {
+func NewServer(us beans.UserService, sr beans.SessionRepository) *Server {
 	s := &Server{
-		router:      chi.NewRouter(),
-		sv:          &http.Server{},
-		userService: us,
+		router:            chi.NewRouter(),
+		sv:                &http.Server{},
+		userService:       us,
+		sessionRepository: sr,
 	}
 
 	s.sv.Handler = s.router

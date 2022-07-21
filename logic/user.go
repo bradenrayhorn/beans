@@ -47,23 +47,23 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 	}, nil
 }
 
-func (s *UserService) Login(ctx context.Context, username beans.Username, password beans.Password) error {
+func (s *UserService) Login(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
 	if err := beans.Validate(username, password); err != nil {
-		return err
+		return nil, err
 	}
 
 	user, err := s.UserRepository.Get(ctx, username)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
-			return beans.WrapError(err, errorInvalidCredentials)
+			return nil, beans.WrapError(err, errorInvalidCredentials)
 		}
-		return err
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
-		return beans.WrapError(err, errorInvalidCredentials)
+		return nil, beans.WrapError(err, errorInvalidCredentials)
 	}
 
-	return nil
+	return user, nil
 }

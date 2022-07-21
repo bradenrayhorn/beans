@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bradenrayhorn/beans/http"
+	"github.com/bradenrayhorn/beans/inmem"
 	"github.com/bradenrayhorn/beans/logic"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -38,8 +39,9 @@ func (a *Application) Start() error {
 
 	userRepository := postgres.NewUserRepository(pool)
 	userService := &logic.UserService{UserRepository: userRepository}
+	sessionRepository := inmem.NewSessionRepository()
 
-	a.httpServer = http.NewServer(userService)
+	a.httpServer = http.NewServer(userService, sessionRepository)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}

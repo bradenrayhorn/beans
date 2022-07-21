@@ -9,13 +9,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegister(t *testing.T) {
+func TestCanRegisterAndLogin(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
 	r, err := ta.PostRequest("api/v1/user/register", map[string]interface{}{"username": "user", "password": "pass"})
 	require.Nil(t, err)
 	assert.Equal(t, http.StatusOK, r.StatusCode)
+
+	r, err = ta.PostRequest("api/v1/user/login", map[string]interface{}{"username": "user", "password": "pass"})
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+	require.Len(t, r.Cookies(), 1)
+	assert.Equal(t, r.Cookies()[0].Name, "session_id")
+	assert.NotEmpty(t, r.Cookies()[0].Value)
 }
 
 func TestCannotRegisterWithNoData(t *testing.T) {

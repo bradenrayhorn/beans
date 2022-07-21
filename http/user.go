@@ -41,10 +41,26 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 			return
 		}
 
-		err := s.userService.Login(r.Context(), req.Username, req.Password)
+		user, err := s.userService.Login(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return
 		}
+
+		session, err := s.sessionRepository.Create(user.ID)
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorInternal))
+			return
+		}
+
+		cookie := http.Cookie{
+			Name:     "session_id",
+			Value:    string(session.ID),
+			HttpOnly: true,
+			SameSite: http.SameSiteStrictMode,
+			Path:     "/",
+		}
+
+		http.SetCookie(w, &cookie)
 	}
 }

@@ -56,5 +56,5 @@ type UserRepository interface {
 
 type UserService interface {
 	CreateUser(ctx context.Context, username Username, password Password) (*User, error)
-	Login(ctx context.Context, username Username, password Password) error
+	Login(ctx context.Context, username Username, password Password) (*User, error)
 }
