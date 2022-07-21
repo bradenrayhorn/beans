@@ -22,7 +22,6 @@ func StartApplication(tb testing.TB) *TestApplication {
 		pg.WithVersion("13.4"),
 		pg.WithDatabase("beans"),
 		pg.WithQueriesFile("../../internal/sql/migrations/20220708015254_create_users_table.up.sql"),
-		pg.WithUser("postgres2", "password"),
 	)
 
 	container, err := gnomock.Start(p)
