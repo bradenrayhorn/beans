@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"testing"
@@ -9,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCanRegisterAndLogin(t *testing.T) {
+func TestCanRegisterAndLoginAndGetMe(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
@@ -22,7 +23,18 @@ func TestCanRegisterAndLogin(t *testing.T) {
 	assert.Equal(t, http.StatusOK, r.StatusCode)
 	require.Len(t, r.Cookies(), 1)
 	assert.Equal(t, r.Cookies()[0].Name, "session_id")
-	assert.NotEmpty(t, r.Cookies()[0].Value)
+	sessionID := r.Cookies()[0].Value
+
+	r, err = ta.GetRequest("api/v1/user/me", sessionID)
+	require.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+	type response struct {
+		Username string `json:"username"`
+	}
+	var responseJson response
+	err = json.NewDecoder(r.Body).Decode(&responseJson)
+	require.Nil(t, err)
+	assert.Equal(t, "user", responseJson.Username)
 }
 
 func TestCannotRegisterWithNoData(t *testing.T) {

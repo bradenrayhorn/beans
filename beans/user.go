@@ -51,7 +51,8 @@ type User struct {
 type UserRepository interface {
 	Create(ctx context.Context, id UserID, username Username, passwordHash PasswordHash) error
 	Exists(ctx context.Context, username Username) (bool, error)
-	Get(ctx context.Context, username Username) (*User, error)
+	Get(ctx context.Context, id UserID) (*User, error)
+	GetByUsername(ctx context.Context, username Username) (*User, error)
 }
 
 type UserService interface {

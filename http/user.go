@@ -64,3 +64,23 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 		http.SetCookie(w, &cookie)
 	}
 }
+
+func (s *Server) handleUserMe() http.HandlerFunc {
+	type response struct {
+		UserID   string `json:"id"`
+		Username string `json:"username"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := getUserID(r)
+
+		user, err := s.userRepository.Get(r.Context(), userID)
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorInternal))
+			return
+		}
+
+		res := response{UserID: userID.String(), Username: string(user.Username)}
+		jsonResponse(w, res, http.StatusOK)
+	}
+}

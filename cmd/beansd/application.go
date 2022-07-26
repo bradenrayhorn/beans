@@ -41,7 +41,7 @@ func (a *Application) Start() error {
 	userService := &logic.UserService{UserRepository: userRepository}
 	sessionRepository := inmem.NewSessionRepository()
 
-	a.httpServer = http.NewServer(userService, sessionRepository)
+	a.httpServer = http.NewServer(userRepository, userService, sessionRepository)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}

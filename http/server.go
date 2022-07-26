@@ -15,14 +15,16 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
+	userRepository    beans.UserRepository
 	userService       beans.UserService
 	sessionRepository beans.SessionRepository
 }
 
-func NewServer(us beans.UserService, sr beans.SessionRepository) *Server {
+func NewServer(ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
 	s := &Server{
 		router:            chi.NewRouter(),
 		sv:                &http.Server{},
+		userRepository:    ur,
 		userService:       us,
 		sessionRepository: sr,
 	}
@@ -35,6 +37,10 @@ func NewServer(us beans.UserService, sr beans.SessionRepository) *Server {
 		r.Route("/user", func(r chi.Router) {
 			r.Post("/register", s.handleUserRegister())
 			r.Post("/login", s.handleUserLogin())
+			r.Group(func(r chi.Router) {
+				r.Use(s.authenticate)
+				r.Get("/me", s.handleUserMe())
+			})
 		})
 
 	})

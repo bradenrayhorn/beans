@@ -33,7 +33,7 @@ func Error(w http.ResponseWriter, err error) {
 		log.Println(err)
 	}
 
-	w.WriteHeader(codeToHTTPStatus[code])
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(&errorResponse{Error: msg, Code: code})
+	w.WriteHeader(codeToHTTPStatus[code])
+	json.NewEncoder(w).Encode(&errorResponse{Code: code, Error: msg})
 }

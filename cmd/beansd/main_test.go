@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/cmd/beansd"
@@ -59,4 +61,15 @@ func (ta *TestApplication) PostRequest(path string, body map[string]interface{})
 	jsonBody, _ := json.Marshal(body)
 	boundAddr := ta.application.HttpServer().GetBoundAddr()
 	return http.Post(fmt.Sprintf("http://%s/%s", boundAddr, path), "application/json", bytes.NewReader(jsonBody))
+}
+
+func (ta *TestApplication) GetRequest(path string, sessionID string) (*http.Response, error) {
+	boundAddr := ta.application.HttpServer().GetBoundAddr()
+	fullPath, _ := url.Parse(fmt.Sprintf("http://%s/%s", boundAddr, path))
+	client := http.Client{}
+	jar, _ := cookiejar.New(nil)
+	client.Jar = jar
+	client.Jar.SetCookies(fullPath, []*http.Cookie{{Name: "session_id", Value: sessionID}})
+
+	return client.Get(fullPath.String())
 }

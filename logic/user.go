@@ -52,7 +52,7 @@ func (s *UserService) Login(ctx context.Context, username beans.Username, passwo
 		return nil, err
 	}
 
-	user, err := s.UserRepository.Get(ctx, username)
+	user, err := s.UserRepository.GetByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return nil, beans.WrapError(err, errorInvalidCredentials)
