@@ -19,9 +19,7 @@ func TestCanRegisterAndLoginAndGetMe(t *testing.T) {
 
 	r = ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 	assert.Equal(t, http.StatusOK, r.StatusCode)
-	require.Len(t, r.Cookies, 1)
-	assert.Equal(t, r.Cookies[0].Name, "session_id")
-	sessionID := r.Cookies[0].Value
+	sessionID := r.SessionIDFromCookie
 
 	r = ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: sessionID})
 	assert.Equal(t, http.StatusOK, r.StatusCode)
@@ -46,11 +44,20 @@ func TestCannotRegisterSameUsernameTwice(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
+	ta.CreateTestUser(t, "user", "password")
 
-	r = ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
+	r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
+}
+
+func TestCanLogin(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	ta.CreateTestUser(t, "user", "password")
+	r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+	assert.NotEmpty(t, r.SessionIDFromCookie)
 }
 
 func TestCannotLoginWithInvalidUsername(t *testing.T) {

@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 )
@@ -58,6 +59,7 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 			HttpOnly: true,
 			SameSite: http.SameSiteStrictMode,
 			Path:     "/",
+			Expires:  time.Now().Add(time.Hour * 24 * 30),
 		}
 
 		http.SetCookie(w, &cookie)

@@ -62,3 +62,7 @@ func (a *Application) Stop() error {
 func (a *Application) HttpServer() *http.Server {
 	return a.httpServer
 }
+
+func (a *Application) PgPool() *pgxpool.Pool {
+	return a.pool
+}

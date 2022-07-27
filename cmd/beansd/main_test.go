@@ -2,16 +2,21 @@ package main_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
+	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/cmd/beansd"
+	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
+	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type TestApplication struct {
@@ -57,6 +62,8 @@ func (ta *TestApplication) Stop(tb testing.TB) {
 	gnomock.Stop(ta.postgresContainer)
 }
 
+// http request helpers
+
 func (ta *TestApplication) PostRequest(tb testing.TB, path string, options *RequestOptions) *TestResponse {
 	return ta.doRequest(tb, "POST", path, options)
 }
@@ -71,10 +78,10 @@ type RequestOptions struct {
 }
 
 type TestResponse struct {
-	resp       *http.Response
-	StatusCode int
-	Body       string
-	Cookies    []*http.Cookie
+	resp                *http.Response
+	StatusCode          int
+	Body                string
+	SessionIDFromCookie string
 }
 
 func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, options *RequestOptions) *TestResponse {
@@ -109,5 +116,25 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 	respBody, err := io.ReadAll(resp.Body)
 	require.Nil(tb, err)
 
-	return &TestResponse{resp: resp, StatusCode: resp.StatusCode, Body: string(respBody), Cookies: resp.Cookies()}
+	var sessionID string
+	for _, c := range resp.Cookies() {
+		fmt.Println(c.Valid())
+		if c.Valid() == nil && c.Name == "session_id" {
+			sessionID = c.Value
+		}
+	}
+
+	return &TestResponse{resp: resp, StatusCode: resp.StatusCode, Body: string(respBody), SessionIDFromCookie: sessionID}
+}
+
+// database helpers
+
+func (ta *TestApplication) CreateTestUser(tb testing.TB, username string, password string) beans.UserID {
+	userRepository := postgres.NewUserRepository(ta.application.PgPool())
+	userID := beans.UserID(ksuid.New())
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	require.Nil(tb, err)
+	err = userRepository.Create(context.Background(), userID, beans.Username(username), beans.PasswordHash(passwordHash))
+	require.Nil(tb, err)
+	return userID
 }
