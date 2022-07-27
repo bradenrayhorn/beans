@@ -45,7 +45,7 @@ func TestCannotRegisterSameUsernameTwice(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	ta.CreateTestUser(t, "user", "password")
+	ta.CreateUser(t, "user", "password")
 
 	r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
@@ -55,7 +55,7 @@ func TestCanLogin(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	ta.CreateTestUser(t, "user", "password")
+	ta.CreateUser(t, "user", "password")
 	r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 	assert.Equal(t, http.StatusOK, r.StatusCode)
 	assert.NotEmpty(t, r.SessionIDFromCookie)
@@ -74,12 +74,11 @@ func TestCanGetMe(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	user := ta.CreateTestUser(t, "user", "password")
-	session := ta.CreateSession(t, user)
+	user, session := ta.CreateUserAndSession(t)
 
 	r := ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: string(session.ID)})
 	assert.Equal(t, http.StatusOK, r.StatusCode)
-	assert.JSONEq(t, fmt.Sprintf(`{"id":"%s","username":"user"}`, user.ID), r.Body)
+	assert.JSONEq(t, fmt.Sprintf(`{"id":"%s","username":"%s"}`, user.ID, user.Username), r.Body)
 }
 
 func TestCannotGetMeWithNoSession(t *testing.T) {

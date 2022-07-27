@@ -128,7 +128,7 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 
 // database helpers
 
-func (ta *TestApplication) CreateTestUser(tb testing.TB, username string, password string) *beans.User {
+func (ta *TestApplication) CreateUser(tb testing.TB, username string, password string) *beans.User {
 	userID := beans.UserID(ksuid.New())
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	require.Nil(tb, err)
@@ -141,4 +141,10 @@ func (ta *TestApplication) CreateSession(tb testing.TB, user *beans.User) *beans
 	session, err := ta.application.SessionRepository().Create(user.ID)
 	require.Nil(tb, err)
 	return session
+}
+
+func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *beans.Session) {
+	user := ta.CreateUser(tb, "testuser", "password")
+	session := ta.CreateSession(tb, user)
+	return user, session
 }
