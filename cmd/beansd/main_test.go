@@ -11,7 +11,6 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/cmd/beansd"
-	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
 	"github.com/segmentio/ksuid"
@@ -129,12 +128,17 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 
 // database helpers
 
-func (ta *TestApplication) CreateTestUser(tb testing.TB, username string, password string) beans.UserID {
-	userRepository := postgres.NewUserRepository(ta.application.PgPool())
+func (ta *TestApplication) CreateTestUser(tb testing.TB, username string, password string) *beans.User {
 	userID := beans.UserID(ksuid.New())
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	require.Nil(tb, err)
-	err = userRepository.Create(context.Background(), userID, beans.Username(username), beans.PasswordHash(passwordHash))
+	err = ta.application.UserRepository().Create(context.Background(), userID, beans.Username(username), beans.PasswordHash(passwordHash))
 	require.Nil(tb, err)
-	return userID
+	return &beans.User{ID: userID, Username: beans.Username(username), PasswordHash: beans.PasswordHash(passwordHash)}
+}
+
+func (ta *TestApplication) CreateSession(tb testing.TB, user *beans.User) *beans.Session {
+	session, err := ta.application.SessionRepository().Create(user.ID)
+	require.Nil(tb, err)
+	return session
 }

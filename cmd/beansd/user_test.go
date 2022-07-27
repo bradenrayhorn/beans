@@ -3,6 +3,7 @@ package main_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -67,6 +68,18 @@ func TestCannotLoginWithInvalidUsername(t *testing.T) {
 	r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 	assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
 	assert.JSONEq(t, `{"error":"Invalid username or password","code":"unauthorized"}`, r.Body)
+}
+
+func TestCanGetMe(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	user := ta.CreateTestUser(t, "user", "password")
+	session := ta.CreateSession(t, user)
+
+	r := ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: string(session.ID)})
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+	assert.JSONEq(t, fmt.Sprintf(`{"id":"%s","username":"user"}`, user.ID), r.Body)
 }
 
 func TestCannotGetMeWithNoSession(t *testing.T) {

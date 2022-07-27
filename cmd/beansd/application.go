@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/http"
 	"github.com/bradenrayhorn/beans/inmem"
 	"github.com/bradenrayhorn/beans/logic"
@@ -15,6 +16,10 @@ type Application struct {
 	pool       *pgxpool.Pool
 
 	config Config
+
+	userRepository    beans.UserRepository
+	userService       beans.UserService
+	sessionRepository beans.SessionRepository
 }
 
 func NewApplication(c Config) *Application {
@@ -37,11 +42,11 @@ func (a *Application) Start() error {
 	}
 	a.pool = pool
 
-	userRepository := postgres.NewUserRepository(pool)
-	userService := &logic.UserService{UserRepository: userRepository}
-	sessionRepository := inmem.NewSessionRepository()
+	a.userRepository = postgres.NewUserRepository(pool)
+	a.userService = &logic.UserService{UserRepository: a.userRepository}
+	a.sessionRepository = inmem.NewSessionRepository()
 
-	a.httpServer = http.NewServer(userRepository, userService, sessionRepository)
+	a.httpServer = http.NewServer(a.userRepository, a.userService, a.sessionRepository)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}
@@ -63,6 +68,10 @@ func (a *Application) HttpServer() *http.Server {
 	return a.httpServer
 }
 
-func (a *Application) PgPool() *pgxpool.Pool {
-	return a.pool
+func (a *Application) UserRepository() beans.UserRepository {
+	return a.userRepository
+}
+
+func (a *Application) SessionRepository() beans.SessionRepository {
+	return a.sessionRepository
 }
