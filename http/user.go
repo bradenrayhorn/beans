@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -15,7 +14,7 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
 		}
@@ -36,7 +35,7 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
 		}
