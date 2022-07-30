@@ -33,15 +33,18 @@ func TestValidateOnePassingField(t *testing.T) {
 
 func TestValidateOneFailingField(t *testing.T) {
 	result := beans.Validate(StructError1{})
-	assert.Equal(t, "error 1.", result.Error())
+	_, msg := result.(beans.Error).BeansError()
+	assert.Equal(t, "error 1.", msg)
 }
 
 func TestValidateOneEachField(t *testing.T) {
 	result := beans.Validate(StructError1{}, StructPass{})
-	assert.Equal(t, "error 1.", result.Error())
+	_, msg := result.(beans.Error).BeansError()
+	assert.Equal(t, "error 1.", msg)
 }
 
 func TestValidateMultipleFails(t *testing.T) {
 	result := beans.Validate(StructError1{}, StructPass{}, StructError2{})
-	assert.Equal(t, "error 1. error 2.", result.Error())
+	_, msg := result.(beans.Error).BeansError()
+	assert.Equal(t, "error 1. error 2.", msg)
 }

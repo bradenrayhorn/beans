@@ -4,22 +4,17 @@ import (
 	"context"
 	"errors"
 	"strings"
-
-	"github.com/segmentio/ksuid"
 )
 
-type UserID ksuid.KSUID
+type UserID ID
 
 func (u UserID) String() string {
-	return ksuid.KSUID(u).String()
+	return ID(u).String()
 }
 
 func UserIDFromString(id string) (UserID, error) {
-	userID, err := ksuid.Parse(id)
-	if err != nil {
-		return UserID(ksuid.Nil), err
-	}
-	return UserID(userID), nil
+	beansID, err := BeansIDFromString(id)
+	return UserID(beansID), err
 }
 
 type Username string

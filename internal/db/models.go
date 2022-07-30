@@ -2,10 +2,25 @@
 
 package db
 
-import ()
+import (
+	"time"
+)
+
+type Budget struct {
+	ID        string
+	Name      string
+	CreatedAt time.Time
+}
+
+type BudgetsUser struct {
+	BudgetID string
+	UserID   string
+	Index    interface{}
+}
 
 type User struct {
-	ID       string
-	Username string
-	Password string
+	ID        string
+	Username  string
+	Password  string
+	CreatedAt time.Time
 }

@@ -1,0 +1,71 @@
+package postgres
+
+import (
+	"context"
+
+	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/internal/db"
+	"github.com/jackc/pgx/v4/pgxpool"
+)
+
+type BudgetRepository struct {
+	db   *db.Queries
+	pool *pgxpool.Pool
+}
+
+func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
+	return &BudgetRepository{db: db.New(pool), pool: pool}
+}
+
+func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.BudgetName, userID beans.UserID) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	q := db.New(tx)
+
+	if err := q.CreateBudget(ctx, db.CreateBudgetParams{ID: id.String(), Name: string(name)}); err != nil {
+		return err
+	}
+	if err := q.CreateBudgetUser(ctx, db.CreateBudgetUserParams{BudgetID: id.String(), UserID: userID.String()}); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget, error) {
+	budget, err := r.db.GetBudget(ctx, id.String())
+	if err != nil {
+		return nil, nil
+	}
+
+	return &beans.Budget{
+		ID:   id,
+		Name: beans.BudgetName(budget.Name),
+	}, nil
+}
+
+func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.UserID) ([]*beans.Budget, error) {
+	budgets := []*beans.Budget{}
+	dbBudgets, err := r.db.GetBudgetsForUser(ctx, userID.String())
+	if err != nil {
+		return budgets, err
+	}
+
+	for _, b := range dbBudgets {
+		id, err := beans.BeansIDFromString(b.ID)
+		if err != nil {
+			return budgets, err
+		}
+
+		budgets = append(budgets, &beans.Budget{ID: id, Name: beans.BudgetName(b.Name)})
+	}
+
+	return budgets, nil
+}

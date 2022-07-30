@@ -1,7 +1,6 @@
 package beans
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -21,5 +20,5 @@ func Validate(objects ...Validatable) error {
 		return nil
 	}
 
-	return WrapError(errors.New(strings.Join(messages, " ")), ErrorInvalid)
+	return NewError(EINVALID, strings.Join(messages, " "))
 }

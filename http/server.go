@@ -15,15 +15,19 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
+	budgetRepository  beans.BudgetRepository
+	budgetService     beans.BudgetService
 	userRepository    beans.UserRepository
 	userService       beans.UserService
 	sessionRepository beans.SessionRepository
 }
 
-func NewServer(ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
+func NewServer(br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
 	s := &Server{
 		router:            chi.NewRouter(),
 		sv:                &http.Server{},
+		budgetRepository:  br,
+		budgetService:     bs,
 		userRepository:    ur,
 		userService:       us,
 		sessionRepository: sr,
@@ -43,6 +47,11 @@ func NewServer(ur beans.UserRepository, us beans.UserService, sr beans.SessionRe
 			})
 		})
 
+		r.Route("/budgets", func(r chi.Router) {
+			r.Use(s.authenticate)
+			r.Post("/", s.handleBudgetCreate())
+			r.Get("/", s.handleBudgetGetAll())
+		})
 	})
 
 	return s

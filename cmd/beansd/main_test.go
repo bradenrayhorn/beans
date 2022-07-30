@@ -6,7 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
+	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -27,7 +30,7 @@ func StartApplication(tb testing.TB) *TestApplication {
 	p := pg.Preset(
 		pg.WithVersion("13.4"),
 		pg.WithDatabase("beans"),
-		pg.WithQueriesFile("../../internal/sql/migrations/20220708015254_create_users_table.up.sql"),
+		pg.WithQueries(getMigrationQueries(tb)),
 	)
 
 	container, err := gnomock.Start(p)
@@ -59,6 +62,27 @@ func (ta *TestApplication) Stop(tb testing.TB) {
 	}
 
 	gnomock.Stop(ta.postgresContainer)
+}
+
+func getMigrationQueries(tb testing.TB) string {
+	queries := ""
+	err := filepath.WalkDir("../../internal/sql/migrations/", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		queries += string(content)
+
+		return nil
+	})
+	if err != nil {
+		tb.Fatal(err)
+	}
+
+	return queries
 }
 
 // http request helpers
@@ -117,7 +141,6 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 
 	var sessionID string
 	for _, c := range resp.Cookies() {
-		fmt.Println(c.Valid())
 		if c.Valid() == nil && c.Name == "session_id" {
 			sessionID = c.Value
 		}
@@ -147,4 +170,11 @@ func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *be
 	user := ta.CreateUser(tb, "testuser", "password")
 	session := ta.CreateSession(tb, user)
 	return user, session
+}
+
+func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
+	id := beans.NewBeansID()
+	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.BudgetName(name), user.ID)
+	require.Nil(tb, err)
+	return &beans.Budget{ID: id, Name: beans.BudgetName(name)}
 }
