@@ -9,6 +9,15 @@ const nextConfig = {
         destination: 'http://localhost:8000/api/:path*'
       }
     ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/app',
+        permanent: true,
+      }
+    ]
   }
 }
 

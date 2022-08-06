@@ -1,19 +1,22 @@
 import ky from "ky";
+import { KyInstance } from "ky/distribution/types/ky";
+import { User } from "constants/types";
 
 const queryKeys = {
   login: "login",
-  me: 'me',
+  me: "me",
 };
 
-interface MeResponse {
-  id: string,
-  username: string,
-}
+const buildQueries = (client: KyInstance) => {
+  return {
+    login: ({ username, password }: { username: string; password: string }) =>
+      client.post("api/v1/user/login", { json: { username, password } }),
 
-const queries = {
-  login: ({ username, password }: { username: string, password: string }) => ky.post('api/v1/user/login', { json: { username, password } }).json(),
-
-  me: (): Promise<MeResponse> => ky.get('api/v1/user/me').json(),
+    me: ({ cookie }: { cookie?: string } = {}): Promise<User> =>
+      client.get("api/v1/user/me", { headers: { cookie } }).json(),
+  };
 };
 
-export { queries, queryKeys };
+export const queries = buildQueries(ky.extend({ prefixUrl: "/" }));
+
+export { buildQueries, queryKeys };

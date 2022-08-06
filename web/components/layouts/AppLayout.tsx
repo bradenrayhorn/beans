@@ -1,18 +1,25 @@
 import { Center, Flex, Spinner } from "@chakra-ui/react";
-import { useIsAuthReady } from "components/AuthProvider";
+import { AuthStatus, useAuthStatus } from "components/AuthProvider";
 import Sidebar from "components/Sidebar";
-import { PropsWithChildren } from "react";
+import { useRouter } from "next/router";
+import { PropsWithChildren, useEffect } from "react";
 
 const AppLayout = ({ children }: PropsWithChildren) => {
-  const isReady = useIsAuthReady();
+  const authStatus = useAuthStatus();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (authStatus === AuthStatus.Unauthenticated) {
+      router.push("/login");
+    }
+  }, [authStatus]);
 
-  if (!isReady) {
+  if (authStatus !== AuthStatus.Authenticated) {
     return (
       <Center h="full">
         <Spinner size="xl" />
       </Center>
-    )
+    );
   }
 
   return (

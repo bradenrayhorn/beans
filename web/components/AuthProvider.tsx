@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { queries, queryKeys } from "constants/queries";
-import { PropsWithChildren } from "react";
+import { HTTPError } from "ky";
+import { PropsWithChildren, useState } from "react";
 import create from "zustand";
 import shallow from "zustand/shallow";
 
@@ -9,39 +10,66 @@ interface User {
   username: string;
 }
 
+export enum AuthStatus {
+  Loading = 1,
+  Authenticated,
+  Unauthenticated,
+  Error,
+}
+
 interface AuthState {
-  isReady: boolean;
+  status: AuthStatus;
   user: User | undefined;
   setUser: (user: User) => void;
-  setIsReady: (isReady: boolean) => void;
+  setStatus: (status: AuthStatus) => void;
 }
 
 const useAuthStore = create<AuthState>()((set) => ({
-  isReady: false,
+  status: AuthStatus.Loading,
   user: undefined,
   setUser: (user: User) => set({ user }),
-  setIsReady: (isReady: boolean) => set({ isReady }),
+  setStatus: (status: AuthStatus) => set({ status }),
 }));
 
-export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [setUser, setIsReady] = useAuthStore(
-    (state) => [state.setUser, state.setIsReady],
+type Props = PropsWithChildren & {
+  initialUser?: User;
+};
+
+export const AuthProvider = ({ children, initialUser }: Props) => {
+  const [setUser, setStatus] = useAuthStore(
+    (state) => [state.setUser, state.setStatus],
     shallow
   );
 
+  // set initial data with initialUser prop from server
+  useState(() => {
+    if (initialUser) {
+      setUser(initialUser);
+    }
+    setStatus(
+      initialUser ? AuthStatus.Authenticated : AuthStatus.Unauthenticated
+    );
+  });
+
   useQuery([queryKeys.me], () => queries.me(), {
+    retry: false,
     onSuccess: (data) => {
       setUser(data);
-      setIsReady(true);
+      setStatus(AuthStatus.Authenticated);
+    },
+    onError: (error: HTTPError | any) => {
+      const status = error?.response?.status;
+      if (status === 401) {
+        setStatus(AuthStatus.Unauthenticated);
+      } else {
+        setStatus(AuthStatus.Error);
+      }
     },
   });
 
   return <>{children}</>;
 };
 
-export const useIsAuthReady = () => useAuthStore((state) => state.isReady);
+export const useAuthStatus = () => useAuthStore((state) => state.status);
 
-export const useUser = () => {
-  const user = useAuthStore((state) => state.user);
-  return user;
-};
+export const useUser = () => useAuthStore((state) => state.user);
