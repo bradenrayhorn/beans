@@ -20,6 +20,11 @@ import { NextPage } from "next";
 import { AuthProvider } from "components/AuthProvider";
 import ky from "ky";
 import { User } from "constants/types";
+import {
+  forceUnproctedRoutes,
+  routes,
+  unprotectedRoutes,
+} from "constants/routes";
 
 const PageCard = {
   baseStyle: (props: StyleFunctionProps) => ({
@@ -41,6 +46,14 @@ const theme = extendTheme({
   components: {
     PageCard,
     Sidebar,
+  },
+  semanticTokens: {
+    colors: {
+      errorText: {
+        default: "red.500",
+        _dark: "red.300",
+      },
+    },
   },
 });
 
@@ -103,6 +116,24 @@ MyApp.getInitialProps = async function getInitialProps(context: AppContext) {
       cookie: context.ctx.req?.headers?.cookie,
     });
   } catch {}
+
+  if (
+    !user &&
+    !unprotectedRoutes.some((route) => context.router.pathname.match(route))
+  ) {
+    context.ctx.res?.writeHead?.(302, { Location: routes.login });
+    context.ctx.res?.end?.();
+    return appProps;
+  }
+
+  if (
+    user &&
+    forceUnproctedRoutes.some((route) => context.router.pathname.match(route))
+  ) {
+    context.ctx.res?.writeHead?.(302, { Location: routes.defaultAfterAuth });
+    context.ctx.res?.end?.();
+    return appProps;
+  }
 
   return {
     ...appProps,

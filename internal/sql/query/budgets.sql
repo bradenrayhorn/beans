@@ -14,3 +14,6 @@ SELECT budgets.* FROM budgets
 JOIN budgets_users ON budgets_users.budget_id = budgets.id
                       AND budgets_users.user_id = $1;
 
+-- name: GetBudgetUserIDs :many
+SELECT user_id from budgets_users WHERE budget_id = $1;
+

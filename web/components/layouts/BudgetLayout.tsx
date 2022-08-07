@@ -1,33 +1,37 @@
 import { Center, Flex, Spinner } from "@chakra-ui/react";
 import { AuthStatus, useAuthStatus } from "components/AuthProvider";
 import Sidebar from "components/Sidebar";
+import { routes } from "constants/routes";
+import { useBudget } from "data/queries/budget";
 import { useRouter } from "next/router";
 import { PropsWithChildren, useEffect } from "react";
 
-const AppLayout = ({ children }: PropsWithChildren) => {
+const BudgetLayout = ({ children }: PropsWithChildren) => {
   const authStatus = useAuthStatus();
   const router = useRouter();
 
+  const { isSuccess: isBudgetLoaded } = useBudget();
+
   useEffect(() => {
     if (authStatus === AuthStatus.Unauthenticated) {
-      router.push("/login");
+      router.push(routes.login);
     }
   }, [authStatus]);
 
-  if (authStatus !== AuthStatus.Authenticated) {
+  if (authStatus !== AuthStatus.Authenticated || !isBudgetLoaded) {
     return (
-      <Center h="full">
+      <Center h="100vh">
         <Spinner size="xl" />
       </Center>
     );
   }
 
   return (
-    <Flex h="full">
+    <Flex minH="100vh">
       <Sidebar />
       <Flex p={4}>{children}</Flex>
     </Flex>
   );
 };
 
-export default AppLayout;
+export default BudgetLayout;

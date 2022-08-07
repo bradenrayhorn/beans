@@ -7,20 +7,24 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Tag,
   useStyleConfig,
 } from "@chakra-ui/react";
+import { useBudget } from "data/queries/budget";
 import Link from "next/link";
 import { useUser } from "./AuthProvider";
 
 const Sidebar = () => {
   const user = useUser();
   const styles = useStyleConfig("Sidebar");
+  const { budget } = useBudget();
 
   return (
-    <Flex __css={styles} p={4} h="full" w={56} boxShadow="md">
+    <Flex __css={styles} p={4} minH="100vh" w={56} boxShadow="md">
       <Flex direction="column">
         <Heading size="md">beans</Heading>
         <Divider my={3} />
+        <Tag>{budget.name}</Tag>
         <Link href="/app">home</Link>
         <Link href="/app/budget">budget</Link>
         <Link href="/app/accounts">accounts</Link>

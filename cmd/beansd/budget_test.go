@@ -40,5 +40,35 @@ func TestGetBudgets(t *testing.T) {
 	r = ta.GetRequest(t, "api/v1/budgets", &RequestOptions{SessionID: string(session.ID)})
 	assert.Equal(t, http.StatusOK, r.StatusCode)
 	assert.JSONEq(t, fmt.Sprintf(`{"data":[{"name":"%s","id":"%s"}]}`, "my budget", budget.ID), r.Body)
+}
 
+func TestCanGetBudget(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	user, session := ta.CreateUserAndSession(t)
+	budget := ta.CreateBudget(t, "my budget", user)
+	r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", budget.ID), &RequestOptions{SessionID: string(session.ID)})
+	assert.Equal(t, http.StatusOK, r.StatusCode)
+	assert.JSONEq(t, fmt.Sprintf(`{"data":{"name":"%s","id":"%s"}}`, "my budget", budget.ID), r.Body)
+}
+
+func TestCannotGetOtherUsersBudget(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	_, session := ta.CreateUserAndSession(t)
+	user2, _ := ta.CreateUserAndSession(t)
+	budget := ta.CreateBudget(t, "my budget", user2)
+	r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", budget.ID), &RequestOptions{SessionID: string(session.ID)})
+	assert.Equal(t, http.StatusForbidden, r.StatusCode)
+}
+
+func TestCannotGetNonExistantBudget(t *testing.T) {
+	ta := StartApplication(t)
+	defer ta.Stop(t)
+
+	_, session := ta.CreateUserAndSession(t)
+	r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", "bad-id"), &RequestOptions{SessionID: string(session.ID)})
+	assert.Equal(t, http.StatusNotFound, r.StatusCode)
 }

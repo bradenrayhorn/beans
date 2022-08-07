@@ -10,28 +10,11 @@ import {
 } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import PageCard from "components/PageCard";
-import type { GetServerSideProps, NextPage } from "next";
+import type { NextPage } from "next";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
-import ky from "ky";
-import { buildQueries, queries } from "constants/queries";
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const client = ky.extend({ prefixUrl: "http://localhost:8000" });
-
-  try {
-    await buildQueries(client).me({ cookie: context.req.headers.cookie });
-    // user is logged in if get me was success
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/app",
-      },
-    };
-  } catch {}
-
-  return { props: {} };
-};
+import { queries } from "constants/queries";
+import { routes } from "constants/routes";
 
 const Login: NextPage = () => {
   const toast = useToast();
@@ -45,7 +28,7 @@ const Login: NextPage = () => {
   // TODO search react query + axios cancellation
   const mutation = useMutation(queries.login, {
     onSuccess: () => {
-      router.push("/app");
+      router.push(routes.defaultAfterAuth);
     },
   });
 

@@ -15,7 +15,6 @@ type Budget struct {
 type BudgetsUser struct {
 	BudgetID string
 	UserID   string
-	Index    interface{}
 }
 
 type User struct {

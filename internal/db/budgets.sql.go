@@ -48,6 +48,30 @@ func (q *Queries) GetBudget(ctx context.Context, id string) (Budget, error) {
 	return i, err
 }
 
+const getBudgetUserIDs = `-- name: GetBudgetUserIDs :many
+SELECT user_id from budgets_users WHERE budget_id = $1
+`
+
+func (q *Queries) GetBudgetUserIDs(ctx context.Context, budgetID string) ([]string, error) {
+	rows, err := q.db.Query(ctx, getBudgetUserIDs, budgetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var user_id string
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getBudgetsForUser = `-- name: GetBudgetsForUser :many
 SELECT budgets.id, budgets.name, budgets.created_at FROM budgets
 JOIN budgets_users ON budgets_users.budget_id = budgets.id

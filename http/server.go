@@ -51,6 +51,7 @@ func NewServer(br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserR
 			r.Use(s.authenticate)
 			r.Post("/", s.handleBudgetCreate())
 			r.Get("/", s.handleBudgetGetAll())
+			r.Get("/{budgetID}", s.handleBudgetGet())
 		})
 	})
 

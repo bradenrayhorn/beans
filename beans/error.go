@@ -5,6 +5,7 @@ const (
 	EINVALID      = "invalid"
 	ENOTFOUND     = "not_found"
 	EUNAUTHORIZED = "unauthorized"
+	EFORBIDDEN    = "forbidden"
 )
 
 var (
@@ -12,6 +13,7 @@ var (
 	ErrorInvalid      = &beansError{code: EINVALID, msg: "Invalid data provided"}
 	ErrorNotFound     = &beansError{code: ENOTFOUND, msg: "Not found"}
 	ErrorUnauthorized = &beansError{code: EUNAUTHORIZED, msg: "Not authenticated"}
+	ErrorForbidden    = &beansError{code: EFORBIDDEN, msg: "Forbidden"}
 )
 
 var codeToError = map[string]*beansError{
@@ -19,6 +21,7 @@ var codeToError = map[string]*beansError{
 	EINVALID:      ErrorInvalid,
 	ENOTFOUND:     ErrorNotFound,
 	EUNAUTHORIZED: ErrorUnauthorized,
+	EFORBIDDEN:    ErrorForbidden,
 }
 
 func NewError(code string, msg string) Error {

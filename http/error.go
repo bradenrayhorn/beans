@@ -14,6 +14,7 @@ var codeToHTTPStatus = map[string]int{
 	beans.EINVALID:      http.StatusUnprocessableEntity,
 	beans.ENOTFOUND:     http.StatusNotFound,
 	beans.EUNAUTHORIZED: http.StatusUnauthorized,
+	beans.EFORBIDDEN:    http.StatusForbidden,
 }
 
 func Error(w http.ResponseWriter, err error) {

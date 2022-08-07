@@ -9,6 +9,19 @@ import (
 type Budget struct {
 	ID   ID
 	Name BudgetName
+
+	// Must be explicitly loaded.
+	UserIDs []UserID
+}
+
+func (b *Budget) UserHasAccess(userID UserID) bool {
+	for _, id := range b.UserIDs {
+		if id == userID {
+			return true
+		}
+	}
+
+	return false
 }
 
 type BudgetName string
@@ -26,6 +39,7 @@ func (n BudgetName) Validate() error {
 
 type BudgetRepository interface {
 	Create(ctx context.Context, id ID, name BudgetName, userID UserID) error
+	// Gets budget by ID. Attaches UserIDs field.
 	Get(ctx context.Context, id ID) (*Budget, error)
 	GetBudgetsForUser(ctx context.Context, userID UserID) ([]*Budget, error)
 }

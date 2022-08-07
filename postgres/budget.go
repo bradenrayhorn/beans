@@ -2,9 +2,12 @@ package postgres
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -42,12 +45,31 @@ func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.B
 func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget, error) {
 	budget, err := r.db.GetBudget(ctx, id.String())
 	if err != nil {
-		return nil, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			fmt.Println("err not foudn")
+			return nil, beans.WrapError(err, beans.ErrorNotFound)
+		}
+		return nil, err
+	}
+
+	// load users
+	userIDStrings, err := r.db.GetBudgetUserIDs(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
+	userIDs := make([]beans.UserID, len(userIDStrings))
+	for _, v := range userIDStrings {
+		userID, err := beans.UserIDFromString(v)
+		if err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
 	}
 
 	return &beans.Budget{
-		ID:   id,
-		Name: beans.BudgetName(budget.Name),
+		ID:      id,
+		Name:    beans.BudgetName(budget.Name),
+		UserIDs: userIDs,
 	}, nil
 }
 
