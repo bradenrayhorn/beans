@@ -1,3 +1,4 @@
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
   Button,
   Divider,
@@ -9,10 +10,19 @@ import {
   MenuList,
   Tag,
   useStyleConfig,
+  VStack,
 } from "@chakra-ui/react";
+import { routes } from "constants/routes";
 import { useBudget } from "data/queries/budget";
 import Link from "next/link";
 import { useUser } from "./AuthProvider";
+
+const links = [
+  { name: "home", pathname: routes.budget.index },
+  { name: "budget", pathname: routes.budget.budget },
+  { name: "accounts", pathname: routes.budget.accounts },
+  { name: "settings", pathname: routes.budget.settings },
+];
 
 const Sidebar = () => {
   const user = useUser();
@@ -24,15 +34,38 @@ const Sidebar = () => {
       <Flex direction="column">
         <Heading size="md">beans</Heading>
         <Divider my={3} />
-        <Tag>{budget.name}</Tag>
-        <Link href="/app">home</Link>
-        <Link href="/app/budget">budget</Link>
-        <Link href="/app/accounts">accounts</Link>
+        <Link passHref href={routes.budget.noneSelected}>
+          <Button as="a" leftIcon={<ArrowBackIcon />} size="xs">
+            {budget.name}
+          </Button>
+        </Link>
+        <VStack align="flex-start" mt={6}>
+          {links.map(({ name, pathname }) => (
+            <Link
+              key={pathname}
+              href={{
+                pathname,
+                query: { budget: budget.id },
+              }}
+              passHref
+            >
+              <Button
+                as="a"
+                size="sm"
+                w="full"
+                justifyContent="flex-start"
+                variant="ghost"
+              >
+                {name}
+              </Button>
+            </Link>
+          ))}
+        </VStack>
       </Flex>
       <Flex direction="column">
         <Divider my={3} />
         <Menu>
-          <MenuButton as={Button} variant="ghost" textAlign="left">
+          <MenuButton as={Button} variant="ghost" size="sm" textAlign="left">
             {user?.username}
           </MenuButton>
           <MenuList>

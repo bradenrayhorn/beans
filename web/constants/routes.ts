@@ -7,6 +7,9 @@ export const routes = {
   budget: {
     noneSelected: "/budget",
     index: "/budget/[budget]",
+    budget: "/budget/[budget]/budget",
+    accounts: "/budget/[budget]/accounts",
+    settings: "/budget/[budget]/settings",
   },
 };
 
