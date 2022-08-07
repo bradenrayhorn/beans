@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type Account struct {
+	ID        string
+	Name      string
+	BudgetID  string
+	CreatedAt time.Time
+}
+
 type Budget struct {
 	ID        string
 	Name      string

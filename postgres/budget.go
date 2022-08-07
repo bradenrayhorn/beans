@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
@@ -46,7 +45,6 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 	budget, err := r.db.GetBudget(ctx, id.String())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			fmt.Println("err not foudn")
 			return nil, beans.WrapError(err, beans.ErrorNotFound)
 		}
 		return nil, err
@@ -57,7 +55,7 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 	if err != nil {
 		return nil, err
 	}
-	userIDs := make([]beans.UserID, len(userIDStrings))
+	userIDs := make([]beans.UserID, 0, len(userIDStrings))
 	for _, v := range userIDStrings {
 		userID, err := beans.UserIDFromString(v)
 		if err != nil {

@@ -15,6 +15,8 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
+	accountRepository beans.AccountRepository
+	accountService    beans.AccountService
 	budgetRepository  beans.BudgetRepository
 	budgetService     beans.BudgetService
 	userRepository    beans.UserRepository
@@ -22,10 +24,12 @@ type Server struct {
 	sessionRepository beans.SessionRepository
 }
 
-func NewServer(br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
+func NewServer(ar beans.AccountRepository, as beans.AccountService, br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
 	s := &Server{
 		router:            chi.NewRouter(),
 		sv:                &http.Server{},
+		accountRepository: ar,
+		accountService:    as,
 		budgetRepository:  br,
 		budgetService:     bs,
 		userRepository:    ur,
@@ -51,7 +55,12 @@ func NewServer(br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserR
 			r.Use(s.authenticate)
 			r.Post("/", s.handleBudgetCreate())
 			r.Get("/", s.handleBudgetGetAll())
-			r.Get("/{budgetID}", s.handleBudgetGet())
+			r.Group(func(r chi.Router) {
+				r.Use(s.verifyBudget)
+				r.Get("/{budgetID}", s.handleBudgetGet())
+				r.Get("/{budgetID}/accounts", s.handleAccountsGet())
+				r.Post("/{budgetID}/accounts", s.handleAccountCreate())
+			})
 		})
 	})
 

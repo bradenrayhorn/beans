@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,5 +71,8 @@ func TestCannotGetNonExistantBudget(t *testing.T) {
 
 	_, session := ta.CreateUserAndSession(t)
 	r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", "bad-id"), &RequestOptions{SessionID: string(session.ID)})
+	assert.Equal(t, http.StatusNotFound, r.StatusCode)
+
+	r = ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", ksuid.New()), &RequestOptions{SessionID: string(session.ID)})
 	assert.Equal(t, http.StatusNotFound, r.StatusCode)
 }

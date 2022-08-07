@@ -17,6 +17,8 @@ type Application struct {
 
 	config Config
 
+	accountRepository beans.AccountRepository
+	accountService    beans.AccountService
 	budgetRepository  beans.BudgetRepository
 	budgetService     beans.BudgetService
 	userRepository    beans.UserRepository
@@ -44,6 +46,8 @@ func (a *Application) Start() error {
 	}
 	a.pool = pool
 
+	a.accountRepository = postgres.NewAccountRepository(pool)
+	a.accountService = logic.NewAccountService(a.accountRepository)
 	a.budgetRepository = postgres.NewBudgetRepository(pool)
 	a.budgetService = logic.NewBudgetService(a.budgetRepository)
 	a.userRepository = postgres.NewUserRepository(pool)
@@ -51,6 +55,8 @@ func (a *Application) Start() error {
 	a.sessionRepository = inmem.NewSessionRepository()
 
 	a.httpServer = http.NewServer(
+		a.accountRepository,
+		a.accountService,
 		a.budgetRepository,
 		a.budgetService,
 		a.userRepository,
@@ -76,6 +82,10 @@ func (a *Application) Stop() error {
 
 func (a *Application) HttpServer() *http.Server {
 	return a.httpServer
+}
+
+func (a *Application) AccountRepository() beans.AccountRepository {
+	return a.accountRepository
 }
 
 func (a *Application) BudgetRepository() beans.BudgetRepository {

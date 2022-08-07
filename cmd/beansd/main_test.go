@@ -178,3 +178,10 @@ func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.
 	require.Nil(tb, err)
 	return &beans.Budget{ID: id, Name: beans.BudgetName(name)}
 }
+
+func (ta *TestApplication) CreateAccount(tb testing.TB, name string, budget *beans.Budget) *beans.Account {
+	id := beans.NewBeansID()
+	err := ta.application.AccountRepository().Create(context.Background(), id, beans.Name(name), budget.ID)
+	require.Nil(tb, err)
+	return &beans.Account{ID: id, Name: beans.Name(name), BudgetID: budget.ID}
+}

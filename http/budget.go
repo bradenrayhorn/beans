@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -58,6 +59,18 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 		Data responseBudget `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
+		budget := getBudget(r)
+
+		res := response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}
+
+		jsonResponse(w, res, http.StatusOK)
+	}
+}
+
+// middleware
+
+func (s *Server) verifyBudget(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		budgetID, err := beans.BeansIDFromString(chi.URLParam(r, "budgetID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
@@ -76,8 +89,11 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: responseBudget{ID: budgetID.String(), Name: string(budget.Name)}}
+		ctx := context.WithValue(r.Context(), "budget", budget)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
-		jsonResponse(w, res, http.StatusOK)
-	}
+func getBudget(r *http.Request) *beans.Budget {
+	return r.Context().Value("budget").(*beans.Budget)
 }
