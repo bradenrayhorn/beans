@@ -8,7 +8,6 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
-  Tag,
   useStyleConfig,
   VStack,
 } from "@chakra-ui/react";
@@ -33,7 +32,9 @@ const Sidebar = () => {
     <Flex
       __css={styles}
       p={4}
-      minH="100vh"
+      h="100vh"
+      position="sticky"
+      top="0"
       w={56}
       boxShadow="md"
       flexShrink="0"
