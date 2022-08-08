@@ -30,7 +30,14 @@ const Sidebar = () => {
   const { budget } = useBudget();
 
   return (
-    <Flex __css={styles} p={4} minH="100vh" w={56} boxShadow="md">
+    <Flex
+      __css={styles}
+      p={4}
+      minH="100vh"
+      w={56}
+      boxShadow="md"
+      flexShrink="0"
+    >
       <Flex direction="column">
         <Heading size="md">beans</Heading>
         <Divider my={3} />

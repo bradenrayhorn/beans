@@ -29,7 +29,9 @@ const BudgetLayout = ({ children }: PropsWithChildren) => {
   return (
     <Flex minH="100vh">
       <Sidebar />
-      <Flex p={4}>{children}</Flex>
+      <Flex p={4} w="full">
+        {children}
+      </Flex>
     </Flex>
   );
 };

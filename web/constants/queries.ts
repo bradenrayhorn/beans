@@ -1,6 +1,6 @@
-import ky from "ky";
+import ky, { HTTPError } from "ky";
 import { KyInstance } from "ky/distribution/types/ky";
-import { Budget, User } from "constants/types";
+import { Account, Budget, User } from "constants/types";
 
 const queryKeys = {
   login: "login",
@@ -8,6 +8,9 @@ const queryKeys = {
   budget: {
     get: "budget_get",
     getAll: "budget_get_all",
+  },
+  accounts: {
+    get: "accounts_get",
   },
 };
 
@@ -17,6 +20,10 @@ interface GetAllBudgetsResponse {
 
 interface GetBudgetResponse {
   data: Budget;
+}
+
+interface GetAccountsResponse {
+  data: Account[];
 }
 
 const buildQueries = (client: KyInstance) => {
@@ -56,9 +63,30 @@ const buildQueries = (client: KyInstance) => {
       create: ({ name }: { name: string }) =>
         client.post("api/v1/budgets", { json: { name } }),
     },
+
+    accounts: {
+      get: ({ budgetID }: { budgetID: string }) =>
+        client
+          .get(`api/v1/budgets/${budgetID}/accounts`)
+          .json<GetAccountsResponse>(),
+
+      create: ({ budgetID, name }: { budgetID: string; name: string }) =>
+        client.post(`api/v1/budgets/${budgetID}/accounts`, { json: { name } }),
+    },
   };
 };
 
 export const queries = buildQueries(ky.extend({ prefixUrl: "/" }));
+
+export function getHTTPErrorResponseMessage(error: unknown) {
+  if (!error) {
+    return "";
+  }
+  if (error instanceof HTTPError) {
+    return error.message;
+  }
+
+  return "Unknown error.";
+}
 
 export { buildQueries, queryKeys };
