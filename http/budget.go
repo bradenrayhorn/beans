@@ -59,7 +59,10 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 		Data responseBudget `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		budget := getBudget(r)
+		budget := s.getBudget(chi.URLParam(r, "budgetID"), w, r)
+		if budget == nil {
+			return
+		}
 
 		res := response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}
 
@@ -69,29 +72,38 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 
 // middleware
 
-func (s *Server) verifyBudget(next http.Handler) http.Handler {
+func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		budgetID, err := beans.BeansIDFromString(chi.URLParam(r, "budgetID"))
-		if err != nil {
-			Error(w, beans.WrapError(err, beans.ErrorNotFound))
-			return
-		}
-
-		budget, err := s.budgetRepository.Get(r.Context(), budgetID)
-
-		if err != nil {
-			Error(w, err)
-			return
-		}
-
-		if !budget.UserHasAccess(getUserID(r)) {
-			Error(w, beans.ErrorForbidden)
+		budget := s.getBudget(r.Header.Get("Budget-ID"), w, r)
+		if budget == nil {
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "budget", budget)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (s *Server) getBudget(id string, w http.ResponseWriter, r *http.Request) *beans.Budget {
+	budgetID, err := beans.BeansIDFromString(id)
+	if err != nil {
+		Error(w, beans.WrapError(err, beans.ErrorNotFound))
+		return nil
+	}
+
+	budget, err := s.budgetRepository.Get(r.Context(), budgetID)
+
+	if err != nil {
+		Error(w, err)
+		return nil
+	}
+
+	if !budget.UserHasAccess(getUserID(r)) {
+		Error(w, beans.ErrorForbidden)
+		return nil
+	}
+
+	return budget
 }
 
 func getBudget(r *http.Request) *beans.Budget {

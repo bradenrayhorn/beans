@@ -1,6 +1,7 @@
 import ky, { HTTPError } from "ky";
 import { KyInstance } from "ky/distribution/types/ky";
 import { Account, Budget, User } from "constants/types";
+import { useEffect, useState } from "react";
 
 const queryKeys = {
   login: "login",
@@ -64,16 +65,43 @@ const buildQueries = (client: KyInstance) => {
         client.post("api/v1/budgets", { json: { name } }),
     },
 
+    // accounts
     accounts: {
-      get: ({ budgetID }: { budgetID: string }) =>
-        client
-          .get(`api/v1/budgets/${budgetID}/accounts`)
-          .json<GetAccountsResponse>(),
+      get: () => client.get(`api/v1/accounts`).json<GetAccountsResponse>(),
 
-      create: ({ budgetID, name }: { budgetID: string; name: string }) =>
-        client.post(`api/v1/budgets/${budgetID}/accounts`, { json: { name } }),
+      create: ({ name }: { name: string }) =>
+        client.post(`api/v1/accounts`, { json: { name } }),
     },
   };
+};
+
+type Props = {
+  budgetID?: string;
+};
+const getQueries = ({ budgetID }: Props) => {
+  const client = ky.extend({
+    prefixUrl: "/",
+    hooks: {
+      beforeRequest: [
+        (request) => {
+          if (budgetID) {
+            request.headers.set("Budget-ID", budgetID);
+          }
+        },
+      ],
+    },
+  });
+  return buildQueries(client);
+};
+
+export const useQueries = ({ budgetID }: Props) => {
+  const [queries, setQueries] = useState(getQueries({ budgetID }));
+
+  useEffect(() => {
+    setQueries(getQueries({ budgetID }));
+  }, [budgetID]);
+
+  return queries;
 };
 
 export const queries = buildQueries(ky.extend({ prefixUrl: "/" }));

@@ -36,4 +36,11 @@ const BudgetLayout = ({ children }: PropsWithChildren) => {
   );
 };
 
+export const useBudgetID = () => {
+  const router = useRouter();
+  const { budget: budgetID } = router.query;
+
+  return budgetID as string;
+};
+
 export default BudgetLayout;

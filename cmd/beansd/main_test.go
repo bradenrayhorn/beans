@@ -97,7 +97,16 @@ func (ta *TestApplication) GetRequest(tb testing.TB, path string, options *Reque
 
 type RequestOptions struct {
 	SessionID string
+	BudgetID  string
 	Body      any
+}
+
+func newOptions(session *beans.Session, budget *beans.Budget) *RequestOptions {
+	return &RequestOptions{SessionID: string(session.ID), BudgetID: budget.ID.String()}
+}
+
+func newOptionsWithBody(session *beans.Session, budget *beans.Budget, body any) *RequestOptions {
+	return &RequestOptions{SessionID: string(session.ID), BudgetID: budget.ID.String(), Body: body}
 }
 
 type TestResponse struct {
@@ -130,6 +139,10 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 
 	if len(options.SessionID) > 0 {
 		request.AddCookie(&http.Cookie{Name: "session_id", Value: options.SessionID})
+	}
+
+	if len(options.BudgetID) > 0 {
+		request.Header.Add("Budget-ID", options.BudgetID)
 	}
 
 	client := http.Client{}

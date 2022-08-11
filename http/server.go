@@ -55,11 +55,16 @@ func NewServer(ar beans.AccountRepository, as beans.AccountService, br beans.Bud
 			r.Use(s.authenticate)
 			r.Post("/", s.handleBudgetCreate())
 			r.Get("/", s.handleBudgetGetAll())
-			r.Group(func(r chi.Router) {
-				r.Use(s.verifyBudget)
-				r.Get("/{budgetID}", s.handleBudgetGet())
-				r.Get("/{budgetID}/accounts", s.handleAccountsGet())
-				r.Post("/{budgetID}/accounts", s.handleAccountCreate())
+			r.Get("/{budgetID}", s.handleBudgetGet())
+		})
+
+		// endpoints that require budget header
+		r.Group(func(r chi.Router) {
+			r.Use(s.authenticate, s.parseBudgetHeader)
+
+			r.Route("/accounts", func(r chi.Router) {
+				r.Get("/", s.handleAccountsGet())
+				r.Post("/", s.handleAccountCreate())
 			})
 		})
 	})
