@@ -187,9 +187,9 @@ func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *be
 
 func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
 	id := beans.NewBeansID()
-	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.BudgetName(name), user.ID)
+	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.Name(name), user.ID)
 	require.Nil(tb, err)
-	return &beans.Budget{ID: id, Name: beans.BudgetName(name)}
+	return &beans.Budget{ID: id, Name: beans.Name(name)}
 }
 
 func (ta *TestApplication) CreateAccount(tb testing.TB, name string, budget *beans.Budget) *beans.Account {

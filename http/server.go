@@ -15,26 +15,40 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	accountRepository beans.AccountRepository
-	accountService    beans.AccountService
-	budgetRepository  beans.BudgetRepository
-	budgetService     beans.BudgetService
-	userRepository    beans.UserRepository
-	userService       beans.UserService
-	sessionRepository beans.SessionRepository
+	accountRepository     beans.AccountRepository
+	accountService        beans.AccountService
+	budgetRepository      beans.BudgetRepository
+	budgetService         beans.BudgetService
+	userRepository        beans.UserRepository
+	userService           beans.UserService
+	sessionRepository     beans.SessionRepository
+	transactionRepository beans.TransactionRepository
+	transactionService    beans.TransactionService
 }
 
-func NewServer(ar beans.AccountRepository, as beans.AccountService, br beans.BudgetRepository, bs beans.BudgetService, ur beans.UserRepository, us beans.UserService, sr beans.SessionRepository) *Server {
+func NewServer(
+	ar beans.AccountRepository,
+	as beans.AccountService,
+	br beans.BudgetRepository,
+	bs beans.BudgetService,
+	ur beans.UserRepository,
+	us beans.UserService,
+	sr beans.SessionRepository,
+	tr beans.TransactionRepository,
+	ts beans.TransactionService,
+) *Server {
 	s := &Server{
-		router:            chi.NewRouter(),
-		sv:                &http.Server{},
-		accountRepository: ar,
-		accountService:    as,
-		budgetRepository:  br,
-		budgetService:     bs,
-		userRepository:    ur,
-		userService:       us,
-		sessionRepository: sr,
+		router:                chi.NewRouter(),
+		sv:                    &http.Server{},
+		accountRepository:     ar,
+		accountService:        as,
+		budgetRepository:      br,
+		budgetService:         bs,
+		userRepository:        ur,
+		userService:           us,
+		sessionRepository:     sr,
+		transactionRepository: tr,
+		transactionService:    ts,
 	}
 
 	s.sv.Handler = s.router
@@ -65,6 +79,10 @@ func NewServer(ar beans.AccountRepository, as beans.AccountService, br beans.Bud
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/", s.handleAccountsGet())
 				r.Post("/", s.handleAccountCreate())
+			})
+
+			r.Route("/transactions", func(r chi.Router) {
+				r.Post("/", s.handleTransactionCreate())
 			})
 		})
 	})

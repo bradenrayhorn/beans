@@ -15,7 +15,7 @@ type responseBudget struct {
 
 func (s *Server) handleBudgetCreate() http.HandlerFunc {
 	type request struct {
-		Name beans.BudgetName `json:"name"`
+		Name beans.Name `json:"name"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

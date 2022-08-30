@@ -16,7 +16,7 @@ type UserService struct {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
-	if err := beans.Validate(username, password); err != nil {
+	if err := beans.ValidateFields(username.ValidatableField(), password.ValidatableField()); err != nil {
 		return nil, err
 	}
 
@@ -48,7 +48,7 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 }
 
 func (s *UserService) Login(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
-	if err := beans.Validate(username, password); err != nil {
+	if err := beans.ValidateFields(username.ValidatableField(), password.ValidatableField()); err != nil {
 		return nil, err
 	}
 

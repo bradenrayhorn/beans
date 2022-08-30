@@ -2,7 +2,6 @@ package beans
 
 import (
 	"context"
-	"errors"
 	"strings"
 )
 
@@ -19,20 +18,30 @@ func UserIDFromString(id string) (UserID, error) {
 
 type Username string
 
-func (u Username) Validate() error {
-	if strings.TrimSpace(string(u)) == "" {
-		return errors.New("username is required")
-	}
-	return nil
+func (u Username) ValidatableField() validatableField {
+	return Field("Username", Required(u), Max(u, 32, "characters"))
+}
+
+func (u Username) Empty() bool {
+	return strings.TrimSpace(string(u)) == ""
+}
+
+func (u Username) Length() int {
+	return len(u)
 }
 
 type Password string
 
-func (p Password) Validate() error {
-	if string(p) == "" {
-		return errors.New("password is required")
-	}
-	return nil
+func (p Password) ValidatableField() validatableField {
+	return Field("Password", Required(p), Max(p, 255, "characters"))
+}
+
+func (p Password) Empty() bool {
+	return string(p) == ""
+}
+
+func (p Password) Length() int {
+	return len(p)
 }
 
 type PasswordHash string

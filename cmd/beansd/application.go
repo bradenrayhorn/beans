@@ -17,13 +17,15 @@ type Application struct {
 
 	config Config
 
-	accountRepository beans.AccountRepository
-	accountService    beans.AccountService
-	budgetRepository  beans.BudgetRepository
-	budgetService     beans.BudgetService
-	userRepository    beans.UserRepository
-	userService       beans.UserService
-	sessionRepository beans.SessionRepository
+	accountRepository     beans.AccountRepository
+	accountService        beans.AccountService
+	budgetRepository      beans.BudgetRepository
+	budgetService         beans.BudgetService
+	userRepository        beans.UserRepository
+	userService           beans.UserService
+	sessionRepository     beans.SessionRepository
+	transactionRepository beans.TransactionRepository
+	transactionService    beans.TransactionService
 }
 
 func NewApplication(c Config) *Application {
@@ -53,6 +55,8 @@ func (a *Application) Start() error {
 	a.userRepository = postgres.NewUserRepository(pool)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 	a.sessionRepository = inmem.NewSessionRepository()
+	a.transactionRepository = postgres.NewTransactionRepository(pool)
+	a.transactionService = logic.NewTransactionService(a.transactionRepository)
 
 	a.httpServer = http.NewServer(
 		a.accountRepository,
@@ -62,6 +66,8 @@ func (a *Application) Start() error {
 		a.userRepository,
 		a.userService,
 		a.sessionRepository,
+		a.transactionRepository,
+		a.transactionService,
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)

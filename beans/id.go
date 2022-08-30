@@ -1,11 +1,33 @@
 package beans
 
-import "github.com/segmentio/ksuid"
+import (
+	"encoding/json"
+
+	"github.com/segmentio/ksuid"
+)
 
 type ID ksuid.KSUID
 
 func (id ID) String() string {
 	return ksuid.KSUID(id).String()
+}
+
+func (id ID) Empty() bool {
+	return ksuid.KSUID(id).IsNil()
+}
+
+func (id *ID) UnmarshalJSON(b []byte) error {
+	var idString string
+	if err := json.Unmarshal(b, &idString); err != nil {
+		return err
+	}
+
+	parsedID, err := BeansIDFromString(idString)
+	if err != nil {
+		return err
+	}
+	*id = parsedID
+	return nil
 }
 
 func BeansIDFromString(id string) (ID, error) {

@@ -15,7 +15,7 @@ func NewAccountService(ar beans.AccountRepository) *accountService {
 }
 
 func (s *accountService) Create(ctx context.Context, name beans.Name, budgetID beans.ID) (*beans.Account, error) {
-	if err := beans.Validate(name); err != nil {
+	if err := beans.ValidateFields(beans.Field("Account name", name)); err != nil {
 		return nil, err
 	}
 

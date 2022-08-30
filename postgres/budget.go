@@ -19,7 +19,7 @@ func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
 	return &BudgetRepository{db: db.New(pool), pool: pool}
 }
 
-func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.BudgetName, userID beans.UserID) error {
+func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.Name, userID beans.UserID) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 
 	return &beans.Budget{
 		ID:      id,
-		Name:    beans.BudgetName(budget.Name),
+		Name:    beans.Name(budget.Name),
 		UserIDs: userIDs,
 	}, nil
 }
@@ -84,7 +84,7 @@ func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.U
 			return budgets, err
 		}
 
-		budgets = append(budgets, &beans.Budget{ID: id, Name: beans.BudgetName(b.Name)})
+		budgets = append(budgets, &beans.Budget{ID: id, Name: beans.Name(b.Name)})
 	}
 
 	return budgets, nil

@@ -16,6 +16,9 @@ migration:
 gensql:
 	@sqlc generate
 
+genmock:
+	@mockery --name "(.*(Repository|Service))" --output="./internal/mocks/" --dir="./beans/"
+
 test:
 	@go test -v --count=1 ./... 
 
