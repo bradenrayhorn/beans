@@ -11,6 +11,7 @@ type Account struct {
 
 type AccountRepository interface {
 	Create(ctx context.Context, id ID, name Name, budgetID ID) error
+	Get(ctx context.Context, id ID) (*Account, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Account, error)
 }
 

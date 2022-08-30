@@ -21,7 +21,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.transactionService.Create(r.Context(), beans.TransactionCreate{
+		_, err := s.transactionService.Create(r.Context(), getBudget(r), beans.TransactionCreate{
 			AccountID: req.AccountID,
 			Amount:    req.Amount,
 			Date:      req.Date,

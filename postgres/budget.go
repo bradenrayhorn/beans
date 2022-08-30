@@ -2,11 +2,9 @@ package postgres
 
 import (
 	"context"
-	"errors"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -44,10 +42,7 @@ func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.N
 func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget, error) {
 	budget, err := r.db.GetBudget(ctx, id.String())
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, beans.WrapError(err, beans.ErrorNotFound)
-		}
-		return nil, err
+		return nil, mapPostgresError(err)
 	}
 
 	// load users

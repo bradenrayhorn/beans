@@ -56,7 +56,7 @@ func (a *Application) Start() error {
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
-	a.transactionService = logic.NewTransactionService(a.transactionRepository)
+	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository)
 
 	a.httpServer = http.NewServer(
 		a.accountRepository,

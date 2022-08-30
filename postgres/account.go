@@ -20,6 +20,22 @@ func (r *AccountRepository) Create(ctx context.Context, id beans.ID, name beans.
 	return r.db.CreateAccount(ctx, db.CreateAccountParams{ID: id.String(), Name: string(name), BudgetID: budgetID.String()})
 }
 
+func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (*beans.Account, error) {
+	account, err := r.db.GetAccount(ctx, id.String())
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+	budgetID, err := beans.BeansIDFromString(account.BudgetID)
+	if err != nil {
+		return nil, err
+	}
+	return &beans.Account{
+		ID:       id,
+		Name:     beans.Name(account.Name),
+		BudgetID: budgetID,
+	}, nil
+}
+
 func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Account, error) {
 	accounts := []*beans.Account{}
 	dbAccounts, err := r.db.GetAccountsForBudget(ctx, budgetID.String())

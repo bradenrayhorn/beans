@@ -37,5 +37,5 @@ func (t TransactionCreate) ValidateAll() error {
 }
 
 type TransactionService interface {
-	Create(ctx context.Context, t TransactionCreate) (*Transaction, error)
+	Create(ctx context.Context, activeBudget *Budget, t TransactionCreate) (*Transaction, error)
 }

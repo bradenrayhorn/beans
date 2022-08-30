@@ -15,22 +15,22 @@ type TransactionService struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, t
-func (_m *TransactionService) Create(ctx context.Context, t beans.TransactionCreate) (*beans.Account, error) {
-	ret := _m.Called(ctx, t)
+// Create provides a mock function with given fields: ctx, activeBudget, t
+func (_m *TransactionService) Create(ctx context.Context, activeBudget *beans.Budget, t beans.TransactionCreate) (*beans.Transaction, error) {
+	ret := _m.Called(ctx, activeBudget, t)
 
-	var r0 *beans.Account
-	if rf, ok := ret.Get(0).(func(context.Context, beans.TransactionCreate) *beans.Account); ok {
-		r0 = rf(ctx, t)
+	var r0 *beans.Transaction
+	if rf, ok := ret.Get(0).(func(context.Context, *beans.Budget, beans.TransactionCreate) *beans.Transaction); ok {
+		r0 = rf(ctx, activeBudget, t)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*beans.Account)
+			r0 = ret.Get(0).(*beans.Transaction)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, beans.TransactionCreate) error); ok {
-		r1 = rf(ctx, t)
+	if rf, ok := ret.Get(1).(func(context.Context, *beans.Budget, beans.TransactionCreate) error); ok {
+		r1 = rf(ctx, activeBudget, t)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -9,6 +9,7 @@ require github.com/go-chi/chi/v5 v5.0.7
 require (
 	github.com/cockroachdb/apd/v3 v3.1.0
 	github.com/jackc/pgconn v1.13.0
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgtype v1.12.0
 	github.com/jackc/pgx/v4 v4.17.0
 	github.com/orlangure/gnomock v0.21.0
