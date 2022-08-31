@@ -24,3 +24,7 @@ func (t *Date) UnmarshalJSON(b []byte) error {
 func (d Date) Empty() bool {
 	return !d.set
 }
+
+func (d Date) String() string {
+	return d.Format("2006-01-02")
+}
