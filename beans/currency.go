@@ -56,3 +56,21 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 	a.set = true
 	return nil
 }
+
+// max precision rule
+
+type validatableMaxPrecision struct {
+	Amount
+}
+
+func MaxPrecision(a Amount) validatableMaxPrecision {
+	return validatableMaxPrecision{a}
+}
+
+func (m validatableMaxPrecision) Validate() error {
+	if m.Amount.Exponent() < -2 {
+		return errors.New(":field must have at most 2 decimal points")
+	}
+
+	return nil
+}

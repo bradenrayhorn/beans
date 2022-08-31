@@ -35,6 +35,20 @@ func TestCreateTransaction(t *testing.T) {
 		transactionRepository.AssertNotCalled(t, "Create")
 	})
 
+	t.Run("cannot create transaction with amount more than 2 decimals", func(t *testing.T) {
+		transactionRepository := new(mocks.TransactionRepository)
+		accountRepository := new(mocks.AccountRepository)
+		svc := logic.NewTransactionService(transactionRepository, accountRepository)
+
+		c := beans.TransactionCreate{
+			AccountID: account.ID,
+			Amount:    beans.NewAmount(10, -3),
+			Date:      beans.NewDate(time.Now()),
+		}
+		_, err := svc.Create(context.Background(), budget, c)
+		testutils.AssertError(t, err, "Amount must have at most 2 decimal points.")
+	})
+
 	t.Run("create transaction", func(t *testing.T) {
 		transactionRepository := new(mocks.TransactionRepository)
 		accountRepository := new(mocks.AccountRepository)

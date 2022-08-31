@@ -30,7 +30,7 @@ type TransactionCreate struct {
 func (t TransactionCreate) ValidateAll() error {
 	return ValidateFields(
 		Field("Account ID", Required(t.AccountID)),
-		Field("Amount", Required(&t.Amount)),
+		Field("Amount", Required(&t.Amount), MaxPrecision(t.Amount)),
 		Field("Date", Required(t.Date)),
 		Field("Notes", Max(ValidatableString(t.Notes), 255, "characters")),
 	)
