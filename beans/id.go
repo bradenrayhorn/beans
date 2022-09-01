@@ -30,6 +30,13 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (id ID) MarshalJSON() ([]byte, error) {
+	if id.Empty() {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(id.String())
+}
+
 func BeansIDFromString(id string) (ID, error) {
 	if id == "" {
 		return ID(ksuid.Nil), nil

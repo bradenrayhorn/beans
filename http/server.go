@@ -19,6 +19,8 @@ type Server struct {
 	accountService        beans.AccountService
 	budgetRepository      beans.BudgetRepository
 	budgetService         beans.BudgetService
+	categoryRepository    beans.CategoryRepository
+	categoryService       beans.CategoryService
 	userRepository        beans.UserRepository
 	userService           beans.UserService
 	sessionRepository     beans.SessionRepository
@@ -31,6 +33,8 @@ func NewServer(
 	as beans.AccountService,
 	br beans.BudgetRepository,
 	bs beans.BudgetService,
+	cr beans.CategoryRepository,
+	cs beans.CategoryService,
 	ur beans.UserRepository,
 	us beans.UserService,
 	sr beans.SessionRepository,
@@ -44,6 +48,8 @@ func NewServer(
 		accountService:        as,
 		budgetRepository:      br,
 		budgetService:         bs,
+		categoryRepository:    cr,
+		categoryService:       cs,
 		userRepository:        ur,
 		userService:           us,
 		sessionRepository:     sr,
@@ -85,6 +91,16 @@ func NewServer(
 				r.Get("/", s.handleTransactionGetAll())
 				r.Post("/", s.handleTransactionCreate())
 			})
+
+			r.Route("/categories", func(r chi.Router) {
+				r.Get("/", s.handleCategoryGetAll())
+				r.Post("/", s.handleCategoryCreate())
+
+				r.Route("/groups", func(r chi.Router) {
+					r.Post("/", s.handleCategoryGroupCreate())
+				})
+			})
+
 		})
 	})
 

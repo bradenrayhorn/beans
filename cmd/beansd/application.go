@@ -21,6 +21,8 @@ type Application struct {
 	accountService        beans.AccountService
 	budgetRepository      beans.BudgetRepository
 	budgetService         beans.BudgetService
+	categoryRepository    beans.CategoryRepository
+	categoryService       beans.CategoryService
 	userRepository        beans.UserRepository
 	userService           beans.UserService
 	sessionRepository     beans.SessionRepository
@@ -52,6 +54,8 @@ func (a *Application) Start() error {
 	a.accountService = logic.NewAccountService(a.accountRepository)
 	a.budgetRepository = postgres.NewBudgetRepository(pool)
 	a.budgetService = logic.NewBudgetService(a.budgetRepository)
+	a.categoryRepository = postgres.NewCategoryRepository(pool)
+	a.categoryService = logic.NewCategoryService(a.categoryRepository)
 	a.userRepository = postgres.NewUserRepository(pool)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 	a.sessionRepository = inmem.NewSessionRepository()
@@ -63,6 +67,8 @@ func (a *Application) Start() error {
 		a.accountService,
 		a.budgetRepository,
 		a.budgetService,
+		a.categoryRepository,
+		a.categoryService,
 		a.userRepository,
 		a.userService,
 		a.sessionRepository,

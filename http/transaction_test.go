@@ -1,13 +1,8 @@
 package http
 
 import (
-	"bytes"
-	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -15,7 +10,6 @@ import (
 	"github.com/bradenrayhorn/beans/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTransaction(t *testing.T) {
@@ -35,7 +29,7 @@ func TestCreateTransaction(t *testing.T) {
 		call := transactionService.On("Create", mock.Anything, budget, mock.Anything).Return(&transaction, nil)
 		defer call.Unset()
 
-		resp := testHTTP(t, sv.handleTransactionCreate(), budget, nil, http.StatusOK)
+		resp := testutils.HTTP(t, sv.handleTransactionCreate(), budget, nil, http.StatusOK)
 		assert.JSONEq(t, resp, fmt.Sprintf(`{"data":{
     "id": "%s",
     "account_id": "%s",
@@ -57,7 +51,7 @@ func TestCreateTransaction(t *testing.T) {
 		}).Return(&transaction, nil)
 		defer call.Unset()
 
-		testHTTP(t, sv.handleTransactionCreate(), budget, fmt.Sprintf(`{
+		testutils.HTTP(t, sv.handleTransactionCreate(), budget, fmt.Sprintf(`{
       "account_id": "%s",
       "amount": 14.56,
       "date": "2022-08-29",
@@ -87,7 +81,7 @@ func TestGetTransactions(t *testing.T) {
 	call := transactionRepository.On("GetForBudget", mock.Anything, budget.ID).Return([]*beans.Transaction{transaction1, transaction2}, nil)
 	defer call.Unset()
 
-	resp := testHTTP(t, sv.handleTransactionGetAll(), budget, nil, http.StatusOK)
+	resp := testutils.HTTP(t, sv.handleTransactionGetAll(), budget, nil, http.StatusOK)
 	assert.JSONEq(t, resp, fmt.Sprintf(`{"data":[
     {
       "id": "%s",
@@ -110,23 +104,4 @@ func TestGetTransactions(t *testing.T) {
       "notes": null
     }
     ]}`, transaction1.ID, transaction1.AccountID, transaction2.ID, transaction2.AccountID))
-}
-
-func testHTTP(t testing.TB, f http.HandlerFunc, budget *beans.Budget, body any, status int) string {
-	var reqBody io.Reader
-	switch body.(type) {
-	case string:
-		reqBody = bytes.NewReader([]byte(body.(string)))
-	default:
-		reqBody = nil
-	}
-	req := httptest.NewRequest("", "/", reqBody)
-	req = req.WithContext(context.WithValue(req.Context(), "budget", budget))
-	w := httptest.NewRecorder()
-	f.ServeHTTP(w, req)
-	res := w.Result()
-	require.Equal(t, status, res.StatusCode)
-	data, err := ioutil.ReadAll(res.Body)
-	require.Nil(t, err)
-	return string(data)
 }
