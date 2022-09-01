@@ -60,4 +60,26 @@ func TestCategories(t *testing.T) {
 		require.Nil(t, categoryRepository.Create(context.Background(), category))
 		assertPgError(t, pgerrcode.UniqueViolation, categoryRepository.Create(context.Background(), category))
 	})
+
+	t.Run("group exists", func(t *testing.T) {
+		defer cleanup()
+		group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budgetID}
+		res, err := categoryRepository.GroupExists(context.Background(), budgetID, group.ID)
+		require.Nil(t, err)
+		require.False(t, res)
+
+		require.Nil(t, categoryRepository.CreateGroup(context.Background(), group))
+
+		res, err = categoryRepository.GroupExists(context.Background(), budgetID, group.ID)
+		require.Nil(t, err)
+		require.True(t, res)
+	})
+
+	t.Run("group exists checks budget id", func(t *testing.T) {
+		defer cleanup()
+		group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budgetID}
+		res, err := categoryRepository.GroupExists(context.Background(), beans.NewBeansID(), group.ID)
+		require.Nil(t, err)
+		require.False(t, res)
+	})
 }

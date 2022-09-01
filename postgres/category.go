@@ -69,3 +69,7 @@ func (r *categoryRepository) GetGroupsForBudget(ctx context.Context, budgetID be
 
 	return categoryGroups, nil
 }
+
+func (r *categoryRepository) GroupExists(ctx context.Context, budgetID beans.ID, id beans.ID) (bool, error) {
+	return r.db.CategoryGroupExists(ctx, db.CategoryGroupExistsParams{BudgetID: budgetID.String(), ID: id.String()})
+}
