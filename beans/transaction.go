@@ -14,10 +14,15 @@ type Transaction struct {
 	Notes  TransactionNotes
 }
 
-type TransactionNotes ValidatableString
+type TransactionNotes struct{ NullString }
+
+func NewTransactionNotes(string string) TransactionNotes {
+	return TransactionNotes{NullString: NewNullString(string)}
+}
 
 type TransactionRepository interface {
-	Create(ctx context.Context, id ID, accountID ID, amount Amount, date Date, notes TransactionNotes) error
+	Create(ctx context.Context, transaction *Transaction) error
+	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
 }
 
 type TransactionCreate struct {
@@ -32,7 +37,7 @@ func (t TransactionCreate) ValidateAll() error {
 		Field("Account ID", Required(t.AccountID)),
 		Field("Amount", Required(&t.Amount), MaxPrecision(t.Amount)),
 		Field("Date", Required(t.Date)),
-		Field("Notes", Max(ValidatableString(t.Notes), 255, "characters")),
+		Field("Notes", Max(t.Notes, 255, "characters")),
 	)
 }
 

@@ -2,6 +2,7 @@ package beans_test
 
 import (
 	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -21,6 +22,62 @@ func TestCanCreateNegativeAmount(t *testing.T) {
 
 	assert.Equal(t, int64(-55), amount.Coefficient().Int64())
 	assert.Equal(t, int32(-1), amount.Exponent())
+}
+
+func TestAmountJSON(t *testing.T) {
+	t.Run("marshal", func(t *testing.T) {
+		var tests = []struct {
+			name     string
+			amount   beans.Amount
+			expected string
+		}{
+			{"blank", beans.Amount{}, `null`},
+			{"negative", beans.NewAmount(-5, 0), `{"coefficient": -5, "exponent": 0}`},
+			{"positive", beans.NewAmount(5, 0), `{"coefficient": 5, "exponent": 0}`},
+			{"decimal", beans.NewAmount(55, -1), `{"coefficient": 55, "exponent": -1}`},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				r, err := json.Marshal(test.amount)
+				require.Nil(t, err)
+				assert.JSONEq(t, test.expected, string(r))
+			})
+		}
+	})
+
+	t.Run("unmarshal", func(t *testing.T) {
+		var tests = []struct {
+			name     string
+			json     string
+			expected string
+		}{
+			{"blank", `null`, ``},
+			{"negative", `-50.12`, `-50.12`},
+			{"positive", `60.76`, `60.76`},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				var amount beans.Amount
+				err := json.Unmarshal([]byte(test.json), &amount)
+				require.Nil(t, err)
+				assert.Equal(t, test.expected, amount.String())
+			})
+		}
+	})
+}
+
+func TestNewAmountWithBigInt(t *testing.T) {
+	t.Run("negative value", func(t *testing.T) {
+		amount := beans.NewAmountWithBigInt(big.NewInt(-57), -1)
+		assert.Equal(t, "-5.7", amount.String())
+	})
+
+	t.Run("positive value", func(t *testing.T) {
+		amount := beans.NewAmountWithBigInt(big.NewInt(57), -1)
+		assert.Equal(t, "5.7", amount.String())
+	})
 }
 
 // empty tests

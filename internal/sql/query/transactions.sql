@@ -3,6 +3,9 @@ INSERT INTO transactions (
   id, account_id, date, amount, notes
 ) VALUES ($1, $2, $3, $4, $5);
 
--- name: GetTransactionsForAccount :many
-SELECT * from transactions WHERE account_id = $1;
+-- name: GetTransactionsForBudget :many
+SELECT transactions.* from transactions
+JOIN accounts
+  ON accounts.id = transactions.account_id
+  AND accounts.budget_id = $1;
 

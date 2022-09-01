@@ -38,12 +38,15 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
-const getTransactionsForAccount = `-- name: GetTransactionsForAccount :many
-SELECT id, account_id, payee_id, category_id, date, amount, notes, created_at from transactions WHERE account_id = $1
+const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
+SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at from transactions
+JOIN accounts
+  ON accounts.id = transactions.account_id
+  AND accounts.budget_id = $1
 `
 
-func (q *Queries) GetTransactionsForAccount(ctx context.Context, accountID string) ([]Transaction, error) {
-	rows, err := q.db.Query(ctx, getTransactionsForAccount, accountID)
+func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]Transaction, error) {
+	rows, err := q.db.Query(ctx, getTransactionsForBudget, budgetID)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
+	"strings"
 
 	"github.com/cockroachdb/apd/v3"
 )
@@ -15,6 +16,12 @@ type Amount struct {
 
 func NewAmount(coefficient int64, exponent int32) Amount {
 	return Amount{decimal: *apd.New(coefficient, exponent), set: true}
+}
+
+func NewAmountWithBigInt(coefficient *big.Int, exponent int32) Amount {
+	bigInt := &apd.BigInt{}
+	bigInt.SetMathBigInt(coefficient)
+	return Amount{decimal: *apd.NewWithBigInt(bigInt, exponent), set: true}
 }
 
 func (a *Amount) Exponent() int32 {
@@ -31,6 +38,9 @@ func (a *Amount) Coefficient() *big.Int {
 }
 
 func (a *Amount) String() string {
+	if !a.set {
+		return ""
+	}
 	return a.decimal.Text('f')
 }
 
@@ -42,6 +52,9 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 	var amountString json.Number
 	if err := json.Unmarshal(b, &amountString); err != nil {
 		return err
+	}
+	if strings.TrimSpace(amountString.String()) == "" {
+		return nil
 	}
 
 	dec, condition, err := apd.NewFromString(amountString.String())
@@ -55,6 +68,17 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 	a.decimal = *dec
 	a.set = true
 	return nil
+}
+
+func (a Amount) MarshalJSON() ([]byte, error) {
+	type res struct {
+		Coefficient *big.Int `json:"coefficient"`
+		Exponent    int32    `json:"exponent"`
+	}
+	if !a.set {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(res{Coefficient: a.Coefficient(), Exponent: a.Exponent()})
 }
 
 // max precision rule

@@ -6,17 +6,22 @@ import (
 	"github.com/bradenrayhorn/beans/beans"
 )
 
-type amountResponse struct {
-	Coefficient int64 `json:"coefficient"`
-	Exponent    int64 `json:"exponent"`
+type transactionResponse struct {
+	ID        string                 `json:"id"`
+	AccountID string                 `json:"account_id"`
+	Amount    beans.Amount           `json:"amount"`
+	Date      string                 `json:"date"`
+	Notes     beans.TransactionNotes `json:"notes"`
 }
 
-type transactionResponse struct {
-	ID        string         `json:"id"`
-	AccountID string         `json:"account_id"`
-	Amount    amountResponse `json:"amount"`
-	Date      string         `json:"date"`
-	Notes     string         `json:"notes"`
+func responseFromTransaction(transaction *beans.Transaction) transactionResponse {
+	return transactionResponse{
+		ID:        transaction.ID.String(),
+		AccountID: transaction.AccountID.String(),
+		Amount:    transaction.Amount,
+		Date:      transaction.Date.String(),
+		Notes:     transaction.Notes,
+	}
 }
 
 func (s *Server) handleTransactionCreate() http.HandlerFunc {
@@ -50,13 +55,27 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: transactionResponse{
-			ID:        transaction.ID.String(),
-			AccountID: transaction.AccountID.String(),
-			Amount:    amountResponse{Coefficient: transaction.Amount.Coefficient().Int64(), Exponent: int64(transaction.Amount.Exponent())},
-			Date:      transaction.Date.String(),
-			Notes:     string(transaction.Notes),
-		}}
+		res := response{Data: responseFromTransaction(transaction)}
+		jsonResponse(w, res, http.StatusOK)
+	}
+}
+
+func (s *Server) handleTransactionGetAll() http.HandlerFunc {
+	type response struct {
+		Data []transactionResponse `json:"data"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		transactions, err := s.transactionRepository.GetForBudget(r.Context(), getBudget(r).ID)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		res := response{Data: make([]transactionResponse, len(transactions))}
+		for i, t := range transactions {
+			res.Data[i] = responseFromTransaction(t)
+		}
 
 		jsonResponse(w, res, http.StatusOK)
 	}

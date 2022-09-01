@@ -3,6 +3,7 @@ package logic_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -49,7 +50,7 @@ func TestCreateTransaction(t *testing.T) {
 		testutils.AssertError(t, err, "Amount must have at most 2 decimal points.")
 	})
 
-	t.Run("create transaction", func(t *testing.T) {
+	t.Run("can create", func(t *testing.T) {
 		transactionRepository := new(mocks.TransactionRepository)
 		accountRepository := new(mocks.AccountRepository)
 		svc := logic.NewTransactionService(transactionRepository, accountRepository)
@@ -58,18 +59,23 @@ func TestCreateTransaction(t *testing.T) {
 			AccountID: account.ID,
 			Amount:    beans.NewAmount(10, 1),
 			Date:      beans.NewDate(time.Now()),
-			Notes:     "My notes",
+			Notes:     beans.NewTransactionNotes("My Notes"),
 		}
-		transactionRepository.On("Create", mock.Anything, mock.Anything, c.AccountID, c.Amount, c.Date, c.Notes).Return(nil)
+		var transaction *beans.Transaction
+		transactionRepository.On("Create", mock.Anything, mock.MatchedBy(func(tr *beans.Transaction) bool {
+			require.Equal(t, account.ID, tr.AccountID)
+			require.Equal(t, c.Amount, tr.Amount)
+			require.Equal(t, c.Date, tr.Date)
+			require.Equal(t, c.Notes, tr.Notes)
+			transaction = tr
+			return true
+		})).Return(nil)
 		accountRepository.On("Get", mock.Anything, account.ID).Return(account, nil)
 
-		transaction, err := svc.Create(context.Background(), budget, c)
+		createdTransaction, err := svc.Create(context.Background(), budget, c)
 		require.Nil(t, err)
 		assert.False(t, transaction.ID.Empty())
-		assert.Equal(t, c.AccountID, transaction.AccountID)
-		assert.Equal(t, c.Amount, transaction.Amount)
-		assert.Equal(t, c.Date, transaction.Date)
-		assert.Equal(t, c.Notes, transaction.Notes)
+		assert.True(t, reflect.DeepEqual(transaction, createdTransaction))
 	})
 
 	t.Run("cannot create after account error", func(t *testing.T) {
@@ -81,7 +87,7 @@ func TestCreateTransaction(t *testing.T) {
 			AccountID: account.ID,
 			Amount:    beans.NewAmount(10, 1),
 			Date:      beans.NewDate(time.Now()),
-			Notes:     "My notes",
+			Notes:     beans.NewTransactionNotes("My Notes"),
 		}
 		accountRepository.On("Get", mock.Anything, c.AccountID).Return(nil, errors.New("account not found"))
 
@@ -99,7 +105,7 @@ func TestCreateTransaction(t *testing.T) {
 			AccountID: beans.NewBeansID(),
 			Amount:    beans.NewAmount(10, 1),
 			Date:      beans.NewDate(time.Now()),
-			Notes:     "My notes",
+			Notes:     beans.NewTransactionNotes("My notes"),
 		}
 		badAccount := &beans.Account{
 			ID:       c.AccountID,

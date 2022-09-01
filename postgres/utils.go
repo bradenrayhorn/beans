@@ -17,6 +17,17 @@ func amountToNumeric(a beans.Amount) pgtype.Numeric {
 	}
 }
 
+func numericToAmount(n pgtype.Numeric) (beans.Amount, error) {
+	if n.Status != pgtype.Present {
+		return beans.Amount{}, errors.New("invalid amount")
+	}
+	if n.NaN {
+		return beans.Amount{}, errors.New("invalid amount")
+	}
+
+	return beans.NewAmountWithBigInt(n.Int, n.Exp), nil
+}
+
 func mapPostgresError(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return beans.WrapError(err, beans.ErrorNotFound)

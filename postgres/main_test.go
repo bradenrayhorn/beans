@@ -82,3 +82,10 @@ func makeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.Use
 	require.Nil(tb, err)
 	return id
 }
+
+func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
+	id := beans.NewBeansID()
+	err := postgres.NewAccountRepository(pool).Create(context.Background(), id, beans.Name(name), budgetID)
+	require.Nil(tb, err)
+	return id
+}

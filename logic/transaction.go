@@ -28,17 +28,17 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 		return nil, beans.NewError(beans.EINVALID, "Invalid Account ID")
 	}
 
-	transactionID := beans.NewBeansID()
-	err = s.transactionRepository.Create(ctx, transactionID, data.AccountID, data.Amount, data.Date, data.Notes)
-	if err != nil {
-		return nil, err
-	}
-
-	return &beans.Transaction{
-		ID:        transactionID,
+	transaction := &beans.Transaction{
+		ID:        beans.NewBeansID(),
 		AccountID: data.AccountID,
 		Amount:    data.Amount,
 		Date:      data.Date,
 		Notes:     data.Notes,
-	}, nil
+	}
+	err = s.transactionRepository.Create(ctx, transaction)
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
 }
