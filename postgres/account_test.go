@@ -6,7 +6,6 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,10 +40,7 @@ func TestAccounts(t *testing.T) {
 		require.Nil(t, err)
 
 		err = accountRepository.Create(context.Background(), accountID, "Account1", budgetID)
-		require.NotNil(t, err)
-		var pgErr *pgconn.PgError
-		require.ErrorAs(t, err, &pgErr)
-		assert.Equal(t, pgerrcode.UniqueViolation, pgErr.Code)
+		assertPgError(t, pgerrcode.UniqueViolation, err)
 	})
 
 	t.Run("cannot get fictitious account", func(t *testing.T) {

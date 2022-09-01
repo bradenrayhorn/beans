@@ -31,6 +31,10 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 }
 
 func BeansIDFromString(id string) (ID, error) {
+	if id == "" {
+		return ID(ksuid.Nil), nil
+	}
+
 	parsedID, err := ksuid.Parse(id)
 	if err != nil {
 		return ID(ksuid.Nil), err

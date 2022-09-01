@@ -10,6 +10,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
@@ -67,6 +68,13 @@ func getMigrationQueries(tb testing.TB) string {
 	}
 
 	return queries
+}
+
+func assertPgError(tb testing.TB, code string, err error) {
+	require.NotNil(tb, err)
+	var pgErr *pgconn.PgError
+	require.ErrorAs(tb, err, &pgErr)
+	require.Equal(tb, code, pgErr.Code)
 }
 
 func makeUser(tb testing.TB, pool *pgxpool.Pool, username string) beans.UserID {

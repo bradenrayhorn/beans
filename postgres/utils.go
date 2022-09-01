@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -26,6 +27,14 @@ func numericToAmount(n pgtype.Numeric) (beans.Amount, error) {
 	}
 
 	return beans.NewAmountWithBigInt(n.Int, n.Exp), nil
+}
+
+func idToNullString(id beans.ID) sql.NullString {
+	if id.Empty() {
+		return sql.NullString{String: "", Valid: false}
+	} else {
+		return sql.NullString{String: id.String(), Valid: true}
+	}
 }
 
 func mapPostgresError(err error) error {

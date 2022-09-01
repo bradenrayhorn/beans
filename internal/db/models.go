@@ -33,7 +33,7 @@ type Category struct {
 	ID        string
 	Name      string
 	BudgetID  string
-	GroupID   sql.NullString
+	GroupID   string
 	CreatedAt time.Time
 }
 
