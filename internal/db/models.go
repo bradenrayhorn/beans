@@ -44,6 +44,13 @@ type CategoryGroup struct {
 	CreatedAt time.Time
 }
 
+type Month struct {
+	ID        string
+	BudgetID  string
+	Date      time.Time
+	CreatedAt time.Time
+}
+
 type Payee struct {
 	ID        string
 	Name      string
