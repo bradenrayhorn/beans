@@ -18,6 +18,10 @@ func NewAmount(coefficient int64, exponent int32) Amount {
 	return Amount{decimal: *apd.New(coefficient, exponent), set: true}
 }
 
+func NewEmptyAmount() Amount {
+	return Amount{decimal: *apd.New(0, 0), set: false}
+}
+
 func NewAmountWithBigInt(coefficient *big.Int, exponent int32) Amount {
 	bigInt := &apd.BigInt{}
 	bigInt.SetMathBigInt(coefficient)

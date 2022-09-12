@@ -10,15 +10,23 @@ import (
 )
 
 func amountToNumeric(a beans.Amount) pgtype.Numeric {
+	status := pgtype.Present
+	if a.Empty() {
+		status = pgtype.Null
+	}
 	return pgtype.Numeric{
 		Int:              a.Coefficient(),
 		Exp:              a.Exponent(),
-		Status:           pgtype.Present,
+		Status:           status,
 		InfinityModifier: pgtype.None,
 	}
 }
 
 func numericToAmount(n pgtype.Numeric) (beans.Amount, error) {
+	if n.Status == pgtype.Null {
+		return beans.NewEmptyAmount(), nil
+	}
+
 	if n.Status != pgtype.Present {
 		return beans.Amount{}, errors.New("invalid amount")
 	}

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
@@ -94,6 +95,27 @@ func makeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.Use
 func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
 	id := beans.NewBeansID()
 	err := postgres.NewAccountRepository(pool).Create(context.Background(), id, beans.Name(name), budgetID)
+	require.Nil(tb, err)
+	return id
+}
+
+func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID) beans.ID {
+	id := beans.NewBeansID()
+	err := postgres.NewMonthRepository(pool).Create(context.Background(), &beans.Month{ID: id, BudgetID: budgetID, Date: beans.NewDate(time.Now())})
+	require.Nil(tb, err)
+	return id
+}
+
+func makeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
+	id := beans.NewBeansID()
+	err := postgres.NewCategoryRepository(pool).CreateGroup(context.Background(), &beans.CategoryGroup{ID: id, BudgetID: budgetID, Name: beans.Name(name)})
+	require.Nil(tb, err)
+	return id
+}
+
+func makeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) beans.ID {
+	id := beans.NewBeansID()
+	err := postgres.NewCategoryRepository(pool).Create(context.Background(), &beans.Category{ID: id, BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)})
 	require.Nil(tb, err)
 	return id
 }

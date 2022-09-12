@@ -51,6 +51,14 @@ type Month struct {
 	CreatedAt time.Time
 }
 
+type MonthCategory struct {
+	ID         string
+	MonthID    string
+	CategoryID string
+	Amount     pgtype.Numeric
+	CreatedAt  time.Time
+}
+
 type Payee struct {
 	ID        string
 	Name      string
