@@ -4,6 +4,7 @@ import {
   Button,
   ChakraProvider,
   extendTheme,
+  IconButton,
   useColorMode,
 } from "@chakra-ui/react";
 import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
@@ -25,6 +26,7 @@ import {
   routes,
   unprotectedRoutes,
 } from "constants/routes";
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 
 const PageCard = {
   baseStyle: (props: StyleFunctionProps) => ({
@@ -83,7 +85,7 @@ function MyApp({ Component, pageProps, initialUser }: AppPropsWithLayout) {
           <ChakraProvider theme={theme}>
             <AuthProvider initialUser={initialUser}>
               {getLayout(<Component {...pageProps} />)}
-              <Tog />
+              <ColorModeToggle />
             </AuthProvider>
           </ChakraProvider>
         </Hydrate>
@@ -92,12 +94,18 @@ function MyApp({ Component, pageProps, initialUser }: AppPropsWithLayout) {
   );
 }
 
-const Tog = () => {
-  const { toggleColorMode } = useColorMode();
+const ColorModeToggle = () => {
+  const { colorMode, toggleColorMode } = useColorMode();
   return (
-    <Button onClick={toggleColorMode} position="fixed" bottom="2" right="2">
-      T
-    </Button>
+    <IconButton
+      onClick={toggleColorMode}
+      position="fixed"
+      bottom="2"
+      right="2"
+      aria-label="Toggle color mode"
+      variant="ghost"
+      icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />}
+    />
   );
 };
 
