@@ -13,7 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func HTTP(t testing.TB, f http.HandlerFunc, budget *beans.Budget, body any, status int) string {
+func HTTP(t testing.TB, f http.HandlerFunc, user *beans.User, budget *beans.Budget, body any, status int) string {
+	return HTTPWithContext(t, f, func(ctx context.Context) context.Context { return ctx }, user, budget, body, status)
+}
+
+func HTTPWithContext(t testing.TB, f http.HandlerFunc, withContext func(context.Context) context.Context, user *beans.User, budget *beans.Budget, body any, status int) string {
 	var reqBody io.Reader
 	switch body.(type) {
 	case string:
@@ -22,7 +26,9 @@ func HTTP(t testing.TB, f http.HandlerFunc, budget *beans.Budget, body any, stat
 		reqBody = nil
 	}
 	req := httptest.NewRequest("", "/", reqBody)
+	req = req.WithContext(withContext(req.Context()))
 	req = req.WithContext(context.WithValue(req.Context(), "budget", budget))
+	req = req.WithContext(context.WithValue(req.Context(), "userID", user.ID))
 	w := httptest.NewRecorder()
 	f.ServeHTTP(w, req)
 	res := w.Result()

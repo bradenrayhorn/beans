@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/internal/testutils"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgerrcode"
 	"github.com/stretchr/testify/assert"
@@ -22,11 +23,11 @@ func TestMonthCategory(t *testing.T) {
 	budgetID := makeBudget(t, pool, "budget", userID)
 	groupID := makeCategoryGroup(t, pool, "group", budgetID)
 	categoryID := makeCategory(t, pool, "group", groupID, budgetID)
-	monthID := makeMonth(t, pool, budgetID)
-	monthID2 := makeMonth(t, pool, budgetID)
+	monthID := makeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-05-01"))
+	monthID2 := makeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
 
 	cleanup := func() {
-		pool.Exec(context.Background(), "truncate month_categories;")
+		pool.Exec(context.Background(), "truncate month_categories cascade;")
 	}
 
 	t.Run("can create", func(t *testing.T) {

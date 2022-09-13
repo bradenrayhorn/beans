@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
@@ -99,9 +98,9 @@ func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.
 	return id
 }
 
-func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID) beans.ID {
+func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) beans.ID {
 	id := beans.NewBeansID()
-	err := postgres.NewMonthRepository(pool).Create(context.Background(), &beans.Month{ID: id, BudgetID: budgetID, Date: beans.NewDate(time.Now())})
+	err := postgres.NewMonthRepository(pool).Create(context.Background(), &beans.Month{ID: id, BudgetID: budgetID, Date: date})
 	require.Nil(tb, err)
 	return id
 }

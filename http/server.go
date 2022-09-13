@@ -21,11 +21,13 @@ type Server struct {
 	budgetService         beans.BudgetService
 	categoryRepository    beans.CategoryRepository
 	categoryService       beans.CategoryService
-	userRepository        beans.UserRepository
-	userService           beans.UserService
+	monthRepository       beans.MonthRepository
+	monthService          beans.MonthService
 	sessionRepository     beans.SessionRepository
 	transactionRepository beans.TransactionRepository
 	transactionService    beans.TransactionService
+	userRepository        beans.UserRepository
+	userService           beans.UserService
 }
 
 func NewServer(
@@ -35,11 +37,13 @@ func NewServer(
 	bs beans.BudgetService,
 	cr beans.CategoryRepository,
 	cs beans.CategoryService,
-	ur beans.UserRepository,
-	us beans.UserService,
+	mr beans.MonthRepository,
+	ms beans.MonthService,
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
 	ts beans.TransactionService,
+	ur beans.UserRepository,
+	us beans.UserService,
 ) *Server {
 	s := &Server{
 		router:                chi.NewRouter(),
@@ -50,11 +54,13 @@ func NewServer(
 		budgetService:         bs,
 		categoryRepository:    cr,
 		categoryService:       cs,
-		userRepository:        ur,
-		userService:           us,
+		monthRepository:       mr,
+		monthService:          ms,
 		sessionRepository:     sr,
 		transactionRepository: tr,
 		transactionService:    ts,
+		userRepository:        ur,
+		userService:           us,
 	}
 
 	s.sv.Handler = s.router

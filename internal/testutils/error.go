@@ -15,6 +15,12 @@ func AssertError(t testing.TB, err error, expected string) {
 	assert.Equal(t, expected, msg)
 }
 
+func AssertErrorCode(t testing.TB, err error, expected string) {
+	require.NotNil(t, err)
+	code, _ := err.(beans.Error).BeansError()
+	assert.Equal(t, expected, code)
+}
+
 func NewDate(t testing.TB, date string) beans.Date {
 	time, err := time.Parse("2006-01-02", date)
 	require.Nil(t, err)

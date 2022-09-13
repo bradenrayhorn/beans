@@ -15,6 +15,7 @@ import (
 func TestCreateTransaction(t *testing.T) {
 	transactionService := new(mocks.TransactionService)
 	sv := &Server{transactionService: transactionService}
+	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 
 	transaction := beans.Transaction{
@@ -29,7 +30,7 @@ func TestCreateTransaction(t *testing.T) {
 		call := transactionService.On("Create", mock.Anything, budget, mock.Anything).Return(&transaction, nil)
 		defer call.Unset()
 
-		resp := testutils.HTTP(t, sv.handleTransactionCreate(), budget, nil, http.StatusOK)
+		resp := testutils.HTTP(t, sv.handleTransactionCreate(), user, budget, nil, http.StatusOK)
 		assert.JSONEq(t, resp, fmt.Sprintf(`{"data":{
     "id": "%s",
     "account_id": "%s",
@@ -51,7 +52,7 @@ func TestCreateTransaction(t *testing.T) {
 		}).Return(&transaction, nil)
 		defer call.Unset()
 
-		testutils.HTTP(t, sv.handleTransactionCreate(), budget, fmt.Sprintf(`{
+		testutils.HTTP(t, sv.handleTransactionCreate(), user, budget, fmt.Sprintf(`{
       "account_id": "%s",
       "amount": 14.56,
       "date": "2022-08-29",
@@ -63,6 +64,7 @@ func TestCreateTransaction(t *testing.T) {
 func TestGetTransactions(t *testing.T) {
 	transactionRepository := new(mocks.TransactionRepository)
 	sv := &Server{transactionRepository: transactionRepository}
+	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 
 	transaction1 := &beans.Transaction{
@@ -81,7 +83,7 @@ func TestGetTransactions(t *testing.T) {
 	call := transactionRepository.On("GetForBudget", mock.Anything, budget.ID).Return([]*beans.Transaction{transaction1, transaction2}, nil)
 	defer call.Unset()
 
-	resp := testutils.HTTP(t, sv.handleTransactionGetAll(), budget, nil, http.StatusOK)
+	resp := testutils.HTTP(t, sv.handleTransactionGetAll(), user, budget, nil, http.StatusOK)
 	assert.JSONEq(t, resp, fmt.Sprintf(`{"data":[
     {
       "id": "%s",

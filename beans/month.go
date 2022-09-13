@@ -1,6 +1,10 @@
 package beans
 
-import "golang.org/x/net/context"
+import (
+	"time"
+
+	"golang.org/x/net/context"
+)
 
 type Month struct {
 	ID       ID
@@ -14,4 +18,9 @@ func (m Month) String() string {
 
 type MonthRepository interface {
 	Create(ctx context.Context, month *Month) error
+	GetByDate(ctx context.Context, budgetID ID, date time.Time) (*Month, error)
+}
+
+type MonthService interface {
+	GetOrCreate(ctx context.Context, budgetID ID, date time.Time) (*Month, error)
 }

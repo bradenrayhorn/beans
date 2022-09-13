@@ -43,17 +43,6 @@ func TestGetBudgets(t *testing.T) {
 	assert.JSONEq(t, fmt.Sprintf(`{"data":[{"name":"%s","id":"%s"}]}`, "my budget", budget.ID), r.Body)
 }
 
-func TestCanGetBudget(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
-
-	user, session := ta.CreateUserAndSession(t)
-	budget := ta.CreateBudget(t, "my budget", user)
-	r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", budget.ID), &RequestOptions{SessionID: string(session.ID)})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	assert.JSONEq(t, fmt.Sprintf(`{"data":{"name":"%s","id":"%s"}}`, "my budget", budget.ID), r.Body)
-}
-
 func TestCannotGetOtherUsersBudget(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)

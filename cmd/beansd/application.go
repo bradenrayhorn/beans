@@ -23,11 +23,13 @@ type Application struct {
 	budgetService         beans.BudgetService
 	categoryRepository    beans.CategoryRepository
 	categoryService       beans.CategoryService
-	userRepository        beans.UserRepository
-	userService           beans.UserService
+	monthRepository       beans.MonthRepository
+	monthService          beans.MonthService
 	sessionRepository     beans.SessionRepository
 	transactionRepository beans.TransactionRepository
 	transactionService    beans.TransactionService
+	userRepository        beans.UserRepository
+	userService           beans.UserService
 }
 
 func NewApplication(c Config) *Application {
@@ -56,11 +58,13 @@ func (a *Application) Start() error {
 	a.budgetService = logic.NewBudgetService(a.budgetRepository)
 	a.categoryRepository = postgres.NewCategoryRepository(pool)
 	a.categoryService = logic.NewCategoryService(a.categoryRepository)
-	a.userRepository = postgres.NewUserRepository(pool)
-	a.userService = &logic.UserService{UserRepository: a.userRepository}
+	a.monthRepository = postgres.NewMonthRepository(pool)
+	a.monthService = logic.NewMonthService(a.monthRepository)
 	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository)
+	a.userRepository = postgres.NewUserRepository(pool)
+	a.userService = &logic.UserService{UserRepository: a.userRepository}
 
 	a.httpServer = http.NewServer(
 		a.accountRepository,
@@ -69,11 +73,13 @@ func (a *Application) Start() error {
 		a.budgetService,
 		a.categoryRepository,
 		a.categoryService,
-		a.userRepository,
-		a.userService,
+		a.monthRepository,
+		a.monthService,
 		a.sessionRepository,
 		a.transactionRepository,
 		a.transactionService,
+		a.userRepository,
+		a.userService,
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)

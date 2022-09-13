@@ -15,6 +15,7 @@ import (
 func TestCategoryCreate(t *testing.T) {
 	categoryService := new(mocks.CategoryService)
 	sv := &Server{categoryService: categoryService}
+	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "Group1", BudgetID: budget.ID}
 	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budget.ID, GroupID: group.ID, Name: "Category"}
@@ -27,7 +28,7 @@ func TestCategoryCreate(t *testing.T) {
       "group_id": "%s",
       "name": "%s"
     }`, category.GroupID, category.Name)
-		resp := testutils.HTTP(t, sv.handleCategoryCreate(), budget, req, http.StatusOK)
+		resp := testutils.HTTP(t, sv.handleCategoryCreate(), user, budget, req, http.StatusOK)
 		assert.JSONEq(t, resp, fmt.Sprintf(`{"data":{
       "id": "%s",
       "group_id": "%s",
@@ -39,6 +40,7 @@ func TestCategoryCreate(t *testing.T) {
 func TestCategoryGroupCreate(t *testing.T) {
 	categoryService := new(mocks.CategoryService)
 	sv := &Server{categoryService: categoryService}
+	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "Group1", BudgetID: budget.ID}
 
@@ -49,7 +51,7 @@ func TestCategoryGroupCreate(t *testing.T) {
 		req := fmt.Sprintf(`{
       "name": "%s"
     }`, group.Name)
-		resp := testutils.HTTP(t, sv.handleCategoryGroupCreate(), budget, req, http.StatusOK)
+		resp := testutils.HTTP(t, sv.handleCategoryGroupCreate(), user, budget, req, http.StatusOK)
 		assert.JSONEq(t, resp, fmt.Sprintf(`{"data":{
       "id": "%s",
       "name": "%s",
@@ -61,6 +63,7 @@ func TestCategoryGroupCreate(t *testing.T) {
 func TestGetCategories(t *testing.T) {
 	categoryRepository := new(mocks.CategoryRepository)
 	sv := &Server{categoryRepository: categoryRepository}
+	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	group1 := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "Group1", BudgetID: budget.ID}
 	group2 := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "Group2", BudgetID: budget.ID}
@@ -70,7 +73,7 @@ func TestGetCategories(t *testing.T) {
 	categoryRepository.On("GetGroupsForBudget", mock.Anything, budget.ID).Return([]*beans.CategoryGroup{group1, group2}, nil)
 	categoryRepository.On("GetForBudget", mock.Anything, budget.ID).Return([]*beans.Category{category1, category2}, nil)
 
-	resp := testutils.HTTP(t, sv.handleCategoryGetAll(), budget, nil, http.StatusOK)
+	resp := testutils.HTTP(t, sv.handleCategoryGetAll(), user, budget, nil, http.StatusOK)
 	assert.JSONEq(t, resp, fmt.Sprintf(`{"data":[
     {
       "id": "%s",

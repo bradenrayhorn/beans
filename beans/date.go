@@ -8,7 +8,7 @@ type Date struct {
 }
 
 func NewDate(date time.Time) Date {
-	return Date{Time: date, set: true}
+	return Date{Time: time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC), set: true}
 }
 
 func (t *Date) UnmarshalJSON(b []byte) error {
