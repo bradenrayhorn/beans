@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import { queries } from "constants/queries";
 import { routes } from "constants/routes";
+import { useOnLogin } from "components/AuthProvider";
 
 const Login: NextPage = () => {
   const toast = useToast();
@@ -24,10 +25,12 @@ const Login: NextPage = () => {
     register,
     formState: { isSubmitting },
   } = useForm();
+  const onLogin = useOnLogin();
 
   // TODO search react query + axios cancellation
   const mutation = useMutation(queries.login, {
-    onSuccess: () => {
+    onSuccess: (user) => {
+      onLogin(user);
       router.push(routes.defaultAfterAuth);
     },
   });

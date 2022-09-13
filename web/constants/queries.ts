@@ -48,8 +48,14 @@ const buildQueries = (client: KyInstance) => {
 
   return {
     // user
-    login: ({ username, password }: { username: string; password: string }) =>
-      client.post("api/v1/user/login", { json: { username, password } }),
+    login: ({
+      username,
+      password,
+    }: {
+      username: string;
+      password: string;
+    }): Promise<User> =>
+      client.post("api/v1/user/login", { json: { username, password } }).json(),
 
     me: ({ cookie }: { cookie?: string } = {}): Promise<User> =>
       client.get("api/v1/user/me", { headers: { cookie } }).json(),

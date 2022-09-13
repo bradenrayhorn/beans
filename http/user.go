@@ -7,6 +7,11 @@ import (
 	"github.com/bradenrayhorn/beans/beans"
 )
 
+type userResponse struct {
+	UserID   string `json:"id"`
+	Username string `json:"username"`
+}
+
 func (s *Server) handleUserRegister() http.HandlerFunc {
 	type request struct {
 		Username beans.Username `json:"username"`
@@ -63,15 +68,13 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 		}
 
 		http.SetCookie(w, &cookie)
+
+		res := userResponse{UserID: user.ID.String(), Username: string(user.Username)}
+		jsonResponse(w, res, http.StatusOK)
 	}
 }
 
 func (s *Server) handleUserMe() http.HandlerFunc {
-	type response struct {
-		UserID   string `json:"id"`
-		Username string `json:"username"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getUserID(r)
 
@@ -81,7 +84,7 @@ func (s *Server) handleUserMe() http.HandlerFunc {
 			return
 		}
 
-		res := response{UserID: userID.String(), Username: string(user.Username)}
+		res := userResponse{UserID: userID.String(), Username: string(user.Username)}
 		jsonResponse(w, res, http.StatusOK)
 	}
 }

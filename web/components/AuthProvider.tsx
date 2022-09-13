@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { queries, queryKeys } from "constants/queries";
 import { HTTPError } from "ky";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useCallback, useState } from "react";
 import create from "zustand";
 import shallow from "zustand/shallow";
 
@@ -68,6 +68,21 @@ export const AuthProvider = ({ children, initialUser }: Props) => {
   });
 
   return <>{children}</>;
+};
+
+export const useOnLogin = () => {
+  const [setUser, setStatus] = useAuthStore(
+    (state) => [state.setUser, state.setStatus],
+    shallow
+  );
+
+  return useCallback(
+    (user: User) => {
+      setUser(user);
+      setStatus(AuthStatus.Authenticated);
+    },
+    [setUser, setStatus]
+  );
 };
 
 export const useAuthStatus = () => useAuthStore((state) => state.status);
