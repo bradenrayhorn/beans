@@ -11,7 +11,7 @@ type Props = {
   enabled?: boolean;
 };
 
-export const useAccounts = ({ enabled }: Props) => {
+export const useAccounts = ({ enabled }: Props = {}) => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
 

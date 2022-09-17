@@ -49,7 +49,7 @@ const Accounts: NextPageWithLayout = () => {
             {accounts.length < 1 && <Text as="i">No accounts found.</Text>}
 
             {accounts.map((account) => (
-              <PageCard w="full" p={6}>
+              <PageCard w="full" p={6} key={account.id}>
                 <Heading size="sm">{account.name}</Heading>
                 <Stat mt={2}>
                   <StatLabel>Balance</StatLabel>
