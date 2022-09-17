@@ -35,7 +35,13 @@ const CurrencyInput = ({ name }: Props) => {
           setValue(e.target.value);
         }}
         onBlur={() => {
-          if (!validNumberRegex.test(value) || !Number.isSafeInteger(+value)) {
+          if (value.trim() === "") {
+            setValue("");
+            onChange(undefined);
+          } else if (
+            !validNumberRegex.test(value) ||
+            !Number.isSafeInteger(+value)
+          ) {
             setValue(
               formValue?.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
