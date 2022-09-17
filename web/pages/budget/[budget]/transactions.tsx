@@ -1,7 +1,7 @@
 import { Box, Flex, Heading } from "@chakra-ui/react";
 import BudgetLayout from "components/layouts/BudgetLayout";
 import { NextPageWithLayout } from "pages/_app";
-import AddTransaction from "components/AddTransaction";
+import AddTransaction from "components/transactions/AddTransaction";
 
 const Transactions: NextPageWithLayout = () => {
   return (
