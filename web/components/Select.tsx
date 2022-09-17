@@ -1,7 +1,7 @@
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
-  Button,
+  chakra,
   Flex,
   Input,
   InputGroup,
@@ -11,6 +11,7 @@ import {
   PopoverContent,
   Spinner,
   Text,
+  useMultiStyleConfig,
 } from "@chakra-ui/react";
 import { useCombobox } from "downshift";
 import { useEffect, useState } from "react";
@@ -61,7 +62,6 @@ const Select = <T extends unknown>({
     getItemProps,
     closeMenu,
     openMenu,
-    highlightedIndex,
     setInputValue,
   } = useCombobox({
     isOpen: parentIsOpen,
@@ -95,6 +95,8 @@ const Select = <T extends unknown>({
     },
   });
 
+  const styles = useMultiStyleConfig("ComponentSelect");
+
   return (
     <>
       <Popover
@@ -123,14 +125,7 @@ const Select = <T extends unknown>({
             </InputGroup>
           </PopoverAnchor>
 
-          <PopoverContent
-            w="full"
-            overflow="hidden"
-            boxShadow="dark-lg"
-            maxHeight={48}
-            overflowY="auto"
-            {...getMenuProps()}
-          >
+          <PopoverContent {...styles.wrapper} {...getMenuProps()}>
             {isLoading ? (
               <Flex w="full" p={2} justifyContent="center">
                 <Spinner />
@@ -138,22 +133,16 @@ const Select = <T extends unknown>({
             ) : (
               <>
                 {items.map((item, key) => (
-                  <Button
+                  <chakra.button
                     tabIndex={-1}
                     key={`${key}.${itemToID(item)}`}
-                    fontWeight={
-                      itemToID(selectedItem) === itemToID(item)
-                        ? "bold"
-                        : "normal"
-                    }
-                    bg={highlightedIndex === key ? "whiteAlpha.100" : "none"}
-                    rounded="none"
-                    justifyContent="flex-start"
-                    p={2}
+                    type="button"
+                    aria-checked={itemToID(selectedItem) === itemToID(item)}
+                    __css={styles.item}
                     {...getItemProps({ item, index: key })}
                   >
                     {itemToString(item)}
-                  </Button>
+                  </chakra.button>
                 ))}
 
                 {items.length === 0 && (

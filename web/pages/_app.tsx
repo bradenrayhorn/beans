@@ -1,63 +1,26 @@
-import "../styles/globals.css";
-import type { AppContext, AppProps } from "next/app";
-import {
-  Button,
-  ChakraProvider,
-  extendTheme,
-  IconButton,
-  useColorMode,
-} from "@chakra-ui/react";
-import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+import { ChakraProvider, IconButton, useColorMode } from "@chakra-ui/react";
 import {
   Hydrate,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { ReactElement, ReactNode, useState } from "react";
-import App from "next/app";
-import { buildQueries } from "constants/queries";
-import Head from "next/head";
-import { NextPage } from "next";
 import { AuthProvider } from "components/AuthProvider";
-import ky from "ky";
-import { User } from "constants/types";
+import { buildQueries } from "constants/queries";
 import {
   forceUnproctedRoutes,
   routes,
   unprotectedRoutes,
 } from "constants/routes";
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-
-const PageCard = {
-  baseStyle: (props: StyleFunctionProps) => ({
-    borderRadius: 6,
-    bg: mode("gray.50", "gray.700")(props),
-  }),
-};
-
-const Sidebar = {
-  baseStyle: (props: StyleFunctionProps) => ({
-    bg: mode("gray.50", "gray.700")(props),
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  }),
-};
-
-const theme = extendTheme({
-  components: {
-    PageCard,
-    Sidebar,
-  },
-  semanticTokens: {
-    colors: {
-      errorText: {
-        default: "red.500",
-        _dark: "red.300",
-      },
-    },
-  },
-});
+import { User } from "constants/types";
+import ky from "ky";
+import { NextPage } from "next";
+import type { AppContext, AppProps } from "next/app";
+import App from "next/app";
+import Head from "next/head";
+import { ReactElement, ReactNode, useState } from "react";
+import theme from "theme";
+import "../styles/globals.css";
 
 export type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
