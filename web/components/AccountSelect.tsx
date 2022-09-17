@@ -1,4 +1,4 @@
-import Select from "components/Select";
+import Select, { useAsyncSelect } from "components/Select";
 import { useAccounts } from "data/queries/account";
 
 type Props = {
@@ -6,7 +6,8 @@ type Props = {
 };
 
 const AccountSelect = ({ name }: Props) => {
-  const { accounts, isLoading } = useAccounts();
+  const { isOpen, selectProps } = useAsyncSelect();
+  const { accounts, isLoading } = useAccounts({ enabled: isOpen });
 
   return (
     <Select
@@ -15,6 +16,7 @@ const AccountSelect = ({ name }: Props) => {
       itemToID={(item) => item?.id ?? ""}
       isLoading={isLoading}
       items={accounts}
+      {...selectProps}
     />
   );
 };

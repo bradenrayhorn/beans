@@ -2,6 +2,7 @@ import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  Flex,
   Input,
   InputGroup,
   InputRightElement,
@@ -20,26 +21,37 @@ interface Props<ItemType> {
   itemToString: (item: ItemType | undefined | null) => string;
   itemToID: (item: ItemType | undefined) => string;
   isLoading: boolean;
+  isOpen?: boolean;
+  setIsOpen?: (isOpen: boolean) => void;
   items: Array<ItemType>;
 }
+
+export const useAsyncSelect = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return { isOpen, selectProps: { isOpen, setIsOpen } };
+};
 
 const Select = <T extends unknown>({
   name,
   itemToString,
   itemToID,
-  isLoading,
   items: providedItems,
+  isLoading: parentIsLoading = false,
+  isOpen: parentIsOpen,
+  setIsOpen: parentSetIsOpen,
 }: Props<T>) => {
   const {
     field: { onChange, onBlur, value, ref },
   } = useController({ name });
 
   const [selectedItem, setSelectedItem] = useState(value ?? null);
+  const [isLoading, setIsLoading] = useState(parentIsLoading);
   const [items, setItems] = useState(providedItems);
 
   useEffect(() => {
     setItems(providedItems);
-  }, [providedItems]);
+    setIsLoading(parentIsLoading);
+  }, [providedItems, isLoading]);
 
   const {
     isOpen,
@@ -52,6 +64,7 @@ const Select = <T extends unknown>({
     highlightedIndex,
     setInputValue,
   } = useCombobox({
+    isOpen: parentIsOpen,
     selectedItem,
     onInputValueChange: ({ inputValue, ...r }) => {
       if (!inputValue || inputValue === itemToString(r.selectedItem)) {
@@ -69,6 +82,9 @@ const Select = <T extends unknown>({
     items,
     itemToString,
     onIsOpenChange: (stateChange) => {
+      if (parentSetIsOpen) {
+        parentSetIsOpen(stateChange.isOpen ?? false);
+      }
       if (!stateChange.isOpen) {
         setInputValue(itemToString(stateChange.selectedItem));
       }
@@ -116,7 +132,9 @@ const Select = <T extends unknown>({
             {...getMenuProps()}
           >
             {isLoading ? (
-              <Spinner />
+              <Flex w="full" p={2} justifyContent="center">
+                <Spinner />
+              </Flex>
             ) : (
               <>
                 {items.map((item, key) => (

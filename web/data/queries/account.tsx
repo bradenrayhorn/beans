@@ -7,13 +7,18 @@ import {
 } from "constants/queries";
 import { useCallback } from "react";
 
-export const useAccounts = () => {
+type Props = {
+  enabled?: boolean;
+};
+
+export const useAccounts = ({ enabled }: Props) => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
 
   const query = useQuery(
     [queryKeys.accounts.get, budgetID],
-    queries.accounts.get
+    queries.accounts.get,
+    { enabled }
   );
 
   return { ...query, accounts: query.data?.data ?? [] };
