@@ -20,6 +20,7 @@ const links = [
   { name: "home", pathname: routes.budget.index },
   { name: "budget", pathname: routes.budget.budget },
   { name: "accounts", pathname: routes.budget.accounts },
+  { name: "transactions", pathname: routes.budget.transactions },
   { name: "settings", pathname: routes.budget.settings },
 ];
 

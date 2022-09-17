@@ -10,6 +10,7 @@ export const routes = {
     budget: "/budget/[budget]/budget",
     accounts: "/budget/[budget]/accounts",
     settings: "/budget/[budget]/settings",
+    transactions: "/budget/[budget]/transactions",
   },
 };
 

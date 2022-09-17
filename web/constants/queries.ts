@@ -78,6 +78,24 @@ const buildQueries = (client: KyInstance) => {
       create: ({ name }: { name: string }) =>
         client.post(`api/v1/accounts`, { json: { name } }),
     },
+
+    // transactions
+    transactions: {
+      create: ({
+        accountID,
+        amount,
+        date,
+        notes,
+      }: {
+        accountID: string;
+        amount: string;
+        date: string;
+        notes?: string;
+      }) =>
+        client.post(`api/v1/transactions`, {
+          json: { account_id: accountID, amount, date, notes },
+        }),
+    },
   };
 };
 
