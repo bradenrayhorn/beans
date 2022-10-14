@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBudgetID } from "components/layouts/BudgetLayout";
 import {
   getHTTPErrorResponseMessage,
@@ -17,12 +17,16 @@ interface AddTransactionData {
 export const useAddTransaction = () => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
+  const queryClient = useQueryClient();
 
   const mutation = useMutation(queries.transactions.create);
   const errorMessage = getHTTPErrorResponseMessage(mutation.error);
 
   const submit = useCallback(
-    (values: AddTransactionData) => mutation.mutateAsync(values),
+    (values: AddTransactionData) =>
+      mutation.mutateAsync(values).then(() => {
+        queryClient.invalidateQueries([queryKeys.transactions.getAll]);
+      }),
     [budgetID]
   );
 
