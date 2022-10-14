@@ -118,10 +118,9 @@ const Select = <T extends unknown>({
                   ref,
                 })}
               />
-              <InputRightElement
-                pointerEvents="none"
-                children={<ChevronDownIcon />}
-              />
+              <InputRightElement pointerEvents="none">
+                <ChevronDownIcon />
+              </InputRightElement>
             </InputGroup>
           </PopoverAnchor>
 

@@ -1,6 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useBudgetID } from "components/layouts/BudgetLayout";
-import { getHTTPErrorResponseMessage, useQueries } from "constants/queries";
+import {
+  getHTTPErrorResponseMessage,
+  queryKeys,
+  useQueries,
+} from "constants/queries";
 import { useCallback } from "react";
 
 interface AddTransactionData {
@@ -23,4 +27,16 @@ export const useAddTransaction = () => {
   );
 
   return { ...mutation, errorMessage, submit };
+};
+
+export const useTransactions = () => {
+  const budgetID = useBudgetID();
+  const queries = useQueries({ budgetID });
+
+  const query = useQuery(
+    [queryKeys.transactions.getAll, budgetID],
+    queries.transactions.getAll
+  );
+
+  return { ...query, transactions: query.data?.data ?? [] };
 };

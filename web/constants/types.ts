@@ -12,3 +12,16 @@ export interface Account {
   id: string;
   name: string;
 }
+
+export interface Amount {
+  coefficient: number;
+  exponent: number;
+}
+
+export interface Transaction {
+  id: string;
+  account_id: string;
+  date: string;
+  amount: Amount;
+  notes: string | null;
+}

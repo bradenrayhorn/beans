@@ -1,6 +1,6 @@
+import { Account, Budget, Transaction, User } from "constants/types";
 import ky, { HTTPError } from "ky";
 import { KyInstance } from "ky/distribution/types/ky";
-import { Account, Budget, User } from "constants/types";
 import { useEffect, useState } from "react";
 
 const queryKeys = {
@@ -12,6 +12,9 @@ const queryKeys = {
   },
   accounts: {
     get: "accounts_get",
+  },
+  transactions: {
+    getAll: "transactions_get_all",
   },
 };
 
@@ -25,6 +28,10 @@ interface GetBudgetResponse {
 
 interface GetAccountsResponse {
   data: Account[];
+}
+
+interface GetTransactionsResponse {
+  data: Transaction[];
 }
 
 const buildQueries = (client: KyInstance) => {
@@ -95,6 +102,9 @@ const buildQueries = (client: KyInstance) => {
         client.post(`api/v1/transactions`, {
           json: { account_id: accountID, amount, date, notes },
         }),
+
+      getAll: () =>
+        client.get(`api/v1/transactions`).json<GetTransactionsResponse>(),
     },
   };
 };

@@ -2,6 +2,7 @@ import { Box, Flex, Heading } from "@chakra-ui/react";
 import BudgetLayout from "components/layouts/BudgetLayout";
 import { NextPageWithLayout } from "pages/_app";
 import AddTransaction from "components/transactions/AddTransaction";
+import TransactionList from "components/transactions/TransactionList";
 
 const Transactions: NextPageWithLayout = () => {
   return (
@@ -12,6 +13,7 @@ const Transactions: NextPageWithLayout = () => {
         </Flex>
         <AddTransaction />
       </Flex>
+      <TransactionList />
     </Box>
   );
 };

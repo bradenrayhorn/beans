@@ -21,7 +21,7 @@ const CurrencyInput = ({ name }: Props) => {
 
   return (
     <InputGroup>
-      <InputLeftElement pointerEvents="none" children="$" />
+      <InputLeftElement pointerEvents="none">$</InputLeftElement>
       <Input
         name={name}
         ref={ref}
