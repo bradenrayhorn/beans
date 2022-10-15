@@ -7,8 +7,15 @@ import (
 )
 
 type responseAccount struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   beans.ID `json:"id"`
+	Name string   `json:"name"`
+}
+
+func responseFromAccount(account *beans.Account) responseAccount {
+	return responseAccount{
+		ID:   account.ID,
+		Name: string(account.Name),
+	}
 }
 
 func (s *Server) handleAccountCreate() http.HandlerFunc {
@@ -45,7 +52,7 @@ func (s *Server) handleAccountsGet() http.HandlerFunc {
 
 		res := response{Data: make([]responseAccount, 0, len(accounts))}
 		for _, a := range accounts {
-			res.Data = append(res.Data, responseAccount{ID: a.ID.String(), Name: string(a.Name)})
+			res.Data = append(res.Data, responseFromAccount(a))
 		}
 
 		jsonResponse(w, res, http.StatusOK)

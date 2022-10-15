@@ -7,20 +7,20 @@ import (
 )
 
 type transactionResponse struct {
-	ID        string                 `json:"id"`
-	AccountID string                 `json:"account_id"`
-	Amount    beans.Amount           `json:"amount"`
-	Date      string                 `json:"date"`
-	Notes     beans.TransactionNotes `json:"notes"`
+	ID      string                 `json:"id"`
+	Account responseAccount        `json:"account"`
+	Amount  beans.Amount           `json:"amount"`
+	Date    string                 `json:"date"`
+	Notes   beans.TransactionNotes `json:"notes"`
 }
 
 func responseFromTransaction(transaction *beans.Transaction) transactionResponse {
 	return transactionResponse{
-		ID:        transaction.ID.String(),
-		AccountID: transaction.AccountID.String(),
-		Amount:    transaction.Amount,
-		Date:      transaction.Date.String(),
-		Notes:     transaction.Notes,
+		ID:      transaction.ID.String(),
+		Account: responseFromAccount(transaction.Account),
+		Amount:  transaction.Amount,
+		Date:    transaction.Date.String(),
+		Notes:   transaction.Notes,
 	}
 }
 

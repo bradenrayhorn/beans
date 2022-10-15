@@ -53,6 +53,11 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 			Amount:    amount,
 			Date:      beans.NewDate(t.Date),
 			Notes:     beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
+			Account: &beans.Account{
+				ID:       accountID,
+				Name:     beans.Name(t.AccountName),
+				BudgetID: budgetID,
+			},
 		})
 	}
 

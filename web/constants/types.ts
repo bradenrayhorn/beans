@@ -20,7 +20,7 @@ export interface Amount {
 
 export interface Transaction {
   id: string;
-  account_id: string;
+  account: Account;
   date: string;
   amount: Amount;
   notes: string | null;

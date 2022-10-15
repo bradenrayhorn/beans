@@ -21,7 +21,7 @@ func TestTransactions(t *testing.T) {
 
 	userID := makeUser(t, pool, "user")
 	budgetID := makeBudget(t, pool, "budget", userID)
-	accountID := makeAccount(t, pool, "account", budgetID)
+	account := makeAccount(t, pool, "account", budgetID)
 
 	t.Run("can create", func(t *testing.T) {
 		defer pool.Exec(context.Background(), "truncate transactions;")
@@ -29,7 +29,7 @@ func TestTransactions(t *testing.T) {
 			context.Background(),
 			&beans.Transaction{
 				ID:        beans.NewBeansID(),
-				AccountID: accountID,
+				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      beans.NewDate(time.Now()),
 				Notes:     beans.NewTransactionNotes("notes"),
@@ -42,17 +42,19 @@ func TestTransactions(t *testing.T) {
 		defer pool.Exec(context.Background(), "truncate transactions;")
 		transaction1 := &beans.Transaction{
 			ID:        beans.NewBeansID(),
-			AccountID: accountID,
+			AccountID: account.ID,
 			Amount:    beans.NewAmount(5, 0),
 			Date:      testutils.NewDate(t, "2022-08-28"),
 			Notes:     beans.NewTransactionNotes("notes"),
+			Account:   &account,
 		}
 		transaction2 := &beans.Transaction{
 			ID:        beans.NewBeansID(),
-			AccountID: accountID,
+			AccountID: account.ID,
 			Amount:    beans.NewAmount(7, 0),
 			Date:      testutils.NewDate(t, "2022-08-26"),
 			Notes:     beans.NewTransactionNotes("my notes"),
+			Account:   &account,
 		}
 		err := transactionRepository.Create(context.Background(), transaction1)
 		require.Nil(t, err)
