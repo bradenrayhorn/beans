@@ -39,21 +39,33 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
-SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at from transactions
+SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name from transactions
 JOIN accounts
   ON accounts.id = transactions.account_id
   AND accounts.budget_id = $1
 `
 
-func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]Transaction, error) {
+type GetTransactionsForBudgetRow struct {
+	ID          string
+	AccountID   string
+	PayeeID     sql.NullString
+	CategoryID  sql.NullString
+	Date        time.Time
+	Amount      pgtype.Numeric
+	Notes       sql.NullString
+	CreatedAt   time.Time
+	AccountName string
+}
+
+func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]GetTransactionsForBudgetRow, error) {
 	rows, err := q.db.Query(ctx, getTransactionsForBudget, budgetID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Transaction
+	var items []GetTransactionsForBudgetRow
 	for rows.Next() {
-		var i Transaction
+		var i GetTransactionsForBudgetRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
@@ -63,6 +75,7 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 			&i.Amount,
 			&i.Notes,
 			&i.CreatedAt,
+			&i.AccountName,
 		); err != nil {
 			return nil, err
 		}

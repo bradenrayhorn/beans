@@ -76,6 +76,7 @@ func TestCreateTransaction(t *testing.T) {
 		require.Nil(t, err)
 		assert.False(t, transaction.ID.Empty())
 		assert.True(t, reflect.DeepEqual(transaction, createdTransaction))
+		assert.True(t, reflect.DeepEqual(account, createdTransaction.Account))
 	})
 
 	t.Run("cannot create after account error", func(t *testing.T) {

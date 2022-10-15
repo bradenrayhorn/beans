@@ -34,6 +34,8 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 		Amount:    data.Amount,
 		Date:      data.Date,
 		Notes:     data.Notes,
+
+		Account: account,
 	}
 	err = s.transactionRepository.Create(ctx, transaction)
 	if err != nil {

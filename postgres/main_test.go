@@ -91,11 +91,15 @@ func makeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.Use
 	return id
 }
 
-func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
+func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.Account {
 	id := beans.NewBeansID()
 	err := postgres.NewAccountRepository(pool).Create(context.Background(), id, beans.Name(name), budgetID)
 	require.Nil(tb, err)
-	return id
+	return beans.Account{
+		ID:       id,
+		Name:     beans.Name(name),
+		BudgetID: budgetID,
+	}
 }
 
 func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) beans.ID {
