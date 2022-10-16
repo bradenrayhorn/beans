@@ -51,7 +51,10 @@ const TransactionList = () => {
             {table.getHeaderGroups().map((headerGroup) => (
               <Tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <Th key={header.id}>
+                  <Th
+                    key={header.id}
+                    isNumeric={header.column.columnDef.meta?.isNumeric ?? false}
+                  >
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()

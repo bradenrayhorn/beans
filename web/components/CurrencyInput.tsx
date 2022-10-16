@@ -8,6 +8,8 @@ type Props = {
   name: string;
 };
 
+const maxInput = 9999999999;
+
 const CurrencyInput = ({ name }: Props) => {
   const {
     field: { onChange, onBlur, value: formValue, ref },
@@ -38,10 +40,7 @@ const CurrencyInput = ({ name }: Props) => {
           if (value.trim() === "") {
             setValue("");
             onChange(undefined);
-          } else if (
-            !validNumberRegex.test(value) ||
-            !Number.isSafeInteger(+value)
-          ) {
+          } else if (!validNumberRegex.test(value) || maxInput < +value) {
             setValue(
               formValue?.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
