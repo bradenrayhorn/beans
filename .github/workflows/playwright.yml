@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [main, test]
 
 jobs:
   test:
@@ -26,6 +26,8 @@ jobs:
     - name: Run Playwright tests
       run: npm run e2e:ci
       working-directory: ./web
+    - name: Adding markdown
+      run: "if test -f web/playwright-report/index.html; then cat web/playwright-report/index.html >> $GITHUB_STEP_SUMMARY; fi"
     - uses: actions/upload-artifact@v3
       if: always()
       with:
