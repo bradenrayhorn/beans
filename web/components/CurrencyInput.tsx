@@ -9,6 +9,7 @@ type Props = {
 };
 
 const maxInput = 9999999999;
+const minInput = -maxInput;
 
 const CurrencyInput = ({ name }: Props) => {
   const {
@@ -40,16 +41,23 @@ const CurrencyInput = ({ name }: Props) => {
           if (value.trim() === "") {
             setValue("");
             onChange(undefined);
-          } else if (!validNumberRegex.test(value) || maxInput < +value) {
+          } else if (
+            !validNumberRegex.test(value) ||
+            maxInput < +value ||
+            minInput > +value
+          ) {
             setValue(
               formValue?.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
               }) ?? ""
             );
           } else {
-            onChange(+value);
+            const valueAsNumber = +value === 0 ? 0 : +value;
+            onChange(valueAsNumber);
             setValue(
-              (+value).toLocaleString(undefined, { minimumFractionDigits: 2 })
+              (+valueAsNumber).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+              })
             );
           }
 
