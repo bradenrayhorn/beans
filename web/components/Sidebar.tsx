@@ -43,8 +43,8 @@ const Sidebar = () => {
       <Flex direction="column">
         <Heading size="md">beans</Heading>
         <Divider my={3} />
-        <Link passHref href={routes.budget.noneSelected}>
-          <Button as="a" leftIcon={<ArrowBackIcon />} size="xs">
+        <Link href={routes.budget.noneSelected}>
+          <Button leftIcon={<ArrowBackIcon />} size="xs" w="full">
             {budget.name}
           </Button>
         </Link>
@@ -56,10 +56,8 @@ const Sidebar = () => {
                 pathname,
                 query: { budget: budget.id },
               }}
-              passHref
             >
               <Button
-                as="a"
                 size="sm"
                 w="full"
                 justifyContent="flex-start"
