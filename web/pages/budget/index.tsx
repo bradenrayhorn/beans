@@ -46,9 +46,8 @@ const BudgetPage = () => {
                         pathname: routes.budget.index,
                         query: { budget: budget.id },
                       }}
-                      passHref
                     >
-                      <Button as="a" size="sm" variant="ghost">
+                      <Button size="sm" variant="ghost">
                         {budget.name}
                       </Button>
                     </Link>
