@@ -29,6 +29,7 @@ export type NextPageWithLayout = NextPage & {
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
   initialUser?: User;
+  pageProps: any;
 };
 
 function MyApp({ Component, pageProps, initialUser }: AppPropsWithLayout) {
