@@ -1,37 +1,52 @@
-import { Account, Budget, Transaction, User } from "constants/types";
+import {
+  Account,
+  Budget,
+  CategoryGroup,
+  Transaction,
+  User,
+} from "constants/types";
 import ky, { HTTPError } from "ky";
 import { KyInstance } from "ky/distribution/types/ky";
 import { useEffect, useState } from "react";
 
 const queryKeys = {
-  login: "login",
-  me: "me",
+  accounts: {
+    get: "accounts_get",
+  },
+
   budget: {
     get: "budget_get",
     getAll: "budget_get_all",
   },
-  accounts: {
-    get: "accounts_get",
+
+  categories: {
+    get: "categories_get",
+    addGroup: "categories_add_group",
   },
+
+  login: "login",
+
+  me: "me",
+
   transactions: {
     getAll: "transactions_get_all",
   },
 };
 
-interface GetAllBudgetsResponse {
-  data: Budget[];
-}
-
-interface GetBudgetResponse {
-  data: Budget;
-}
-
 interface GetAccountsResponse {
   data: Account[];
 }
-
+interface GetAllBudgetsResponse {
+  data: Budget[];
+}
+interface GetBudgetResponse {
+  data: Budget;
+}
 interface GetTransactionsResponse {
   data: Transaction[];
+}
+interface GetCategoriesResponse {
+  data: CategoryGroup[];
 }
 
 const buildQueries = (client: KyInstance) => {
@@ -67,6 +82,24 @@ const buildQueries = (client: KyInstance) => {
     me: ({ cookie }: { cookie?: string } = {}): Promise<User> =>
       client.get("api/v1/user/me", { headers: { cookie } }).json(),
 
+    // accounts
+    accounts: {
+      get: () => client.get(`api/v1/accounts`).json<GetAccountsResponse>(),
+
+      create: ({ name }: { name: string }) =>
+        client.post(`api/v1/accounts`, { json: { name } }),
+    },
+
+    categories: {
+      get: () => client.get(`api/v1/categories`).json<GetCategoriesResponse>(),
+      createCategory: ({ name, groupID }: { name: string; groupID: string }) =>
+        client.post(`api/v1/categories`, {
+          json: { name, group_id: groupID },
+        }),
+      createGroup: ({ name }: { name: string }) =>
+        client.post(`api/v1/categories/groups`, { json: { name } }),
+    },
+
     // budget
     budget: {
       get: ({ budgetID }: { budgetID: string }) =>
@@ -76,14 +109,6 @@ const buildQueries = (client: KyInstance) => {
 
       create: ({ name }: { name: string }) =>
         client.post("api/v1/budgets", { json: { name } }),
-    },
-
-    // accounts
-    accounts: {
-      get: () => client.get(`api/v1/accounts`).json<GetAccountsResponse>(),
-
-      create: ({ name }: { name: string }) =>
-        client.post(`api/v1/accounts`, { json: { name } }),
     },
 
     // transactions
@@ -129,7 +154,7 @@ const getQueries = ({ budgetID }: Props) => {
 };
 
 export const useQueries = ({ budgetID }: Props) => {
-  const [queries, setQueries] = useState(getQueries({ budgetID }));
+  const [queries, setQueries] = useState(() => getQueries({ budgetID }));
 
   useEffect(() => {
     setQueries(getQueries({ budgetID }));
