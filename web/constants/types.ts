@@ -25,3 +25,14 @@ export interface Transaction {
   amount: Amount;
   notes: string | null;
 }
+
+export interface CategoryGroup {
+  id: string;
+  name: string;
+  categories: Array<Category>;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
