@@ -110,6 +110,12 @@ func NewServer(
 		})
 	})
 
+	s.router.Get("/api/*", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("404 api"))
+	})
+
+	s.router.Get("/*", s.handleServeFrontend())
+
 	return s
 }
 
