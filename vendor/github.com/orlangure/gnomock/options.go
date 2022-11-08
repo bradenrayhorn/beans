@@ -135,6 +135,14 @@ func WithCommand(cmd string, args ...string) Option {
 	}
 }
 
+// WithEntrypoint overwrites the entrypoint, and its arguments, defined
+// in the original docker image.
+func WithEntrypoint(entrypoint string, args ...string) Option {
+	return func(o *Options) {
+		o.Entrypoint = append([]string{entrypoint}, args...)
+	}
+}
+
 // WithHostMounts allows to bind host path (`src`) inside the container under
 // `dst` path.
 func WithHostMounts(src, dst string) Option {
@@ -187,6 +195,16 @@ func WithRegistryAuth(auth string) Option {
 	}
 }
 
+// WithContainerReuse disables Gnomock default behaviour of automatic container
+// cleanup and also disables the automatic replacement at startup of an existing
+// container with the same name and image. Effectively this makes Gnomock reuse
+// a container from a previous Gnomock execution.
+func WithContainerReuse() Option {
+	return func(o *Options) {
+		o.Reuse = true
+	}
+}
+
 // HealthcheckFunc defines a function to be used to determine container health.
 // It receives a host and a port, and returns an error if the container is not
 // ready, or nil when the container can be used. One example of HealthcheckFunc
@@ -234,6 +252,10 @@ type Options struct {
 	// level.
 	Cmd []string `json:"cmd"`
 
+	// Entrypoint is the binary that will always be executed when the container
+	// is run. The difference between this and Cmd, is that Cmd will be given as an
+	// argument to Entrypoint.
+	Entrypoint []string `json:"entrypoint"`
 	// HostMounts allows to mount local paths into the container.
 	HostMounts map[string]string `json:"host_mounts"`
 
@@ -268,6 +290,10 @@ type Options struct {
 	// which stands for
 	//	{"username":"foo","password":"bar"}
 	Auth string `json:"auth"`
+
+	// Reuse prevents the container from being automatically stopped and enables
+	// its re-use in posterior executions.
+	Reuse bool `json:"reuse"`
 
 	ctx                 context.Context
 	init                InitFunc
