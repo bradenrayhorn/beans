@@ -20,7 +20,7 @@ genmock:
 	@mockery --name "(.*(Repository|Service))" --output="./internal/mocks/" --dir="./beans/"
 
 test:
-	@go test --count=1 ./... 
+	@go test -tags test --count=1 ./... 
 
 .PHONY: default build run migrate migration gensql test
 

@@ -3,12 +3,10 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"io/fs"
-	"io/ioutil"
-	"path/filepath"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -51,20 +49,19 @@ func StopPool(tb testing.TB, container *gnomock.Container) {
 
 func getMigrationQueries(tb testing.TB) string {
 	queries := ""
-	err := filepath.WalkDir("../internal/sql/migrations/", func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		queries += string(content)
 
-		return nil
-	})
+	files, err := migrations.MigrationsFS.ReadDir(".")
 	if err != nil {
 		tb.Fatal(err)
+	}
+
+	for _, file := range files {
+		content, err := migrations.MigrationsFS.ReadFile(file.Name())
+		if err != nil {
+			tb.Fatal(err)
+		}
+
+		queries += string(content)
 	}
 
 	return queries
