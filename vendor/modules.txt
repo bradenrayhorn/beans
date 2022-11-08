@@ -2,7 +2,7 @@
 ## explicit; go 1.13
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
-# github.com/cockroachdb/apd/v3 v3.1.1
+# github.com/cockroachdb/apd/v3 v3.1.2
 ## explicit; go 1.17
 github.com/cockroachdb/apd/v3
 # github.com/davecgh/go-spew v1.1.1
