@@ -26,7 +26,7 @@ type TestApplication struct {
 
 func StartApplication(tb testing.TB) *TestApplication {
 	p := pg.Preset(
-		pg.WithVersion("13.4"),
+		pg.WithVersion("15.0"),
 		pg.WithDatabase("beans"),
 		pg.WithQueries(getMigrationQueries(tb)),
 	)
