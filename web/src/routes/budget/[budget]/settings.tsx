@@ -7,6 +7,8 @@ import {
   Spinner,
   VStack,
   HStack,
+  List,
+  ListItem,
 } from "@chakra-ui/react";
 import AddCategoryButton from "@/components/settings/AddCategoryButton";
 import AddCategoryGroup from "@/components/settings/AddCategoryGroup";
@@ -25,24 +27,28 @@ export default function SettingsPage() {
       <VStack>
         <VStack align="flex-start" w="full">
           <Heading size="md">Categories</Heading>
-          <VStack align="flex-start" w="full" spacing="8" pl="4">
+          <VStack align="flex-start" w="full" pl="4">
             {isLoading ? (
               <Spinner />
             ) : (
               <>
-                {categoryGroups.map(({ id, name, categories }) => (
-                  <VStack key={id} align="flex-start">
-                    <HStack>
-                      <Heading size="sm">{name}</Heading>
-                      <AddCategoryButton groupID={id} />
-                    </HStack>
-                    <VStack align="flex-start" pl="4">
-                      {categories.map(({ id, name }) => (
-                        <Text key={id}>{name}</Text>
-                      ))}
+                <List aria-label="Categories">
+                  {categoryGroups.map(({ id, name, categories }) => (
+                    <VStack as={ListItem} key={id} align="flex-start">
+                      <HStack>
+                        <Heading size="sm">{name}</Heading>
+                        <AddCategoryButton groupID={id} />
+                      </HStack>
+                      <VStack as={List} align="flex-start" pl="4">
+                        {categories.map(({ id, name }) => (
+                          <Text key={id} as={ListItem}>
+                            {name}
+                          </Text>
+                        ))}
+                      </VStack>
                     </VStack>
-                  </VStack>
-                ))}
+                  ))}
+                </List>
 
                 <Divider />
                 <AddCategoryGroup />

@@ -1,18 +1,25 @@
 import { expect, test as base } from "@playwright/test";
 
-export type UserFixture = {
+export type RegisterFixture = {
   username: string;
   password: string;
 };
 
+export type LoginFixture = {};
+
+export type BudgetFixture = { name: string; id: string };
+
 type Fixtures = {
-  user: UserFixture;
+  register: RegisterFixture;
+  login: LoginFixture;
+  budget: BudgetFixture;
 };
 
+const randomString = () => Math.random().toString(36);
+
 export const test = base.extend<Fixtures>({
-  user: async ({ request }, use) => {
-    const random = Math.random().toString(36);
-    const username = `testuser-${random}`;
+  register: async ({ request }, use) => {
+    const username = `testuser-${randomString()}`;
     const registerResponse = await request.post(`/api/v1/user/register`, {
       data: {
         username,
@@ -23,4 +30,44 @@ export const test = base.extend<Fixtures>({
 
     await use({ username, password: "password" });
   },
+  login: async ({ request, register, page }, use) => {
+    const loginResponse = await request.post(`/api/v1/user/login`, {
+      data: {
+        username: register.username,
+        password: register.password,
+      },
+    });
+    expect(loginResponse.ok()).toBeTruthy();
+    const state = await request.storageState();
+    page.context().addCookies(state.cookies);
+
+    await use({});
+  },
+  budget: async ({ login: _, request }, use) => {
+    const name = `budget-${randomString()}`;
+    const response = await request.post(`/api/v1/budgets`, {
+      data: {
+        name,
+      },
+    });
+    expect(response.ok()).toBeTruthy();
+    const data = await response.json();
+
+    await use({ name, id: data?.data?.id });
+  },
 });
+
+export const createAccount = async (
+  budgetID: string,
+  name: string,
+  request: any
+) => {
+  const response = await request.post(`/api/v1/accounts`, {
+    data: {
+      name,
+    },
+    headers: { "Budget-ID": budgetID },
+  });
+
+  expect(response.ok()).toBeTruthy();
+};

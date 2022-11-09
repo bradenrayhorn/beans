@@ -23,6 +23,9 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 	type request struct {
 		Name beans.Name `json:"name"`
 	}
+	type response struct {
+		Data responseBudget `json:"data"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request
@@ -31,11 +34,13 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.budgetService.CreateBudget(r.Context(), req.Name, getUserID(r))
+		budget, err := s.budgetService.CreateBudget(r.Context(), req.Name, getUserID(r))
 		if err != nil {
 			Error(w, err)
 			return
 		}
+
+		jsonResponse(w, response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}, http.StatusOK)
 	}
 }
 

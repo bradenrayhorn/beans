@@ -32,7 +32,7 @@ const AddCategoryGroup = () => {
       });
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} aria-label="Add category group">
       <HStack align="flex-end">
         <FormControl isRequired>
           <FormLabel>Name</FormLabel>
