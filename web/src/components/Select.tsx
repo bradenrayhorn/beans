@@ -11,6 +11,7 @@ import {
   PopoverContent,
   Spinner,
   Text,
+  useFormControlContext,
   useMultiStyleConfig,
 } from "@chakra-ui/react";
 import { useCombobox } from "downshift";
@@ -48,6 +49,7 @@ const Select = <T extends unknown>({
   const [selectedItem, setSelectedItem] = useState(value ?? null);
   const [isLoading, setIsLoading] = useState(parentIsLoading);
   const [items, setItems] = useState(providedItems);
+  const field = useFormControlContext();
 
   useEffect(() => {
     setItems(providedItems);
@@ -63,6 +65,7 @@ const Select = <T extends unknown>({
     openMenu,
     setInputValue,
   } = useCombobox({
+    inputId: field?.id,
     isOpen: parentIsOpen,
     selectedItem,
     onInputValueChange: ({ inputValue, ...r }) => {
@@ -95,6 +98,11 @@ const Select = <T extends unknown>({
   });
 
   const styles = useMultiStyleConfig("ComponentSelect");
+  const { "aria-labelledby": _, ...inputProps } = getInputProps({
+    onClick: () => openMenu(),
+    onBlur,
+    ref,
+  });
 
   return (
     <>
@@ -110,13 +118,7 @@ const Select = <T extends unknown>({
         <Box w="full">
           <PopoverAnchor>
             <InputGroup>
-              <Input
-                {...getInputProps({
-                  onClick: () => openMenu(),
-                  onBlur,
-                  ref,
-                })}
-              />
+              <Input {...inputProps} />
               <InputRightElement pointerEvents="none">
                 <ChevronDownIcon />
               </InputRightElement>

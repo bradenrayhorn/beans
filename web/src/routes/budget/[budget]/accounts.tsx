@@ -6,6 +6,8 @@ import {
   Container,
   Flex,
   Heading,
+  List,
+  ListItem,
   Spinner,
   Stat,
   StatLabel,
@@ -43,19 +45,21 @@ export default function AccountsPage() {
             <Spinner />
           </Center>
         ) : (
-          <VStack spacing={8}>
+          <>
             {accounts.length < 1 && <Text as="i">No accounts found.</Text>}
 
-            {accounts.map((account) => (
-              <PageCard w="full" p={6} key={account.id}>
-                <Heading size="sm">{account.name}</Heading>
-                <Stat mt={2}>
-                  <StatLabel>Balance</StatLabel>
-                  <StatNumber>$0.00</StatNumber>
-                </Stat>
-              </PageCard>
-            ))}
-          </VStack>
+            <List spacing={8}>
+              {accounts.map((account) => (
+                <PageCard w="full" p={6} key={account.id} as={ListItem}>
+                  <Heading size="sm">{account.name}</Heading>
+                  <Stat mt={2}>
+                    <StatLabel>Balance</StatLabel>
+                    <StatNumber>$0.00</StatNumber>
+                  </Stat>
+                </PageCard>
+              ))}
+            </List>
+          </>
         )}
       </Container>
       <AddAccountModal isOpen={isAddAccountOpen} onClose={onAddAccountClose} />
