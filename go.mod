@@ -15,7 +15,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/orlangure/gnomock v0.24.0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.2.0
 	golang.org/x/net v0.2.0
 )
 
