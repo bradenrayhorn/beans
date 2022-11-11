@@ -17,7 +17,7 @@ import (
 
 func StartPool(tb testing.TB) (*pgxpool.Pool, *gnomock.Container) {
 	p := pg.Preset(
-		pg.WithVersion("15.0"),
+		pg.WithVersion("15.1"),
 		pg.WithDatabase("beans"),
 		pg.WithQueries(getMigrationQueries(tb)),
 	)
