@@ -29,5 +29,6 @@ type MonthRepository interface {
 }
 
 type MonthService interface {
+	Get(ctx context.Context, monthID ID, budgetID ID) (*Month, error)
 	GetOrCreate(ctx context.Context, budgetID ID, date time.Time) (*Month, error)
 }

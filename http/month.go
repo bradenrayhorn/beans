@@ -8,10 +8,16 @@ import (
 )
 
 func (s *Server) handleMonthGet() http.HandlerFunc {
+	type responseCategory struct {
+		ID         beans.ID     `json:"id"`
+		Assigned   beans.Amount `json:"assigned"`
+		CategoryID beans.ID     `json:"category_id"`
+	}
 	type responseMonth struct {
-		ID   beans.ID `json:"id"`
-		Date string   `json:"date"`
-		// todo - return month_categories and available $ to assign
+		ID         beans.ID           `json:"id"`
+		Date       string             `json:"date"`
+		Categories []responseCategory `json:"categories"`
+		// todo - return available $ to assign
 	}
 	type response struct {
 		Data responseMonth `json:"data"`
@@ -24,21 +30,32 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 			return
 		}
 
-		month, err := s.monthRepository.Get(r.Context(), monthID)
+		month, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID)
 		if err != nil {
 			Error(w, err)
 			return
 		}
 
-		if month.BudgetID != getBudget(r).ID {
-			Error(w, beans.ErrorNotFound)
+		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), monthID)
+		if err != nil {
+			Error(w, err)
 			return
+		}
+
+		responseCategories := make([]responseCategory, len(categories))
+		for i, category := range categories {
+			responseCategories[i] = responseCategory{
+				ID:         category.ID,
+				Assigned:   category.Amount,
+				CategoryID: category.CategoryID,
+			}
 		}
 
 		jsonResponse(w, response{
 			Data: responseMonth{
-				ID:   month.ID,
-				Date: month.Date.String(),
+				ID:         month.ID,
+				Date:       month.Date.String(),
+				Categories: responseCategories,
 			},
 		}, http.StatusOK)
 	}
