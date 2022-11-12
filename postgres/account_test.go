@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/internal/testutils"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgerrcode"
 	"github.com/stretchr/testify/assert"
@@ -12,8 +13,8 @@ import (
 )
 
 func TestAccounts(t *testing.T) {
-	pool, container := StartPool(t)
-	defer StopPool(t, container)
+	pool, stop := testutils.StartPool(t)
+	defer stop()
 
 	accountRepository := postgres.NewAccountRepository(pool)
 

@@ -15,8 +15,8 @@ import (
 )
 
 func TestMonth(t *testing.T) {
-	pool, container := StartPool(t)
-	defer StopPool(t, container)
+	pool, stop := testutils.StartPool(t)
+	defer stop()
 
 	monthRepository := postgres.NewMonthRepository(pool)
 

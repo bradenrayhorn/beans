@@ -3,7 +3,6 @@ package main_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -11,80 +10,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCanRegisterAndLoginAndGetMe(t *testing.T) {
+func TestUsers(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
+	t.Run("can register, login, and get me", func(t *testing.T) {
+		r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
+		assert.Equal(t, http.StatusOK, r.StatusCode)
 
-	r = ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	sessionID := r.SessionIDFromCookie
+		r = ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+		sessionID := r.SessionIDFromCookie
 
-	r = ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: sessionID})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	type response struct {
-		Username string `json:"username"`
-	}
-	var responseJson response
-	err := json.NewDecoder(bytes.NewReader([]byte(r.Body))).Decode(&responseJson)
-	require.Nil(t, err)
-	assert.Equal(t, "user", responseJson.Username)
-}
+		r = ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: sessionID})
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+		type response struct {
+			Username string `json:"username"`
+		}
+		var responseJson response
+		err := json.NewDecoder(bytes.NewReader([]byte(r.Body))).Decode(&responseJson)
+		require.Nil(t, err)
+		assert.Equal(t, "user", responseJson.Username)
+	})
 
-func TestCannotRegisterWithNoData(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
+	t.Run("cannot register with no data", func(t *testing.T) {
+		r := ta.PostRequest(t, "api/v1/user/register", nil)
+		assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
+	})
 
-	r := ta.PostRequest(t, "api/v1/user/register", nil)
-	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
-}
+	t.Run("cannot register same username twice", func(t *testing.T) {
+		ta.CreateUser(t, "user3", "password")
 
-func TestCannotRegisterSameUsernameTwice(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
+		r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user3", "password": "password"}`})
+		assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
+	})
 
-	ta.CreateUser(t, "user", "password")
+	t.Run("cannot login with invalid username", func(t *testing.T) {
+		r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user4", "password": "password"}`})
+		assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
+		assert.JSONEq(t, `{"error":"Invalid username or password","code":"unauthorized"}`, r.Body)
+	})
 
-	r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusUnprocessableEntity, r.StatusCode)
-}
-
-func TestCanLogin(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
-
-	ta.CreateUser(t, "user", "password")
-	r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	assert.NotEmpty(t, r.SessionIDFromCookie)
-}
-
-func TestCannotLoginWithInvalidUsername(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
-
-	r := ta.PostRequest(t, "api/v1/user/login", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
-	assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
-	assert.JSONEq(t, `{"error":"Invalid username or password","code":"unauthorized"}`, r.Body)
-}
-
-func TestCanGetMe(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
-
-	user, session := ta.CreateUserAndSession(t)
-
-	r := ta.GetRequest(t, "api/v1/user/me", &RequestOptions{SessionID: string(session.ID)})
-	assert.Equal(t, http.StatusOK, r.StatusCode)
-	assert.JSONEq(t, fmt.Sprintf(`{"id":"%s","username":"%s"}`, user.ID, user.Username), r.Body)
-}
-
-func TestCannotGetMeWithNoSession(t *testing.T) {
-	ta := StartApplication(t)
-	defer ta.Stop(t)
-
-	r := ta.GetRequest(t, "api/v1/user/me", nil)
-	assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
+	t.Run("cannot get me with no session", func(t *testing.T) {
+		r := ta.GetRequest(t, "api/v1/user/me", nil)
+		assert.Equal(t, http.StatusUnauthorized, r.StatusCode)
+	})
 }
