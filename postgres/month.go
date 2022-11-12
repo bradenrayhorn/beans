@@ -25,6 +25,24 @@ func (r *monthRepository) Create(ctx context.Context, month *beans.Month) error 
 	})
 }
 
+func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, error) {
+	res, err := r.db.GetMonthByID(ctx, id.String())
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	budgetID, err := beans.BeansIDFromString(res.BudgetID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &beans.Month{
+		ID:       id,
+		BudgetID: budgetID,
+		Date:     beans.NewDate(res.Date),
+	}, nil
+}
+
 func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
 	res, err := r.db.GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date})
 	if err != nil {

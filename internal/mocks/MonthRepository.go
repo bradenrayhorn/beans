@@ -31,6 +31,29 @@ func (_m *MonthRepository) Create(ctx context.Context, month *beans.Month) error
 	return r0
 }
 
+// Get provides a mock function with given fields: ctx, id
+func (_m *MonthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 *beans.Month
+	if rf, ok := ret.Get(0).(func(context.Context, beans.ID) *beans.Month); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*beans.Month)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, beans.ID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByDate provides a mock function with given fields: ctx, budgetID, date
 func (_m *MonthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
 	ret := _m.Called(ctx, budgetID, date)

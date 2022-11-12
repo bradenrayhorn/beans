@@ -47,3 +47,19 @@ func (q *Queries) GetMonthByDate(ctx context.Context, arg GetMonthByDateParams) 
 	)
 	return i, err
 }
+
+const getMonthByID = `-- name: GetMonthByID :one
+SELECT id, budget_id, date, created_at FROM months WHERE id = $1
+`
+
+func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
+	row := q.db.QueryRow(ctx, getMonthByID, id)
+	var i Month
+	err := row.Scan(
+		&i.ID,
+		&i.BudgetID,
+		&i.Date,
+		&i.CreatedAt,
+	)
+	return i, err
+}

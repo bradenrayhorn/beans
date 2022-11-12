@@ -107,6 +107,10 @@ func NewServer(
 				})
 			})
 
+			r.Route("/months", func(r chi.Router) {
+				r.Get("/{id}", s.handleMonthGet())
+			})
+
 		})
 	})
 
