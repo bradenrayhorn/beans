@@ -2,70 +2,14 @@ package postgres_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
-	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/orlangure/gnomock"
-	pg "github.com/orlangure/gnomock/preset/postgres"
 	"github.com/stretchr/testify/require"
 )
-
-func StartPool(tb testing.TB) (*pgxpool.Pool, *gnomock.Container) {
-	p := pg.Preset(
-		pg.WithVersion("15.1"),
-		pg.WithDatabase("beans"),
-		pg.WithQueries(getMigrationQueries(tb)),
-	)
-
-	container, err := gnomock.Start(p)
-	if err != nil {
-		tb.Fatal(err)
-	}
-
-	pool, err := postgres.CreatePool(
-		fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
-			"postgres",
-			"password",
-			"127.0.0.1",
-			container.DefaultPort(),
-			"beans",
-		))
-
-	if err != nil {
-		tb.Fatal(err)
-	}
-
-	return pool, container
-}
-
-func StopPool(tb testing.TB, container *gnomock.Container) {
-	gnomock.Stop(container)
-}
-
-func getMigrationQueries(tb testing.TB) string {
-	queries := ""
-
-	files, err := migrations.MigrationsFS.ReadDir(".")
-	if err != nil {
-		tb.Fatal(err)
-	}
-
-	for _, file := range files {
-		content, err := migrations.MigrationsFS.ReadFile(file.Name())
-		if err != nil {
-			tb.Fatal(err)
-		}
-
-		queries += string(content)
-	}
-
-	return queries
-}
 
 func assertPgError(tb testing.TB, code string, err error) {
 	require.NotNil(tb, err)

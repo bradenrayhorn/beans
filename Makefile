@@ -17,7 +17,7 @@ gensql:
 	@sqlc generate
 
 genmock:
-	@mockery --name "(.*(Repository|Service))" --output="./internal/mocks/" --dir="./beans/"
+	@go generate ./...
 
 test:
 	@go test -tags test --count=1 ./... 
