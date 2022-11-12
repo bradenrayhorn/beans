@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
@@ -17,7 +18,7 @@ func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
 	return &BudgetRepository{db: db.New(pool), pool: pool}
 }
 
-func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.Name, userID beans.UserID) error {
+func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.Name, userID beans.UserID, date time.Time) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -29,6 +30,13 @@ func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.N
 		return err
 	}
 	if err := q.CreateBudgetUser(ctx, db.CreateBudgetUserParams{BudgetID: id.String(), UserID: userID.String()}); err != nil {
+		return err
+	}
+	if err := q.CreateMonth(ctx, db.CreateMonthParams{
+		ID:       beans.NewBeansID().String(),
+		BudgetID: id.String(),
+		Date:     beans.NormalizeMonth(date),
+	}); err != nil {
 		return err
 	}
 

@@ -16,7 +16,7 @@ func NewMonthService(monthRepository beans.MonthRepository) *monthService {
 	return &monthService{monthRepository}
 }
 func (s *monthService) GetOrCreate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
-	normalizedMonth := date.AddDate(0, 0, -date.Day()+1)
+	normalizedMonth := beans.NormalizeMonth(date)
 
 	res, err := s.monthRepository.GetByDate(ctx, budgetID, normalizedMonth)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,20 +37,12 @@ func TestBudgets(t *testing.T) {
 		assert.JSONEq(t, fmt.Sprintf(`{"data":[{"name":"%s","id":"%s"}]}`, "my budget", budget.ID), r.Body)
 	})
 
-	t.Run("cannot get budgets of other user", func(t *testing.T) {
-		_, session := ta.CreateUserAndSession(t)
-		user2, _ := ta.CreateUserAndSession(t)
-		budget := ta.CreateBudget(t, "my budget", user2)
+	t.Run("can get budget", func(t *testing.T) {
+		user, session := ta.CreateUserAndSession(t)
+		budget := ta.CreateBudget(t, "my budget", user)
 		r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", budget.ID), &RequestOptions{SessionID: string(session.ID)})
-		assert.Equal(t, http.StatusForbidden, r.StatusCode)
-	})
 
-	t.Run("cannot get non existant budget", func(t *testing.T) {
-		_, session := ta.CreateUserAndSession(t)
-		r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", "bad-id"), &RequestOptions{SessionID: string(session.ID)})
-		assert.Equal(t, http.StatusNotFound, r.StatusCode)
-
-		r = ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", ksuid.New()), &RequestOptions{SessionID: string(session.ID)})
-		assert.Equal(t, http.StatusNotFound, r.StatusCode)
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+		assert.JSONEq(t, fmt.Sprintf(`{"data":{"name":"%s","id":"%s"}}`, "my budget", budget.ID), r.Body)
 	})
 }

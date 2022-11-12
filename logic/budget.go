@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 )
@@ -21,7 +22,7 @@ func (s *budgetService) CreateBudget(ctx context.Context, name beans.Name, userI
 
 	budgetID := beans.NewBeansID()
 
-	if err := s.budgetRepository.Create(ctx, budgetID, name, userID); err != nil {
+	if err := s.budgetRepository.Create(ctx, budgetID, name, userID, time.Now()); err != nil {
 		return nil, err
 	}
 
