@@ -15,19 +15,20 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	accountRepository     beans.AccountRepository
-	accountService        beans.AccountService
-	budgetRepository      beans.BudgetRepository
-	budgetService         beans.BudgetService
-	categoryRepository    beans.CategoryRepository
-	categoryService       beans.CategoryService
-	monthRepository       beans.MonthRepository
-	monthService          beans.MonthService
-	sessionRepository     beans.SessionRepository
-	transactionRepository beans.TransactionRepository
-	transactionService    beans.TransactionService
-	userRepository        beans.UserRepository
-	userService           beans.UserService
+	accountRepository       beans.AccountRepository
+	accountService          beans.AccountService
+	budgetRepository        beans.BudgetRepository
+	budgetService           beans.BudgetService
+	categoryRepository      beans.CategoryRepository
+	categoryService         beans.CategoryService
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthRepository         beans.MonthRepository
+	monthService            beans.MonthService
+	sessionRepository       beans.SessionRepository
+	transactionRepository   beans.TransactionRepository
+	transactionService      beans.TransactionService
+	userRepository          beans.UserRepository
+	userService             beans.UserService
 }
 
 func NewServer(
@@ -37,6 +38,7 @@ func NewServer(
 	bs beans.BudgetService,
 	cr beans.CategoryRepository,
 	cs beans.CategoryService,
+	mcr beans.MonthCategoryRepository,
 	mr beans.MonthRepository,
 	ms beans.MonthService,
 	sr beans.SessionRepository,
@@ -46,21 +48,22 @@ func NewServer(
 	us beans.UserService,
 ) *Server {
 	s := &Server{
-		router:                chi.NewRouter(),
-		sv:                    &http.Server{},
-		accountRepository:     ar,
-		accountService:        as,
-		budgetRepository:      br,
-		budgetService:         bs,
-		categoryRepository:    cr,
-		categoryService:       cs,
-		monthRepository:       mr,
-		monthService:          ms,
-		sessionRepository:     sr,
-		transactionRepository: tr,
-		transactionService:    ts,
-		userRepository:        ur,
-		userService:           us,
+		router:                  chi.NewRouter(),
+		sv:                      &http.Server{},
+		accountRepository:       ar,
+		accountService:          as,
+		budgetRepository:        br,
+		budgetService:           bs,
+		categoryRepository:      cr,
+		categoryService:         cs,
+		monthCategoryRepository: mcr,
+		monthRepository:         mr,
+		monthService:            ms,
+		sessionRepository:       sr,
+		transactionRepository:   tr,
+		transactionService:      ts,
+		userRepository:          ur,
+		userService:             us,
 	}
 
 	s.sv.Handler = s.router

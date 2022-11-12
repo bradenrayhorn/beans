@@ -17,19 +17,20 @@ type Application struct {
 
 	config Config
 
-	accountRepository     beans.AccountRepository
-	accountService        beans.AccountService
-	budgetRepository      beans.BudgetRepository
-	budgetService         beans.BudgetService
-	categoryRepository    beans.CategoryRepository
-	categoryService       beans.CategoryService
-	monthRepository       beans.MonthRepository
-	monthService          beans.MonthService
-	sessionRepository     beans.SessionRepository
-	transactionRepository beans.TransactionRepository
-	transactionService    beans.TransactionService
-	userRepository        beans.UserRepository
-	userService           beans.UserService
+	accountRepository       beans.AccountRepository
+	accountService          beans.AccountService
+	budgetRepository        beans.BudgetRepository
+	budgetService           beans.BudgetService
+	categoryRepository      beans.CategoryRepository
+	categoryService         beans.CategoryService
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthRepository         beans.MonthRepository
+	monthService            beans.MonthService
+	sessionRepository       beans.SessionRepository
+	transactionRepository   beans.TransactionRepository
+	transactionService      beans.TransactionService
+	userRepository          beans.UserRepository
+	userService             beans.UserService
 }
 
 func NewApplication(c Config) *Application {
@@ -58,6 +59,7 @@ func (a *Application) Start() error {
 	a.budgetService = logic.NewBudgetService(a.budgetRepository)
 	a.categoryRepository = postgres.NewCategoryRepository(pool)
 	a.categoryService = logic.NewCategoryService(a.categoryRepository)
+	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
 	a.monthRepository = postgres.NewMonthRepository(pool)
 	a.monthService = logic.NewMonthService(a.monthRepository)
 	a.sessionRepository = inmem.NewSessionRepository()
@@ -73,6 +75,7 @@ func (a *Application) Start() error {
 		a.budgetService,
 		a.categoryRepository,
 		a.categoryService,
+		a.monthCategoryRepository,
 		a.monthRepository,
 		a.monthService,
 		a.sessionRepository,
@@ -108,6 +111,18 @@ func (a *Application) AccountRepository() beans.AccountRepository {
 
 func (a *Application) BudgetRepository() beans.BudgetRepository {
 	return a.budgetRepository
+}
+
+func (a *Application) CategoryRepository() beans.CategoryRepository {
+	return a.categoryRepository
+}
+
+func (a *Application) MonthRepository() beans.MonthRepository {
+	return a.monthRepository
+}
+
+func (a *Application) MonthCategoryRepository() beans.MonthCategoryRepository {
+	return a.monthCategoryRepository
 }
 
 func (a *Application) UserRepository() beans.UserRepository {

@@ -15,6 +15,20 @@ type monthService struct {
 func NewMonthService(monthRepository beans.MonthRepository) *monthService {
 	return &monthService{monthRepository}
 }
+
+func (s *monthService) Get(ctx context.Context, monthID beans.ID, budgetID beans.ID) (*beans.Month, error) {
+	month, err := s.monthRepository.Get(ctx, monthID)
+	if err != nil {
+		return nil, err
+	}
+
+	if month.BudgetID != budgetID {
+		return nil, beans.ErrorNotFound
+	}
+
+	return month, nil
+}
+
 func (s *monthService) GetOrCreate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
 	normalizedMonth := beans.NormalizeMonth(date)
 
