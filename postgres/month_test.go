@@ -36,6 +36,10 @@ func TestMonth(t *testing.T) {
 		res, err := monthRepository.GetByDate(context.Background(), budgetID, month.Date.Time)
 		require.Nil(t, err)
 		assert.True(t, reflect.DeepEqual(month, res))
+
+		res, err = monthRepository.Get(context.Background(), month.ID)
+		require.Nil(t, err)
+		assert.True(t, reflect.DeepEqual(month, res))
 	})
 
 	t.Run("cannot create duplicate IDs", func(t *testing.T) {
@@ -67,9 +71,15 @@ func TestMonth(t *testing.T) {
 		assert.Equal(t, month1.ID, res.ID)
 	})
 
-	t.Run("cannot get fictitious month", func(t *testing.T) {
+	t.Run("cannot get fictitious month by date", func(t *testing.T) {
 		defer cleanup()
 		_, err := monthRepository.GetByDate(context.Background(), budgetID, time.Now())
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("cannot get fictitious month by id", func(t *testing.T) {
+		defer cleanup()
+		_, err := monthRepository.Get(context.Background(), beans.NewBeansID())
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 

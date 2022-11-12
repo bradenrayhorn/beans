@@ -18,6 +18,7 @@ func (m Month) String() string {
 
 type MonthRepository interface {
 	Create(ctx context.Context, month *Month) error
+	Get(ctx context.Context, id ID) (*Month, error)
 	GetByDate(ctx context.Context, budgetID ID, date time.Time) (*Month, error)
 }
 
