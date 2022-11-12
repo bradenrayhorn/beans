@@ -593,7 +593,7 @@ type MockBudgetRepository struct {
 func NewMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID) (r0 error) {
+			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) (r0 error) {
 				return
 			},
 		},
@@ -615,7 +615,7 @@ func NewMockBudgetRepository() *MockBudgetRepository {
 func NewStrictMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID) error {
+			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
 				panic("unexpected invocation of MockBudgetRepository.Create")
 			},
 		},
@@ -652,24 +652,24 @@ func NewMockBudgetRepositoryFrom(i beans.BudgetRepository) *MockBudgetRepository
 // BudgetRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockBudgetRepository instance is invoked.
 type BudgetRepositoryCreateFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.Name, beans.UserID) error
-	hooks       []func(context.Context, beans.ID, beans.Name, beans.UserID) error
+	defaultHook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error
+	hooks       []func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error
 	history     []BudgetRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.ID, v2 beans.Name, v3 beans.UserID) error {
-	r0 := m.CreateFunc.nextHook()(v0, v1, v2, v3)
-	m.CreateFunc.appendCall(BudgetRepositoryCreateFuncCall{v0, v1, v2, v3, r0})
+func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.ID, v2 beans.Name, v3 beans.UserID, v4 time.Time) error {
+	r0 := m.CreateFunc.nextHook()(v0, v1, v2, v3, v4)
+	m.CreateFunc.appendCall(BudgetRepositoryCreateFuncCall{v0, v1, v2, v3, v4, r0})
 	return r0
 }
 
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockBudgetRepository instance is invoked and the hook queue is
 // empty.
-func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID) error) {
+func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error) {
 	f.defaultHook = hook
 }
 
@@ -677,7 +677,7 @@ func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, b
 // Create method of the parent MockBudgetRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID) error) {
+func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -686,19 +686,19 @@ func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.I
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name, beans.UserID) error {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.Name, beans.UserID) error {
+	f.PushHook(func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
 		return r0
 	})
 }
 
-func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.ID, beans.Name, beans.UserID) error {
+func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -743,6 +743,9 @@ type BudgetRepositoryCreateFuncCall struct {
 	// Arg3 is the value of the 4th argument passed to this method
 	// invocation.
 	Arg3 beans.UserID
+	// Arg4 is the value of the 5th argument passed to this method
+	// invocation.
+	Arg4 time.Time
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -751,7 +754,7 @@ type BudgetRepositoryCreateFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c BudgetRepositoryCreateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3, c.Arg4}
 }
 
 // Results returns an interface slice containing the results of this

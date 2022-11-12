@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/go-chi/chi/v5"
@@ -12,11 +11,6 @@ import (
 type responseBudget struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-}
-
-type responseBudgetSingle struct {
-	responseBudget
-	DefaultMonthID string `json:"default_month_id"`
 }
 
 func (s *Server) handleBudgetCreate() http.HandlerFunc {
@@ -67,7 +61,7 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 
 func (s *Server) handleBudgetGet() http.HandlerFunc {
 	type response struct {
-		Data responseBudgetSingle `json:"data"`
+		Data responseBudget `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		budget := s.getBudget(chi.URLParam(r, "budgetID"), w, r)
@@ -75,13 +69,7 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		defaultMonth, err := s.monthService.GetOrCreate(r.Context(), budget.ID, time.Now())
-		if err != nil {
-			Error(w, err)
-			return
-		}
-
-		res := response{Data: responseBudgetSingle{responseBudget: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}, DefaultMonthID: defaultMonth.ID.String()}}
+		res := response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}
 
 		jsonResponse(w, res, http.StatusOK)
 	}

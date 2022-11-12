@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/cmd/beansd"
@@ -184,7 +185,7 @@ func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *be
 
 func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
 	id := beans.NewBeansID()
-	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.Name(name), user.ID)
+	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.Name(name), user.ID, time.Now())
 	require.Nil(tb, err)
 	return &beans.Budget{ID: id, Name: beans.Name(name)}
 }

@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
@@ -27,7 +28,7 @@ func makeUser(tb testing.TB, pool *pgxpool.Pool, username string) beans.UserID {
 
 func makeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.UserID) beans.ID {
 	id := beans.NewBeansID()
-	err := postgres.NewBudgetRepository(pool).Create(context.Background(), id, beans.Name(name), userID)
+	err := postgres.NewBudgetRepository(pool).Create(context.Background(), id, beans.Name(name), userID, time.Now())
 	require.Nil(tb, err)
 	return id
 }

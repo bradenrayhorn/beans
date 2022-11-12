@@ -2,6 +2,7 @@ package beans
 
 import (
 	"context"
+	"time"
 )
 
 type Budget struct {
@@ -23,7 +24,8 @@ func (b *Budget) UserHasAccess(userID UserID) bool {
 }
 
 type BudgetRepository interface {
-	Create(ctx context.Context, id ID, name Name, userID UserID) error
+	// Creates a budget and a default month for the budget.
+	Create(ctx context.Context, id ID, name Name, userID UserID, date time.Time) error
 	// Gets budget by ID. Attaches UserIDs field.
 	Get(ctx context.Context, id ID) (*Budget, error)
 	GetBudgetsForUser(ctx context.Context, userID UserID) ([]*Budget, error)
