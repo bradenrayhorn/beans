@@ -10,6 +10,9 @@ jobs:
     name: Test E2E
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -37,7 +40,7 @@ jobs:
       run: go run ./cmd/beans migrate
 
     - name: Run Playwright tests
-      run: npm run e2e:ci
+      run: npm run e2e:ci 'playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}'
       working-directory: ./web
 
     - name: Docker compose down 
@@ -49,4 +52,16 @@ jobs:
         name: playwright-report
         path: web/playwright-report/
         retention-days: 30
+
+  test-status:
+    runs-on: ubuntu-20.04
+    needs: [test]
+    if: always()
+    steps:
+      - name: Tests successful 
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Tests failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
 

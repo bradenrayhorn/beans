@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "e2e": "playwright test",
     "e2e:debug": "playwright test --debug",
-    "e2e:ci": "WAIT_ON_TIMEOUT=10000 start-server-and-test backend:start http-get://127.0.0.1:8000/health-check e2e",
+    "e2e:ci": "WAIT_ON_TIMEOUT=10000 start-server-and-test backend:start http-get://127.0.0.1:8000/health-check",
     "backend:start": "(cd ../ && make run)"
   },
   "dependencies": {
