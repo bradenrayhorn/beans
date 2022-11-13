@@ -63,3 +63,39 @@ func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, monthID string
 	}
 	return items, nil
 }
+
+const getMonthCategoryByMonthAndCategory = `-- name: GetMonthCategoryByMonthAndCategory :one
+SELECT id, month_id, category_id, amount, created_at FROM month_categories WHERE month_id = $1 and category_id = $2
+`
+
+type GetMonthCategoryByMonthAndCategoryParams struct {
+	MonthID    string
+	CategoryID string
+}
+
+func (q *Queries) GetMonthCategoryByMonthAndCategory(ctx context.Context, arg GetMonthCategoryByMonthAndCategoryParams) (MonthCategory, error) {
+	row := q.db.QueryRow(ctx, getMonthCategoryByMonthAndCategory, arg.MonthID, arg.CategoryID)
+	var i MonthCategory
+	err := row.Scan(
+		&i.ID,
+		&i.MonthID,
+		&i.CategoryID,
+		&i.Amount,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateMonthCategoryAmount = `-- name: UpdateMonthCategoryAmount :exec
+UPDATE month_categories SET amount = $1 WHERE id = $2
+`
+
+type UpdateMonthCategoryAmountParams struct {
+	Amount pgtype.Numeric
+	ID     string
+}
+
+func (q *Queries) UpdateMonthCategoryAmount(ctx context.Context, arg UpdateMonthCategoryAmountParams) error {
+	_, err := q.db.Exec(ctx, updateMonthCategoryAmount, arg.Amount, arg.ID)
+	return err
+}

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -24,19 +25,9 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "id"))
-		if err != nil {
-			Error(w, err)
-			return
-		}
+		month := getMonth(r)
 
-		month, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID)
-		if err != nil {
-			Error(w, err)
-			return
-		}
-
-		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), monthID)
+		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), month.ID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -59,4 +50,54 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 			},
 		}, http.StatusOK)
 	}
+}
+
+func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
+	type request struct {
+		CategoryID beans.ID     `json:"category_id"`
+		Amount     beans.Amount `json:"amount"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := decodeRequest(r, &req); err != nil {
+			Error(w, err)
+			return
+		}
+
+		monthID := getMonth(r).ID
+
+		if _, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID); err != nil {
+			Error(w, err)
+			return
+		}
+
+		if err := s.monthCategoryService.CreateOrUpdate(r.Context(), monthID, req.CategoryID, req.Amount); err != nil {
+			Error(w, err)
+			return
+		}
+	}
+}
+
+func (s *Server) validateMonth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "monthID"))
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		month, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "month", month)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getMonth(r *http.Request) *beans.Month {
+	return r.Context().Value("month").(*beans.Month)
 }

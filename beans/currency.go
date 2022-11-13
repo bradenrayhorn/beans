@@ -102,3 +102,39 @@ func (m validatableMaxPrecision) Validate() error {
 
 	return nil
 }
+
+// positive rule
+
+type validatablePositive struct {
+	Amount
+}
+
+func Positive(a Amount) validatablePositive {
+	return validatablePositive{a}
+}
+
+func (v validatablePositive) Validate() error {
+	if v.Amount.decimal.Negative {
+		return errors.New(":field must be positive")
+	}
+
+	return nil
+}
+
+// non zero rule
+
+type validatableNonZero struct {
+	Amount
+}
+
+func NonZero(a Amount) validatableNonZero {
+	return validatableNonZero{a}
+}
+
+func (v validatableNonZero) Validate() error {
+	if v.Amount.decimal.IsZero() {
+		return errors.New(":field must not be zero")
+	}
+
+	return nil
+}
