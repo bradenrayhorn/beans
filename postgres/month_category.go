@@ -25,6 +25,13 @@ func (r *monthCategoryRepository) Create(ctx context.Context, monthCategory *bea
 	})
 }
 
+func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategoryID beans.ID, amount beans.Amount) error {
+	return r.db.UpdateMonthCategoryAmount(ctx, db.UpdateMonthCategoryAmountParams{
+		ID:     monthCategoryID.String(),
+		Amount: amountToNumeric(amount),
+	})
+}
+
 func (r *monthCategoryRepository) GetForMonth(ctx context.Context, monthID beans.ID) ([]*beans.MonthCategory, error) {
 	monthCategories := []*beans.MonthCategory{}
 	res, err := r.db.GetMonthCategoriesForMonth(ctx, monthID.String())
@@ -54,4 +61,31 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, monthID beans
 	}
 
 	return monthCategories, nil
+}
+
+func (r *monthCategoryRepository) GetByMonthAndCategory(ctx context.Context, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
+	res, err := r.db.GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
+		MonthID:    monthID.String(),
+		CategoryID: categoryID.String(),
+	})
+
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	id, err := beans.BeansIDFromString(res.ID)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := numericToAmount(res.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &beans.MonthCategory{
+		ID:         id,
+		MonthID:    monthID,
+		CategoryID: categoryID,
+		Amount:     amount,
+	}, nil
 }

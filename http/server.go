@@ -21,9 +21,10 @@ type Server struct {
 	budgetService           beans.BudgetService
 	categoryRepository      beans.CategoryRepository
 	categoryService         beans.CategoryService
-	monthCategoryRepository beans.MonthCategoryRepository
 	monthRepository         beans.MonthRepository
 	monthService            beans.MonthService
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthCategoryService    beans.MonthCategoryService
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	transactionService      beans.TransactionService
@@ -38,9 +39,10 @@ func NewServer(
 	bs beans.BudgetService,
 	cr beans.CategoryRepository,
 	cs beans.CategoryService,
-	mcr beans.MonthCategoryRepository,
 	mr beans.MonthRepository,
 	ms beans.MonthService,
+	mcr beans.MonthCategoryRepository,
+	mcs beans.MonthCategoryService,
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
 	ts beans.TransactionService,
@@ -56,9 +58,10 @@ func NewServer(
 		budgetService:           bs,
 		categoryRepository:      cr,
 		categoryService:         cs,
-		monthCategoryRepository: mcr,
 		monthRepository:         mr,
 		monthService:            ms,
+		monthCategoryRepository: mcr,
+		monthCategoryService:    mcs,
 		sessionRepository:       sr,
 		transactionRepository:   tr,
 		transactionService:      ts,
@@ -111,7 +114,12 @@ func NewServer(
 			})
 
 			r.Route("/months", func(r chi.Router) {
-				r.Get("/{id}", s.handleMonthGet())
+				r.Route("/{monthID}", func(r chi.Router) {
+					r.Use(s.validateMonth)
+
+					r.Get("/", s.handleMonthGet())
+					r.Post("/categories", s.handleMonthCategoryUpdate())
+				})
 			})
 
 		})

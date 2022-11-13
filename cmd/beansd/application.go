@@ -23,9 +23,10 @@ type Application struct {
 	budgetService           beans.BudgetService
 	categoryRepository      beans.CategoryRepository
 	categoryService         beans.CategoryService
-	monthCategoryRepository beans.MonthCategoryRepository
 	monthRepository         beans.MonthRepository
 	monthService            beans.MonthService
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthCategoryService    beans.MonthCategoryService
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	transactionService      beans.TransactionService
@@ -59,9 +60,10 @@ func (a *Application) Start() error {
 	a.budgetService = logic.NewBudgetService(a.budgetRepository)
 	a.categoryRepository = postgres.NewCategoryRepository(pool)
 	a.categoryService = logic.NewCategoryService(a.categoryRepository)
-	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
 	a.monthRepository = postgres.NewMonthRepository(pool)
 	a.monthService = logic.NewMonthService(a.monthRepository)
+	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
+	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
 	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository)
@@ -75,9 +77,10 @@ func (a *Application) Start() error {
 		a.budgetService,
 		a.categoryRepository,
 		a.categoryService,
-		a.monthCategoryRepository,
 		a.monthRepository,
 		a.monthService,
+		a.monthCategoryRepository,
+		a.monthCategoryService,
 		a.sessionRepository,
 		a.transactionRepository,
 		a.transactionService,
