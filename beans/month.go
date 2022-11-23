@@ -26,6 +26,7 @@ type MonthRepository interface {
 	Create(ctx context.Context, month *Month) error
 	Get(ctx context.Context, id ID) (*Month, error)
 	GetByDate(ctx context.Context, budgetID ID, date time.Time) (*Month, error)
+	GetLatest(ctx context.Context, budgetID ID) (*Month, error)
 }
 
 type MonthService interface {

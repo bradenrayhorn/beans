@@ -1,11 +1,13 @@
 package main_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBudgets(t *testing.T) {
@@ -40,9 +42,11 @@ func TestBudgets(t *testing.T) {
 	t.Run("can get budget", func(t *testing.T) {
 		user, session := ta.CreateUserAndSession(t)
 		budget := ta.CreateBudget(t, "my budget", user)
+		month, err := ta.application.MonthRepository().GetLatest(context.Background(), budget.ID)
+		require.Nil(t, err)
 		r := ta.GetRequest(t, fmt.Sprintf("api/v1/budgets/%s", budget.ID), &RequestOptions{SessionID: string(session.ID)})
 
 		assert.Equal(t, http.StatusOK, r.StatusCode)
-		assert.JSONEq(t, fmt.Sprintf(`{"data":{"name":"%s","id":"%s"}}`, "my budget", budget.ID), r.Body)
+		assert.JSONEq(t, fmt.Sprintf(`{"data":{"name":"%s","id":"%s","latest_month_id":"%s"}}`, "my budget", budget.ID, month.ID), r.Body)
 	})
 }

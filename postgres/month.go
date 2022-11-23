@@ -60,3 +60,21 @@ func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date
 		Date:     beans.NewDate(res.Date),
 	}, nil
 }
+
+func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*beans.Month, error) {
+	res, err := r.db.GetNewestMonth(ctx, budgetID.String())
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	id, err := beans.BeansIDFromString(res.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &beans.Month{
+		ID:       id,
+		BudgetID: budgetID,
+		Date:     beans.NewDate(res.Date),
+	}, nil
+}

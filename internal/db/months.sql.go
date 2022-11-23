@@ -63,3 +63,19 @@ func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
 	)
 	return i, err
 }
+
+const getNewestMonth = `-- name: GetNewestMonth :one
+SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1 ORDER BY date desc LIMIT 1
+`
+
+func (q *Queries) GetNewestMonth(ctx context.Context, budgetID string) (Month, error) {
+	row := q.db.QueryRow(ctx, getNewestMonth, budgetID)
+	var i Month
+	err := row.Scan(
+		&i.ID,
+		&i.BudgetID,
+		&i.Date,
+		&i.CreatedAt,
+	)
+	return i, err
+}

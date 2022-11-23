@@ -3329,6 +3329,9 @@ type MockMonthRepository struct {
 	// GetByDateFunc is an instance of a mock function object controlling
 	// the behavior of the method GetByDate.
 	GetByDateFunc *MonthRepositoryGetByDateFunc
+	// GetLatestFunc is an instance of a mock function object controlling
+	// the behavior of the method GetLatest.
+	GetLatestFunc *MonthRepositoryGetLatestFunc
 }
 
 // NewMockMonthRepository creates a new mock of the MonthRepository
@@ -3348,6 +3351,11 @@ func NewMockMonthRepository() *MockMonthRepository {
 		},
 		GetByDateFunc: &MonthRepositoryGetByDateFunc{
 			defaultHook: func(context.Context, beans.ID, time.Time) (r0 *beans.Month, r1 error) {
+				return
+			},
+		},
+		GetLatestFunc: &MonthRepositoryGetLatestFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.Month, r1 error) {
 				return
 			},
 		},
@@ -3373,6 +3381,11 @@ func NewStrictMockMonthRepository() *MockMonthRepository {
 				panic("unexpected invocation of MockMonthRepository.GetByDate")
 			},
 		},
+		GetLatestFunc: &MonthRepositoryGetLatestFunc{
+			defaultHook: func(context.Context, beans.ID) (*beans.Month, error) {
+				panic("unexpected invocation of MockMonthRepository.GetLatest")
+			},
+		},
 	}
 }
 
@@ -3389,6 +3402,9 @@ func NewMockMonthRepositoryFrom(i beans.MonthRepository) *MockMonthRepository {
 		},
 		GetByDateFunc: &MonthRepositoryGetByDateFunc{
 			defaultHook: i.GetByDate,
+		},
+		GetLatestFunc: &MonthRepositoryGetLatestFunc{
+			defaultHook: i.GetLatest,
 		},
 	}
 }
@@ -3714,6 +3730,114 @@ func (c MonthRepositoryGetByDateFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c MonthRepositoryGetByDateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// MonthRepositoryGetLatestFunc describes the behavior when the GetLatest
+// method of the parent MockMonthRepository instance is invoked.
+type MonthRepositoryGetLatestFunc struct {
+	defaultHook func(context.Context, beans.ID) (*beans.Month, error)
+	hooks       []func(context.Context, beans.ID) (*beans.Month, error)
+	history     []MonthRepositoryGetLatestFuncCall
+	mutex       sync.Mutex
+}
+
+// GetLatest delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockMonthRepository) GetLatest(v0 context.Context, v1 beans.ID) (*beans.Month, error) {
+	r0, r1 := m.GetLatestFunc.nextHook()(v0, v1)
+	m.GetLatestFunc.appendCall(MonthRepositoryGetLatestFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetLatest method of
+// the parent MockMonthRepository instance is invoked and the hook queue is
+// empty.
+func (f *MonthRepositoryGetLatestFunc) SetDefaultHook(hook func(context.Context, beans.ID) (*beans.Month, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetLatest method of the parent MockMonthRepository instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *MonthRepositoryGetLatestFunc) PushHook(hook func(context.Context, beans.ID) (*beans.Month, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *MonthRepositoryGetLatestFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) (*beans.Month, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *MonthRepositoryGetLatestFunc) PushReturn(r0 *beans.Month, r1 error) {
+	f.PushHook(func(context.Context, beans.ID) (*beans.Month, error) {
+		return r0, r1
+	})
+}
+
+func (f *MonthRepositoryGetLatestFunc) nextHook() func(context.Context, beans.ID) (*beans.Month, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *MonthRepositoryGetLatestFunc) appendCall(r0 MonthRepositoryGetLatestFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of MonthRepositoryGetLatestFuncCall objects
+// describing the invocations of this function.
+func (f *MonthRepositoryGetLatestFunc) History() []MonthRepositoryGetLatestFuncCall {
+	f.mutex.Lock()
+	history := make([]MonthRepositoryGetLatestFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// MonthRepositoryGetLatestFuncCall is an object that describes an
+// invocation of method GetLatest on an instance of MockMonthRepository.
+type MonthRepositoryGetLatestFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Month
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c MonthRepositoryGetLatestFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c MonthRepositoryGetLatestFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

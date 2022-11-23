@@ -60,8 +60,12 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 }
 
 func (s *Server) handleBudgetGet() http.HandlerFunc {
+	type responseData struct {
+		LatestMonth beans.ID `json:"latest_month_id"`
+		responseBudget
+	}
 	type response struct {
-		Data responseBudget `json:"data"`
+		Data responseData `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		budget := s.getBudget(chi.URLParam(r, "budgetID"), w, r)
@@ -69,7 +73,16 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}
+		latestMonth, err := s.monthRepository.GetLatest(r.Context(), budget.ID)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		res := response{Data: responseData{
+			responseBudget: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)},
+			LatestMonth:    latestMonth.ID,
+		}}
 
 		jsonResponse(w, res, http.StatusOK)
 	}
