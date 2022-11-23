@@ -1,6 +1,5 @@
+import { GetBudgetData, queries, queryKeys } from "@/constants/queries";
 import { useQuery } from "@tanstack/react-query";
-import { queries, queryKeys } from "@/constants/queries";
-import { Budget } from "@/constants/types";
 import { useParams } from "react-router-dom";
 
 export const useBudgetID = () => {
@@ -16,5 +15,5 @@ export const useBudget = () => {
     queries.budget.get({ budgetID: (budgetID ?? "") as string })
   );
 
-  return { ...query, budget: query.data?.data as Budget };
+  return { ...query, budget: query.data?.data as GetBudgetData };
 };

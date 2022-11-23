@@ -1,68 +1,37 @@
 import { Input, InputGroup, InputLeftElement } from "@chakra-ui/react";
-import { useState } from "react";
-import { useController } from "react-hook-form";
-
-const validNumberRegex = /^-?[0-9]+(\.[0-9]{1,2})?$/;
-
-type Props = {
-  name: string;
-};
+import { useController, UseControllerProps } from "react-hook-form";
+import { NumericFormat } from "react-number-format";
 
 const maxInput = 9999999999;
 const minInput = -maxInput;
 
-const CurrencyInput = ({ name }: Props) => {
+type Props = {
+  allowNegative?: boolean;
+};
+
+const CurrencyInput = ({
+  allowNegative,
+  ...props
+}: UseControllerProps & Props) => {
   const {
     field: { onChange, onBlur, value: formValue, ref },
-  } = useController({ name });
-
-  const [value, setValue] = useState(
-    formValue?.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-    }) ?? ""
-  );
+  } = useController(props);
 
   return (
     <InputGroup>
       <InputLeftElement pointerEvents="none">$</InputLeftElement>
-      <Input
-        name={name}
-        ref={ref}
-        value={value}
-        onFocus={() => {
-          if (value) {
-            setValue(`${+value.replace(/,/g, "")}`);
-          }
-        }}
-        onChange={(e) => {
-          setValue(e.target.value);
-        }}
-        onBlur={() => {
-          if (value.trim() === "") {
-            setValue("");
-            onChange(undefined);
-          } else if (
-            !validNumberRegex.test(value) ||
-            maxInput < +value ||
-            minInput > +value
-          ) {
-            setValue(
-              formValue?.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              }) ?? ""
-            );
-          } else {
-            const valueAsNumber = +value === 0 ? 0 : +value;
-            onChange(valueAsNumber);
-            setValue(
-              (+valueAsNumber).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              })
-            );
-          }
-
-          onBlur();
-        }}
+      <NumericFormat
+        decimalScale={2}
+        thousandSeparator=","
+        allowNegative={allowNegative}
+        isAllowed={({ value }) => +value < maxInput && +value > minInput}
+        value={formValue}
+        onChange={onChange}
+        onBlur={onBlur}
+        getInputRef={ref}
+        customInput={Input}
+        name={props.name}
+        pl={10}
       />
     </InputGroup>
   );
