@@ -71,3 +71,38 @@ export const createAccount = async (
 
   expect(response.ok()).toBeTruthy();
 };
+
+export const createCategoryGroup = async (
+  budgetID: string,
+  name: string,
+  request: any
+): Promise<string> => {
+  const response = await request.post(`/api/v1/categories/groups`, {
+    data: {
+      name,
+    },
+    headers: { "Budget-ID": budgetID },
+  });
+
+  expect(response.ok()).toBeTruthy();
+
+  const data = await response.json();
+  return data.data?.id;
+};
+
+export const createCategory = async (
+  budgetID: string,
+  groupID: string,
+  name: string,
+  request: any
+) => {
+  const response = await request.post(`/api/v1/categories`, {
+    data: {
+      group_id: groupID,
+      name,
+    },
+    headers: { "Budget-ID": budgetID },
+  });
+
+  expect(response.ok()).toBeTruthy();
+};

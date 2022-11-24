@@ -100,3 +100,23 @@ func TestBlankAmountIsEmpty(t *testing.T) {
 	var amount beans.Amount
 	assert.True(t, amount.Empty())
 }
+
+// non zero tests
+
+func TestAmountNonZeroValidation(t *testing.T) {
+
+	t.Run("filled in amount is not zero", func(t *testing.T) {
+		amount := beans.NewAmount(55, -1)
+		assert.Nil(t, beans.NonZero(amount).Validate())
+	})
+
+	t.Run("zero amount is zero", func(t *testing.T) {
+		amount := beans.NewAmount(0, 1)
+		assert.NotNil(t, beans.NonZero(amount).Validate())
+	})
+
+	t.Run("empty amount is not zero", func(t *testing.T) {
+		var amount beans.Amount
+		assert.Nil(t, beans.NonZero(amount).Validate())
+	})
+}

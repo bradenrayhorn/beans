@@ -36,3 +36,9 @@ export interface Category {
   id: string;
   name: string;
 }
+
+export interface MonthCategory {
+  id: string;
+  assigned: Amount;
+  category_id: string;
+}

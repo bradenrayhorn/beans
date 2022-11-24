@@ -132,7 +132,7 @@ func NonZero(a Amount) validatableNonZero {
 }
 
 func (v validatableNonZero) Validate() error {
-	if v.Amount.decimal.IsZero() {
+	if v.Amount.set && v.Amount.decimal.IsZero() {
 		return errors.New(":field must not be zero")
 	}
 

@@ -2,6 +2,7 @@ import {
   Account,
   Budget,
   CategoryGroup,
+  MonthCategory,
   Transaction,
   User,
 } from "@/constants/types";
@@ -28,6 +29,13 @@ const queryKeys = {
 
   me: "me",
 
+  months: {
+    get: "month_get",
+    categories: {
+      update: "month_category_update",
+    },
+  },
+
   transactions: {
     getAll: "transactions_get_all",
   },
@@ -39,14 +47,24 @@ interface GetAccountsResponse {
 interface GetAllBudgetsResponse {
   data: Budget[];
 }
+
+export type GetBudgetData = Budget & { latest_month_id: string };
 interface GetBudgetResponse {
-  data: Budget;
+  data: GetBudgetData;
 }
 interface GetTransactionsResponse {
   data: Transaction[];
 }
 interface GetCategoriesResponse {
   data: CategoryGroup[];
+}
+
+interface GetMonthResponse {
+  data: {
+    id: string;
+    date: string;
+    categories: MonthCategory[];
+  };
 }
 
 const buildQueries = (client: KyInstance) => {
@@ -109,6 +127,25 @@ const buildQueries = (client: KyInstance) => {
 
       create: ({ name }: { name: string }) =>
         client.post("api/v1/budgets", { json: { name } }),
+    },
+
+    months: {
+      get: ({ monthID }: { monthID: string }) =>
+        client.get(`api/v1/months/${monthID}`).json<GetMonthResponse>(),
+      categories: {
+        update: ({
+          monthID,
+          categoryID,
+          amount,
+        }: {
+          monthID: string;
+          categoryID: string;
+          amount: number | null;
+        }) =>
+          client.post(`api/v1/months/${monthID}/categories`, {
+            json: { category_id: categoryID, amount },
+          }),
+      },
     },
 
     // transactions
