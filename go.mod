@@ -12,7 +12,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
-	github.com/jackc/pgtype v1.12.0
+	github.com/jackc/pgtype v1.13.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/orlangure/gnomock v0.24.0
 	github.com/stretchr/testify v1.8.1
