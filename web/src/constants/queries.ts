@@ -2,6 +2,7 @@ import {
   Account,
   Budget,
   CategoryGroup,
+  Month,
   MonthCategory,
   Transaction,
   User,
@@ -60,10 +61,12 @@ interface GetCategoriesResponse {
 }
 
 interface GetMonthResponse {
+  data: Month;
+}
+
+export interface CreateMonthResponse {
   data: {
-    id: string;
-    date: string;
-    categories: MonthCategory[];
+    month_id: string;
   };
 }
 
@@ -132,6 +135,10 @@ const buildQueries = (client: KyInstance) => {
     months: {
       get: ({ monthID }: { monthID: string }) =>
         client.get(`api/v1/months/${monthID}`).json<GetMonthResponse>(),
+      create: ({ date }: { date: string }) =>
+        client
+          .post(`api/v1/months`, { json: { date } })
+          .json<CreateMonthResponse>(),
       categories: {
         update: ({
           monthID,

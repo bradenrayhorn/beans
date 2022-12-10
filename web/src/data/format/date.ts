@@ -1,4 +1,10 @@
 import dayjs from "dayjs";
 
 export const formatDate = (date: string): string =>
-  dayjs(date, "YYYY-MM-DD", true).format("MM/DD/YYYY");
+  parseDate(date).format("MM/DD/YYYY");
+
+export const formatBudgetMonth = (date: string): string =>
+  parseDate(date).format("YYYY.MM");
+
+export const parseDate = (date: string): dayjs.Dayjs =>
+  dayjs(date, "YYYY-MM-DD", true);

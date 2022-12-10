@@ -1,4 +1,8 @@
-import { queryKeys, useQueries } from "@/constants/queries";
+import {
+  CreateMonthResponse,
+  queryKeys,
+  useQueries,
+} from "@/constants/queries";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useBudgetID } from "./budget";
@@ -12,6 +16,26 @@ export const useMonth = ({ monthID }: { monthID: string }) => {
   );
 
   return { ...query, month: query.data?.data };
+};
+
+export const useCreateMonth = ({
+  onError,
+  onSuccess,
+}: {
+  onError: () => void;
+  onSuccess: (data: CreateMonthResponse) => void;
+}) => {
+  const budgetID = useBudgetID();
+  const queries = useQueries({ budgetID });
+
+  const mutation = useMutation(queries.months.create, { onError, onSuccess });
+
+  const submit = useCallback(
+    ({ date }: { date: string }) => mutation.mutateAsync({ date }),
+    []
+  );
+
+  return { ...mutation, submit };
 };
 
 export const useUpdateMonthCategory = ({

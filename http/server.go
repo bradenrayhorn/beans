@@ -114,6 +114,8 @@ func NewServer(
 			})
 
 			r.Route("/months", func(r chi.Router) {
+				r.Post("/", s.handleMonthCreate())
+
 				r.Route("/{monthID}", func(r chi.Router) {
 					r.Use(s.validateMonth)
 
@@ -126,7 +128,7 @@ func NewServer(
 	})
 
 	s.router.Get("/api/*", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("404 api"))
+		w.WriteHeader(http.StatusNotFound)
 	})
 
 	s.router.Get("/*", s.handleServeFrontend())
