@@ -23,7 +23,7 @@
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "dayjs": "1.11.7",
-    "downshift": "7.0.1",
+    "downshift": "7.0.4",
     "fraction.js": "4.2.0",
     "framer-motion": "7.0.0",
     "ky": "0.32.2",
