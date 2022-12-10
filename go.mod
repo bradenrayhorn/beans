@@ -17,7 +17,7 @@ require (
 	github.com/orlangure/gnomock v0.24.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.3.0
-	golang.org/x/net v0.3.0
+	golang.org/x/net v0.4.0
 )
 
 require (
