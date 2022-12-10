@@ -7,7 +7,7 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
 
   // go to budget page
   await page.goto(`/budget/${id}`);
-  await page.getByRole("link", { name: "budget" }).click();
+  await page.getByRole("link", { name: /^budget$/ }).click();
 
   const billsCategoryGroup = page
     .getByRole("list", { name: "Categories" })

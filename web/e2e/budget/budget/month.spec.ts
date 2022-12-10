@@ -11,7 +11,7 @@ test("can navigate between months", async ({
 
   // go to budgets page
   await page.goto(`/budget/${id}`);
-  await page.getByRole("link", { name: "budget" }).click();
+  await page.getByRole("link", { name: /^budget$/ }).click();
 
   const categoryGroup = page
     .getByRole("list", { name: "Categories" })
