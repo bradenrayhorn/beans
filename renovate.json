@@ -1,6 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    ":automergeAll",
+    ":dependencyDashboard",
+    ":ignoreModulesAndTests",
+    ":autodetectPinVersions",
+    ":prHourlyLimitNone",
+    ":prConcurrentLimitNone",
+    "group:monorepos",
+    "group:recommended",
+    "workarounds:all"
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "^vite$",
+        "^@vitejs\/plugin-react$"
+      ],
+      "groupName": "vite"
+    }
   ]
 }
