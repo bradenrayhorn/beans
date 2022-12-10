@@ -1,9 +1,9 @@
 import CategoryStats from "@/components/budget/categories/CategoryStats";
 import EditButton from "@/components/budget/categories/EditButton";
+import MonthHeader from "@/components/budget/MonthHeader";
 import PageCard from "@/components/PageCard";
 import { Amount } from "@/constants/types";
-import { formatAmount } from "@/data/format/amount";
-import { useBudget } from "@/data/queries/budget";
+import { useMonthID } from "@/context/MonthProvider";
 import { useCategories } from "@/data/queries/category";
 import { useMonth } from "@/data/queries/month";
 import {
@@ -12,16 +12,12 @@ import {
   List,
   ListItem,
   Spinner,
-  Stat,
-  StatLabel,
-  StatNumber,
   VStack,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
 
 export default function BudgetPage() {
-  const { budget } = useBudget();
-  const monthID = budget.latest_month_id;
+  const monthID = useMonthID();
 
   const { isLoading: isMonthLoading, month } = useMonth({ monthID });
   const { isLoading: areCategoriesLoading, categoryGroups } = useCategories();
@@ -38,13 +34,15 @@ export default function BudgetPage() {
     return budgets;
   }, [month?.categories, categoryGroups]);
 
-  if (isMonthLoading || areCategoriesLoading) {
+  if (isMonthLoading || areCategoriesLoading || !month) {
     return <Spinner />;
   }
 
   return (
     <Flex as="main" w="full" flexDir="column">
-      <Flex mb={8}>Budget {month?.date}</Flex>
+      <Flex mb={8} alignItems="center" gap={2}>
+        <MonthHeader month={month} />
+      </Flex>
       <VStack
         as={List}
         aria-label="Categories"
@@ -54,7 +52,7 @@ export default function BudgetPage() {
       >
         {categoryGroups.map((group) => (
           <ListItem w="full" key={group.id}>
-            <Heading textTransform="uppercase" mb={4}>
+            <Heading textTransform="uppercase" mb={4} size="lg">
               {group.name}
             </Heading>
             <VStack as={List} gap={4} w="full" align="flex-start">

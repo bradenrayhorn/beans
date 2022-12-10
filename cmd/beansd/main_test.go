@@ -198,6 +198,12 @@ func (ta *TestApplication) CreateMonth(tb testing.TB, budget *beans.Budget, date
 	return month
 }
 
+func (ta *TestApplication) GetMonth(tb testing.TB, budget *beans.Budget, date beans.Date) *beans.Month {
+	month, err := ta.application.MonthRepository().GetByDate(context.Background(), budget.ID, date.Time)
+	require.Nil(tb, err)
+	return month
+}
+
 func (ta *TestApplication) CreateCategory(tb testing.TB, budget *beans.Budget, group *beans.CategoryGroup, name string) *beans.Category {
 	id := beans.NewBeansID()
 	category := &beans.Category{ID: id, BudgetID: budget.ID, GroupID: group.ID, Name: beans.Name(name)}

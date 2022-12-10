@@ -42,3 +42,9 @@ export interface MonthCategory {
   assigned: Amount;
   category_id: string;
 }
+
+export interface Month {
+  id: string;
+  date: string;
+  categories: MonthCategory[];
+}

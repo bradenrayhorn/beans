@@ -52,6 +52,36 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	}
 }
 
+func (s *Server) handleMonthCreate() http.HandlerFunc {
+	type request struct {
+		Date beans.Date `json:"date"`
+	}
+
+	type response struct {
+		ID beans.ID `json:"month_id"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := decodeRequest(r, &req); err != nil {
+			Error(w, err)
+			return
+		}
+
+		month, err := s.monthService.GetOrCreate(r.Context(), getBudget(r).ID, req.Date.Time)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		jsonResponse(w, struct {
+			Data response `json:"data"`
+		}{
+			Data: response{ID: month.ID},
+		}, http.StatusOK)
+	}
+}
+
 func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
 	type request struct {
 		CategoryID beans.ID     `json:"category_id"`

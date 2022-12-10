@@ -42,6 +42,32 @@ func TestMonths(t *testing.T) {
 		}}`, month.ID, monthCategory.ID, category.ID), r.Body)
 	})
 
+	t.Run("can create existing month", func(t *testing.T) {
+		user, session := ta.CreateUserAndSession(t)
+		budget := ta.CreateBudget(t, "my budget", user)
+		month := ta.CreateMonth(t, budget, testutils.NewDate(t, "2022-05-01"))
+
+		r := ta.PostRequest(t, "api/v1/months", newOptionsWithBody(session, budget, `{"date":"2022-05-03"}`))
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+		assert.JSONEq(t, fmt.Sprintf(`{"data":{
+			"month_id": "%s"
+		}}`, month.ID), r.Body)
+	})
+
+	t.Run("can create new month", func(t *testing.T) {
+		user, session := ta.CreateUserAndSession(t)
+		budget := ta.CreateBudget(t, "my budget", user)
+
+		r := ta.PostRequest(t, "api/v1/months", newOptionsWithBody(session, budget, `{"date":"2022-05-03"}`))
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+
+		month := ta.GetMonth(t, budget, testutils.NewDate(t, "2022-05-01"))
+
+		assert.JSONEq(t, fmt.Sprintf(`{"data":{
+			"month_id": "%s"
+		}}`, month.ID), r.Body)
+	})
+
 	t.Run("can edit month category", func(t *testing.T) {
 		user, session := ta.CreateUserAndSession(t)
 		budget := ta.CreateBudget(t, "my budget", user)
