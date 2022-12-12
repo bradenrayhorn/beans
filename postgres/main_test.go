@@ -64,3 +64,9 @@ func makeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.
 	require.Nil(tb, err)
 	return id
 }
+
+func makeTransaction(tb testing.TB, pool *pgxpool.Pool, transaction *beans.Transaction) *beans.Transaction {
+	err := postgres.NewTransactionRepository(pool).Create(context.Background(), transaction)
+	require.Nil(tb, err)
+	return transaction
+}

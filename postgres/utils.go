@@ -45,6 +45,14 @@ func idToNullString(id beans.ID) sql.NullString {
 	}
 }
 
+func nullStringToID(n sql.NullString) (beans.ID, error) {
+	if n.Valid {
+		return beans.BeansIDFromString(n.String)
+	} else {
+		return beans.BeansIDFromString("")
+	}
+}
+
 func mapPostgresError(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return beans.WrapError(err, beans.ErrorNotFound)

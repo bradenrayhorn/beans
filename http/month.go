@@ -12,6 +12,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	type responseCategory struct {
 		ID         beans.ID     `json:"id"`
 		Assigned   beans.Amount `json:"assigned"`
+		Spent      beans.Amount `json:"spent"`
 		CategoryID beans.ID     `json:"category_id"`
 	}
 	type responseMonth struct {
@@ -38,6 +39,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 			responseCategories[i] = responseCategory{
 				ID:         category.ID,
 				Assigned:   category.Amount,
+				Spent:      category.Spent,
 				CategoryID: category.CategoryID,
 			}
 		}

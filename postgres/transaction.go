@@ -18,11 +18,12 @@ func NewTransactionRepository(pool *pgxpool.Pool) *TransactionRepository {
 
 func (r *TransactionRepository) Create(ctx context.Context, transaction *beans.Transaction) error {
 	return r.db.CreateTransaction(ctx, db.CreateTransactionParams{
-		ID:        transaction.ID.String(),
-		AccountID: transaction.AccountID.String(),
-		Date:      transaction.Date.Time,
-		Amount:    amountToNumeric(transaction.Amount),
-		Notes:     transaction.Notes.SQLNullString(),
+		ID:         transaction.ID.String(),
+		AccountID:  transaction.AccountID.String(),
+		CategoryID: idToNullString(transaction.CategoryID),
+		Date:       transaction.Date.Time,
+		Amount:     amountToNumeric(transaction.Amount),
+		Notes:      transaction.Notes.SQLNullString(),
 	})
 }
 
@@ -46,13 +47,18 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		if err != nil {
 			return transactions, err
 		}
+		categoryID, err := nullStringToID(t.CategoryID)
+		if err != nil {
+			return transactions, err
+		}
 
 		transactions = append(transactions, &beans.Transaction{
-			ID:        id,
-			AccountID: accountID,
-			Amount:    amount,
-			Date:      beans.NewDate(t.Date),
-			Notes:     beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
+			ID:         id,
+			AccountID:  accountID,
+			CategoryID: categoryID,
+			Amount:     amount,
+			Date:       beans.NewDate(t.Date),
+			Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
 			Account: &beans.Account{
 				ID:       accountID,
 				Name:     beans.Name(t.AccountName),

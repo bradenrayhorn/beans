@@ -21,6 +21,7 @@ func TestMonthCategory(t *testing.T) {
 
 	userID := makeUser(t, pool, "user")
 	budgetID := makeBudget(t, pool, "budget", userID)
+	account := makeAccount(t, pool, "account", budgetID)
 	groupID := makeCategoryGroup(t, pool, "group", budgetID)
 	categoryID := makeCategory(t, pool, "group", groupID, budgetID)
 	categoryID2 := makeCategory(t, pool, "group", groupID, budgetID)
@@ -28,12 +29,12 @@ func TestMonthCategory(t *testing.T) {
 	monthID2 := makeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
 
 	cleanup := func() {
-		pool.Exec(context.Background(), "truncate month_categories cascade;")
+		pool.Exec(context.Background(), "truncate month_categories cascade; truncate transactions cascade;")
 	}
 
 	t.Run("can create", func(t *testing.T) {
 		defer cleanup()
-		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
+		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory))
 
 		res, err := monthCategoryRepository.GetForMonth(context.Background(), monthID)
@@ -63,7 +64,7 @@ func TestMonthCategory(t *testing.T) {
 
 	t.Run("can update amount", func(t *testing.T) {
 		defer cleanup()
-		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
+		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory))
 
 		require.Nil(t, monthCategoryRepository.UpdateAmount(context.Background(), monthCategory.ID, beans.NewAmount(5, -1)))
@@ -77,8 +78,8 @@ func TestMonthCategory(t *testing.T) {
 
 	t.Run("get filters by month", func(t *testing.T) {
 		defer cleanup()
-		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
-		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID2, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
+		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
+		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID2, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory1))
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory2))
 
@@ -86,6 +87,35 @@ func TestMonthCategory(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		assert.True(t, reflect.DeepEqual(monthCategory1, res[0]))
+	})
+
+	t.Run("sums spent transactions appropriately", func(t *testing.T) {
+		defer cleanup()
+		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
+		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID2, Amount: beans.NewAmount(1, 0)}
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory1))
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory2))
+
+		makeTransaction(t, pool, &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			CategoryID: categoryID,
+			Amount:     beans.NewAmount(-5, 0),
+			Date:       testutils.NewDate(t, "2022-05-20"),
+		})
+		makeTransaction(t, pool, &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			CategoryID: categoryID,
+			Amount:     beans.NewAmount(-682, -2),
+			Date:       testutils.NewDate(t, "2022-05-20"),
+		})
+
+		res, err := monthCategoryRepository.GetForMonth(context.Background(), monthID)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.Equal(t, beans.NewAmount(-1182, -2), res[0].Spent)
+		require.Equal(t, beans.NewAmount(0, 0), res[1].Spent)
 	})
 
 	t.Run("can get by month and category", func(t *testing.T) {
