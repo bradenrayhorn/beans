@@ -7,7 +7,8 @@ import (
 type Transaction struct {
 	ID ID
 
-	AccountID ID
+	AccountID  ID
+	CategoryID ID
 
 	Amount Amount
 	Date   Date

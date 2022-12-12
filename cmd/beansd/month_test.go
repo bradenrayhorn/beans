@@ -36,6 +36,10 @@ func TestMonths(t *testing.T) {
 					"assigned": {
 						"coefficient": 5,
 						"exponent": -1
+					},
+					"spent": {
+						"coefficient": 0,
+						"exponent": 0
 					}
 				}
 			]
