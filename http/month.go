@@ -28,7 +28,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		month := getMonth(r)
 
-		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), month.ID)
+		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), *month)
 		if err != nil {
 			Error(w, err)
 			return

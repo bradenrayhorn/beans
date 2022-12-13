@@ -2784,7 +2784,7 @@ func NewMockMonthCategoryRepository() *MockMonthCategoryRepository {
 			},
 		},
 		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
-			defaultHook: func(context.Context, beans.ID) (r0 []*beans.MonthCategory, r1 error) {
+			defaultHook: func(context.Context, beans.Month) (r0 []*beans.MonthCategory, r1 error) {
 				return
 			},
 		},
@@ -2812,7 +2812,7 @@ func NewStrictMockMonthCategoryRepository() *MockMonthCategoryRepository {
 			},
 		},
 		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
-			defaultHook: func(context.Context, beans.ID) ([]*beans.MonthCategory, error) {
+			defaultHook: func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
 				panic("unexpected invocation of MockMonthCategoryRepository.GetForMonth")
 			},
 		},
@@ -3069,15 +3069,15 @@ func (c MonthCategoryRepositoryGetByMonthAndCategoryFuncCall) Results() []interf
 // GetForMonth method of the parent MockMonthCategoryRepository instance is
 // invoked.
 type MonthCategoryRepositoryGetForMonthFunc struct {
-	defaultHook func(context.Context, beans.ID) ([]*beans.MonthCategory, error)
-	hooks       []func(context.Context, beans.ID) ([]*beans.MonthCategory, error)
+	defaultHook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)
+	hooks       []func(context.Context, beans.Month) ([]*beans.MonthCategory, error)
 	history     []MonthCategoryRepositoryGetForMonthFuncCall
 	mutex       sync.Mutex
 }
 
 // GetForMonth delegates to the next hook function in the queue and stores
 // the parameter and result values of this invocation.
-func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 beans.ID) ([]*beans.MonthCategory, error) {
+func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 beans.Month) ([]*beans.MonthCategory, error) {
 	r0, r1 := m.GetForMonthFunc.nextHook()(v0, v1)
 	m.GetForMonthFunc.appendCall(MonthCategoryRepositoryGetForMonthFuncCall{v0, v1, r0, r1})
 	return r0, r1
@@ -3086,7 +3086,7 @@ func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 beans.I
 // SetDefaultHook sets function that is called when the GetForMonth method
 // of the parent MockMonthCategoryRepository instance is invoked and the
 // hook queue is empty.
-func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.MonthCategory, error)) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)) {
 	f.defaultHook = hook
 }
 
@@ -3095,7 +3095,7 @@ func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(contex
 // invokes the hook at the front of the queue and discards it. After the
 // queue is empty, the default hook function is invoked for any future
 // action.
-func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.MonthCategory, error)) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3104,19 +3104,19 @@ func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Cont
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultReturn(r0 []*beans.MonthCategory, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.MonthCategory, error) {
+	f.SetDefaultHook(func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *MonthCategoryRepositoryGetForMonthFunc) PushReturn(r0 []*beans.MonthCategory, r1 error) {
-	f.PushHook(func(context.Context, beans.ID) ([]*beans.MonthCategory, error) {
+	f.PushHook(func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
 		return r0, r1
 	})
 }
 
-func (f *MonthCategoryRepositoryGetForMonthFunc) nextHook() func(context.Context, beans.ID) ([]*beans.MonthCategory, error) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) nextHook() func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3155,7 +3155,7 @@ type MonthCategoryRepositoryGetForMonthFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.ID
+	Arg1 beans.Month
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 []*beans.MonthCategory

@@ -39,7 +39,8 @@ const getMonthCategoriesForMonth = `-- name: GetMonthCategoriesForMonth :many
 SELECT month_categories.id, month_categories.month_id, month_categories.category_id, month_categories.amount, month_categories.created_at, sum(t.amount)::numeric as spent
   FROM month_categories
   LEFT JOIN transactions t on t.category_id = month_categories.category_id
-  WHERE month_id = $1
+    AND t.date >= $1 AND t.date <= $2
+  WHERE month_id = $3
   GROUP BY (
     month_categories.id,
     month_categories.month_id,
@@ -47,6 +48,12 @@ SELECT month_categories.id, month_categories.month_id, month_categories.category
     month_categories.amount
   )
 `
+
+type GetMonthCategoriesForMonthParams struct {
+	FromDate time.Time
+	ToDate   time.Time
+	MonthID  string
+}
 
 type GetMonthCategoriesForMonthRow struct {
 	ID         string
@@ -57,8 +64,8 @@ type GetMonthCategoriesForMonthRow struct {
 	Spent      pgtype.Numeric
 }
 
-func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, monthID string) ([]GetMonthCategoriesForMonthRow, error) {
-	rows, err := q.db.Query(ctx, getMonthCategoriesForMonth, monthID)
+func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, arg GetMonthCategoriesForMonthParams) ([]GetMonthCategoriesForMonthRow, error) {
+	rows, err := q.db.Query(ctx, getMonthCategoriesForMonth, arg.FromDate, arg.ToDate, arg.MonthID)
 	if err != nil {
 		return nil, err
 	}

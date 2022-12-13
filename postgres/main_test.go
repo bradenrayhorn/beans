@@ -44,11 +44,11 @@ func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.
 	}
 }
 
-func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) beans.ID {
-	id := beans.NewBeansID()
-	err := postgres.NewMonthRepository(pool).Create(context.Background(), &beans.Month{ID: id, BudgetID: budgetID, Date: date})
+func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) *beans.Month {
+	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: date}
+	err := postgres.NewMonthRepository(pool).Create(context.Background(), month)
 	require.Nil(tb, err)
-	return id
+	return month
 }
 
 func makeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
