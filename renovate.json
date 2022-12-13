@@ -9,6 +9,7 @@
     ":prConcurrentLimitNone",
     "group:monorepos",
     "group:recommended",
+    "npm:unpublishSafe",
     "workarounds:all"
   ],
   "packageRules": [
