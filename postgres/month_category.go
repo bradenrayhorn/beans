@@ -32,9 +32,14 @@ func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategor
 	})
 }
 
-func (r *monthCategoryRepository) GetForMonth(ctx context.Context, monthID beans.ID) ([]*beans.MonthCategory, error) {
+func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.Month) ([]*beans.MonthCategory, error) {
 	monthCategories := []*beans.MonthCategory{}
-	res, err := r.db.GetMonthCategoriesForMonth(ctx, monthID.String())
+
+	res, err := r.db.GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
+		FromDate: month.Date.Time,
+		ToDate:   month.Date.Time.AddDate(0, 1, -month.Date.Time.Day()),
+		MonthID:  month.ID.String(),
+	})
 	if err != nil {
 		return monthCategories, err
 	}
@@ -62,7 +67,7 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, monthID beans
 
 		monthCategories = append(monthCategories, &beans.MonthCategory{
 			ID:         id,
-			MonthID:    monthID,
+			MonthID:    month.ID,
 			CategoryID: categoryID,
 			Amount:     amount,
 			Spent:      spent,

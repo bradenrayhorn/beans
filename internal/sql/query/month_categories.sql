@@ -7,7 +7,8 @@ INSERT INTO month_categories (
 SELECT month_categories.*, sum(t.amount)::numeric as spent
   FROM month_categories
   LEFT JOIN transactions t on t.category_id = month_categories.category_id
-  WHERE month_id = $1
+    AND t.date >= @from_date AND t.date <= @to_date
+  WHERE month_id = @month_id
   GROUP BY (
     month_categories.id,
     month_categories.month_id,
