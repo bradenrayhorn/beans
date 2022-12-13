@@ -66,7 +66,7 @@ func (a *Application) Start() error {
 	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
 	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
-	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository)
+	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository, a.categoryRepository)
 	a.userRepository = postgres.NewUserRepository(pool)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 
@@ -134,4 +134,8 @@ func (a *Application) UserRepository() beans.UserRepository {
 
 func (a *Application) SessionRepository() beans.SessionRepository {
 	return a.sessionRepository
+}
+
+func (a *Application) TransactionRepository() beans.TransactionRepository {
+	return a.transactionRepository
 }

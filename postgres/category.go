@@ -24,20 +24,41 @@ func (r *categoryRepository) Create(ctx context.Context, category *beans.Categor
 	})
 }
 
+func (r *categoryRepository) GetSingleForBudget(ctx context.Context, id beans.ID, budgetID beans.ID) (*beans.Category, error) {
+	dbCategory, err := r.db.GetCategoryForBudget(ctx, db.GetCategoryForBudgetParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	groupID, err := beans.BeansIDFromString(dbCategory.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	return &beans.Category{
+		ID:       id,
+		BudgetID: budgetID,
+		GroupID:  groupID,
+		Name:     beans.Name(dbCategory.Name),
+	}, nil
+}
+
 func (r *categoryRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Category, error) {
 	var categories []*beans.Category
 	dbCategories, err := r.db.GetCategoriesForBudget(ctx, budgetID.String())
 	if err != nil {
-		return categories, nil
+		return categories, mapPostgresError(err)
 	}
 	for _, c := range dbCategories {
 		id, err := beans.BeansIDFromString(c.ID)
 		if err != nil {
-			return categories, nil
+			return categories, err
 		}
 		groupID, err := beans.BeansIDFromString(c.GroupID)
 		if err != nil {
-			return categories, nil
+			return categories, err
 		}
 		categories = append(categories, &beans.Category{ID: id, BudgetID: budgetID, Name: beans.Name(c.Name), GroupID: groupID})
 	}

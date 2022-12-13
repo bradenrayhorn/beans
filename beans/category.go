@@ -17,6 +17,7 @@ type CategoryGroup struct {
 
 type CategoryRepository interface {
 	Create(context.Context, *Category) error
+	GetSingleForBudget(ctx context.Context, id ID, budgetID ID) (*Category, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Category, error)
 	CreateGroup(context.Context, *CategoryGroup) error
 	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]*CategoryGroup, error)

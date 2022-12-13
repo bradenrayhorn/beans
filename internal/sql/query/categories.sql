@@ -3,6 +3,9 @@ INSERT INTO categories (
   id, budget_id, group_id, name
 ) VALUES ($1, $2, $3, $4);
 
+-- name: GetCategoryForBudget :one
+SELECT * FROM categories WHERE id = $1 AND budget_id = $2;
+
 -- name: GetCategoriesForBudget :many
 SELECT * FROM categories WHERE budget_id = $1;
 

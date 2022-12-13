@@ -64,6 +64,7 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 				Name:     beans.Name(t.AccountName),
 				BudgetID: budgetID,
 			},
+			CategoryName: beans.NullStringFromSQL(t.CategoryName),
 		})
 	}
 
