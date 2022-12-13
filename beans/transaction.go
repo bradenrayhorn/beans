@@ -16,6 +16,8 @@ type Transaction struct {
 
 	// Must be explicitly loaded.
 	Account *Account
+	// Must be explicitly loaded.
+	CategoryName NullString
 }
 
 type TransactionNotes struct{ NullString }
@@ -26,15 +28,16 @@ func NewTransactionNotes(string string) TransactionNotes {
 
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) error
-	// Attaches Account field to Transactions.
+	// Attaches Account, CategoryName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
 }
 
 type TransactionCreate struct {
-	AccountID ID
-	Amount    Amount
-	Date      Date
-	Notes     TransactionNotes
+	AccountID  ID
+	CategoryID ID
+	Amount     Amount
+	Date       Date
+	Notes      TransactionNotes
 }
 
 func (t TransactionCreate) ValidateAll() error {

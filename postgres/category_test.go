@@ -51,6 +51,22 @@ func TestCategories(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(category2, categories[1]))
 	})
 
+	t.Run("can get single category", func(t *testing.T) {
+		defer cleanup()
+		group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budgetID}
+		require.Nil(t, categoryRepository.CreateGroup(context.Background(), group))
+
+		_, err := categoryRepository.GetSingleForBudget(context.Background(), beans.NewBeansID(), budgetID)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		category := &beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budgetID}
+		require.Nil(t, categoryRepository.Create(context.Background(), category))
+
+		res, err := categoryRepository.GetSingleForBudget(context.Background(), category.ID, budgetID)
+		require.Nil(t, err)
+		assert.True(t, reflect.DeepEqual(category, res))
+	})
+
 	t.Run("cannot create duplicate IDs", func(t *testing.T) {
 		defer cleanup()
 		group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budgetID}

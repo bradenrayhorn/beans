@@ -41,22 +41,25 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
-SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name from transactions
+SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, categories.name as category_name from transactions
 JOIN accounts
   ON accounts.id = transactions.account_id
   AND accounts.budget_id = $1
+LEFT JOIN categories
+  ON categories.id = transactions.category_id
 `
 
 type GetTransactionsForBudgetRow struct {
-	ID          string
-	AccountID   string
-	PayeeID     sql.NullString
-	CategoryID  sql.NullString
-	Date        time.Time
-	Amount      pgtype.Numeric
-	Notes       sql.NullString
-	CreatedAt   time.Time
-	AccountName string
+	ID           string
+	AccountID    string
+	PayeeID      sql.NullString
+	CategoryID   sql.NullString
+	Date         time.Time
+	Amount       pgtype.Numeric
+	Notes        sql.NullString
+	CreatedAt    time.Time
+	AccountName  string
+	CategoryName sql.NullString
 }
 
 func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]GetTransactionsForBudgetRow, error) {
@@ -78,6 +81,7 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 			&i.Notes,
 			&i.CreatedAt,
 			&i.AccountName,
+			&i.CategoryName,
 		); err != nil {
 			return nil, err
 		}

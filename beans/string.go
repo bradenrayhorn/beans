@@ -68,3 +68,11 @@ func (s NullString) Length() int {
 		return 0
 	}
 }
+
+func (s NullString) String() string {
+	if s.set {
+		return s.string
+	} else {
+		return ""
+	}
+}

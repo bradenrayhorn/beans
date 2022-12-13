@@ -95,6 +95,28 @@ func (q *Queries) GetCategoriesForBudget(ctx context.Context, budgetID string) (
 	return items, nil
 }
 
+const getCategoryForBudget = `-- name: GetCategoryForBudget :one
+SELECT id, name, budget_id, group_id, created_at FROM categories WHERE id = $1 AND budget_id = $2
+`
+
+type GetCategoryForBudgetParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetCategoryForBudget(ctx context.Context, arg GetCategoryForBudgetParams) (Category, error) {
+	row := q.db.QueryRow(ctx, getCategoryForBudget, arg.ID, arg.BudgetID)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.BudgetID,
+		&i.GroupID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getCategoryGroupsForBudget = `-- name: GetCategoryGroupsForBudget :many
 SELECT id, name, budget_id, created_at FROM category_groups WHERE budget_id = $1
 `

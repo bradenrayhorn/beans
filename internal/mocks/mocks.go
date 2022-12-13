@@ -1153,6 +1153,9 @@ type MockCategoryRepository struct {
 	// GetGroupsForBudgetFunc is an instance of a mock function object
 	// controlling the behavior of the method GetGroupsForBudget.
 	GetGroupsForBudgetFunc *CategoryRepositoryGetGroupsForBudgetFunc
+	// GetSingleForBudgetFunc is an instance of a mock function object
+	// controlling the behavior of the method GetSingleForBudget.
+	GetSingleForBudgetFunc *CategoryRepositoryGetSingleForBudgetFunc
 	// GroupExistsFunc is an instance of a mock function object controlling
 	// the behavior of the method GroupExists.
 	GroupExistsFunc *CategoryRepositoryGroupExistsFunc
@@ -1180,6 +1183,11 @@ func NewMockCategoryRepository() *MockCategoryRepository {
 		},
 		GetGroupsForBudgetFunc: &CategoryRepositoryGetGroupsForBudgetFunc{
 			defaultHook: func(context.Context, beans.ID) (r0 []*beans.CategoryGroup, r1 error) {
+				return
+			},
+		},
+		GetSingleForBudgetFunc: &CategoryRepositoryGetSingleForBudgetFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 *beans.Category, r1 error) {
 				return
 			},
 		},
@@ -1216,6 +1224,11 @@ func NewStrictMockCategoryRepository() *MockCategoryRepository {
 				panic("unexpected invocation of MockCategoryRepository.GetGroupsForBudget")
 			},
 		},
+		GetSingleForBudgetFunc: &CategoryRepositoryGetSingleForBudgetFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID) (*beans.Category, error) {
+				panic("unexpected invocation of MockCategoryRepository.GetSingleForBudget")
+			},
+		},
 		GroupExistsFunc: &CategoryRepositoryGroupExistsFunc{
 			defaultHook: func(context.Context, beans.ID, beans.ID) (bool, error) {
 				panic("unexpected invocation of MockCategoryRepository.GroupExists")
@@ -1240,6 +1253,9 @@ func NewMockCategoryRepositoryFrom(i beans.CategoryRepository) *MockCategoryRepo
 		},
 		GetGroupsForBudgetFunc: &CategoryRepositoryGetGroupsForBudgetFunc{
 			defaultHook: i.GetGroupsForBudget,
+		},
+		GetSingleForBudgetFunc: &CategoryRepositoryGetSingleForBudgetFunc{
+			defaultHook: i.GetSingleForBudget,
 		},
 		GroupExistsFunc: &CategoryRepositoryGroupExistsFunc{
 			defaultHook: i.GroupExists,
@@ -1678,6 +1694,121 @@ func (c CategoryRepositoryGetGroupsForBudgetFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c CategoryRepositoryGetGroupsForBudgetFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// CategoryRepositoryGetSingleForBudgetFunc describes the behavior when the
+// GetSingleForBudget method of the parent MockCategoryRepository instance
+// is invoked.
+type CategoryRepositoryGetSingleForBudgetFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.ID) (*beans.Category, error)
+	hooks       []func(context.Context, beans.ID, beans.ID) (*beans.Category, error)
+	history     []CategoryRepositoryGetSingleForBudgetFuncCall
+	mutex       sync.Mutex
+}
+
+// GetSingleForBudget delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockCategoryRepository) GetSingleForBudget(v0 context.Context, v1 beans.ID, v2 beans.ID) (*beans.Category, error) {
+	r0, r1 := m.GetSingleForBudgetFunc.nextHook()(v0, v1, v2)
+	m.GetSingleForBudgetFunc.appendCall(CategoryRepositoryGetSingleForBudgetFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetSingleForBudget
+// method of the parent MockCategoryRepository instance is invoked and the
+// hook queue is empty.
+func (f *CategoryRepositoryGetSingleForBudgetFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Category, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetSingleForBudget method of the parent MockCategoryRepository instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *CategoryRepositoryGetSingleForBudgetFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Category, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *CategoryRepositoryGetSingleForBudgetFunc) SetDefaultReturn(r0 *beans.Category, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) (*beans.Category, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *CategoryRepositoryGetSingleForBudgetFunc) PushReturn(r0 *beans.Category, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.ID) (*beans.Category, error) {
+		return r0, r1
+	})
+}
+
+func (f *CategoryRepositoryGetSingleForBudgetFunc) nextHook() func(context.Context, beans.ID, beans.ID) (*beans.Category, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *CategoryRepositoryGetSingleForBudgetFunc) appendCall(r0 CategoryRepositoryGetSingleForBudgetFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of
+// CategoryRepositoryGetSingleForBudgetFuncCall objects describing the
+// invocations of this function.
+func (f *CategoryRepositoryGetSingleForBudgetFunc) History() []CategoryRepositoryGetSingleForBudgetFuncCall {
+	f.mutex.Lock()
+	history := make([]CategoryRepositoryGetSingleForBudgetFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// CategoryRepositoryGetSingleForBudgetFuncCall is an object that describes
+// an invocation of method GetSingleForBudget on an instance of
+// MockCategoryRepository.
+type CategoryRepositoryGetSingleForBudgetFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Category
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c CategoryRepositoryGetSingleForBudgetFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c CategoryRepositoryGetSingleForBudgetFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

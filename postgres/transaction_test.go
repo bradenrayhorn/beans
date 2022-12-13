@@ -48,22 +48,24 @@ func TestTransactions(t *testing.T) {
 	t.Run("can get all", func(t *testing.T) {
 		defer cleanup()
 		transaction1 := &beans.Transaction{
-			ID:         beans.NewBeansID(),
-			AccountID:  account.ID,
-			CategoryID: categoryID,
-			Amount:     beans.NewAmount(5, 0),
-			Date:       testutils.NewDate(t, "2022-08-28"),
-			Notes:      beans.NewTransactionNotes("notes"),
-			Account:    &account,
+			ID:           beans.NewBeansID(),
+			AccountID:    account.ID,
+			CategoryID:   categoryID,
+			Amount:       beans.NewAmount(5, 0),
+			Date:         testutils.NewDate(t, "2022-08-28"),
+			Notes:        beans.NewTransactionNotes("notes"),
+			Account:      &account,
+			CategoryName: beans.NewNullString("category"),
 		}
 		transaction2 := &beans.Transaction{
-			ID:         beans.NewBeansID(),
-			AccountID:  account.ID,
-			CategoryID: categoryID,
-			Amount:     beans.NewAmount(7, 0),
-			Date:       testutils.NewDate(t, "2022-08-26"),
-			Notes:      beans.NewTransactionNotes("my notes"),
-			Account:    &account,
+			ID:           beans.NewBeansID(),
+			AccountID:    account.ID,
+			CategoryID:   categoryID,
+			Amount:       beans.NewAmount(7, 0),
+			Date:         testutils.NewDate(t, "2022-08-26"),
+			Notes:        beans.NewTransactionNotes("my notes"),
+			Account:      &account,
+			CategoryName: beans.NewNullString("category"),
 		}
 		err := transactionRepository.Create(context.Background(), transaction1)
 		require.Nil(t, err)
