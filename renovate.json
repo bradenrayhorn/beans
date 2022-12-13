@@ -20,5 +20,9 @@
       ],
       "groupName": "vite"
     }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy1.17",
+    "gomodUpdateImportPaths"
   ]
 }
