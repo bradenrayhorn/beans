@@ -31,7 +31,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "7.41.0",
     "react-number-format": "5.1.2",
-    "react-router-dom": "6.4.5",
+    "react-router-dom": "6.5.0",
     "zustand": "4.1.5"
   },
   "devDependencies": {
