@@ -1,8 +1,9 @@
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
   chakra,
   Flex,
+  IconButton,
   Input,
   InputGroup,
   InputRightElement,
@@ -24,6 +25,7 @@ interface Props<ItemType> {
   itemToID: (item: ItemType | undefined) => string;
   isLoading: boolean;
   isOpen?: boolean;
+  isClearable?: boolean;
   setIsOpen?: (isOpen: boolean) => void;
   items: Array<ItemType>;
 }
@@ -41,6 +43,7 @@ const Select = <T extends unknown>({
   isLoading: parentIsLoading = false,
   isOpen: parentIsOpen,
   setIsOpen: parentSetIsOpen,
+  isClearable = false,
 }: Props<T>) => {
   const {
     field: { onChange, onBlur, value, ref },
@@ -56,6 +59,8 @@ const Select = <T extends unknown>({
     setIsLoading(parentIsLoading);
   }, [providedItems, isLoading]);
 
+  const hasNoneItem = isClearable && items.length > 0 && !!selectedItem;
+
   const {
     isOpen,
     getInputProps,
@@ -64,6 +69,7 @@ const Select = <T extends unknown>({
     closeMenu,
     openMenu,
     setInputValue,
+    selectItem,
   } = useCombobox({
     inputId: field?.id,
     isOpen: parentIsOpen,
@@ -119,8 +125,21 @@ const Select = <T extends unknown>({
           <PopoverAnchor>
             <InputGroup>
               <Input {...inputProps} />
-              <InputRightElement pointerEvents="none">
-                <ChevronDownIcon />
+              <InputRightElement>
+                {hasNoneItem ? (
+                  <IconButton
+                    size="xs"
+                    variant="ghost"
+                    aria-label="Clear selection"
+                    onClick={() => {
+                      selectItem(null);
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                ) : (
+                  <ChevronDownIcon pointerEvents="none" />
+                )}
               </InputRightElement>
             </InputGroup>
           </PopoverAnchor>

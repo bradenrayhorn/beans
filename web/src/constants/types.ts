@@ -21,6 +21,7 @@ export interface Amount {
 export interface Transaction {
   id: string;
   account: Account;
+  category: Category | null;
   date: string;
   amount: Amount;
   notes: string | null;
@@ -40,6 +41,7 @@ export interface Category {
 export interface MonthCategory {
   id: string;
   assigned: Amount;
+  spent: Amount;
   category_id: string;
 }
 

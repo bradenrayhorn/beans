@@ -9,6 +9,7 @@ import { useBudgetID } from "./budget";
 
 interface AddTransactionData {
   accountID: string;
+  categoryID?: string;
   amount: string;
   date: string;
   notes?: string;

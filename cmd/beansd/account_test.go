@@ -26,6 +26,8 @@ func TestAccounts(t *testing.T) {
 		require.Nil(t, err)
 		assert.Len(t, accounts, 1)
 		assert.Equal(t, accounts[0].Name, beans.Name("account1"))
+
+		assert.JSONEq(t, fmt.Sprintf(`{"data":{"id":"%s"}}`, accounts[0].ID), r.Body)
 	})
 
 	t.Run("can get accounts", func(t *testing.T) {

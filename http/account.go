@@ -22,6 +22,9 @@ func (s *Server) handleAccountCreate() http.HandlerFunc {
 	type request struct {
 		Name beans.Name `json:"name"`
 	}
+	type response struct {
+		ID beans.ID `json:"id"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request
@@ -30,11 +33,17 @@ func (s *Server) handleAccountCreate() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.accountService.Create(r.Context(), req.Name, getBudget(r).ID)
+		account, err := s.accountService.Create(r.Context(), req.Name, getBudget(r).ID)
 		if err != nil {
 			Error(w, err)
 			return
 		}
+
+		jsonResponse(w, struct {
+			Data response `json:"data"`
+		}{
+			Data: response{ID: account.ID},
+		}, http.StatusOK)
 	}
 }
 

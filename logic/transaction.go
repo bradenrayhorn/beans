@@ -11,14 +11,18 @@ type TransactionService struct {
 	transactionRepository beans.TransactionRepository
 	accountRepository     beans.AccountRepository
 	categoryRepository    beans.CategoryRepository
+	monthService          beans.MonthService
+	monthCategoryService  beans.MonthCategoryService
 }
 
 func NewTransactionService(
 	transactionRepository beans.TransactionRepository,
 	accountRepository beans.AccountRepository,
 	categoryRepository beans.CategoryRepository,
+	monthService beans.MonthService,
+	monthCategoryService beans.MonthCategoryService,
 ) *TransactionService {
-	return &TransactionService{transactionRepository, accountRepository, categoryRepository}
+	return &TransactionService{transactionRepository, accountRepository, categoryRepository, monthService, monthCategoryService}
 }
 
 func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Budget, data beans.TransactionCreate) (*beans.Transaction, error) {
@@ -45,6 +49,15 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 			} else {
 				return nil, err
 			}
+		}
+
+		month, err := s.monthService.GetOrCreate(ctx, activeBudget.ID, beans.NormalizeMonth(data.Date.Time))
+		if err != nil {
+			return nil, err
+		}
+
+		if err := s.monthCategoryService.CreateIfNotExists(ctx, month.ID, data.CategoryID); err != nil {
+			return nil, err
 		}
 	}
 

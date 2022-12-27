@@ -7,8 +7,13 @@ export const amountToFraction = (amount: Amount): Fraction => {
   );
 };
 
+export const zeroAmount: Amount = { exponent: 0, coefficient: 0 };
+
 export const formatAmount = (amount: Amount): string =>
-  amountToFraction(amount).valueOf().toLocaleString(undefined, {
+  formatFraction(amountToFraction(amount));
+
+export const formatFraction = (fraction: Fraction): string =>
+  fraction.valueOf().toLocaleString(undefined, {
     minimumFractionDigits: 2,
     style: "currency",
     currency: "USD",

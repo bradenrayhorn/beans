@@ -3,7 +3,6 @@ import {
   Budget,
   CategoryGroup,
   Month,
-  MonthCategory,
   Transaction,
   User,
 } from "@/constants/types";
@@ -159,17 +158,25 @@ const buildQueries = (client: KyInstance) => {
     transactions: {
       create: ({
         accountID,
+        categoryID,
         amount,
         date,
         notes,
       }: {
         accountID: string;
+        categoryID?: string;
         amount: string;
         date: string;
         notes?: string;
       }) =>
         client.post(`api/v1/transactions`, {
-          json: { account_id: accountID, amount, date, notes },
+          json: {
+            account_id: accountID,
+            category_id: categoryID,
+            amount,
+            date,
+            notes,
+          },
         }),
 
       getAll: () =>
