@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/bradenrayhorn/beans/argon2"
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/segmentio/ksuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var errorInvalidCredentials = beans.NewError(beans.EUNAUTHORIZED, "Invalid username or password")
@@ -22,7 +22,7 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 
 	id := beans.UserID(ksuid.New())
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := argon2.GenerateHash(string(password))
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (s *UserService) Login(ctx context.Context, username beans.Username, passwo
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
-	if err != nil {
+	equal, err := argon2.CompareHashAndPassword(string(user.PasswordHash), string(password))
+	if err != nil || !equal {
 		return nil, beans.WrapError(err, errorInvalidCredentials)
 	}
 
