@@ -2,8 +2,9 @@ import CategoryStats from "@/components/budget/categories/CategoryStats";
 import EditButton from "@/components/budget/categories/EditButton";
 import MonthHeader from "@/components/budget/MonthHeader";
 import PageCard from "@/components/PageCard";
-import { Amount } from "@/constants/types";
+import { Amount, MonthCategory } from "@/constants/types";
 import { useMonthID } from "@/context/MonthProvider";
+import { zeroAmount } from "@/data/format/amount";
 import { useCategories } from "@/data/queries/category";
 import { useMonth } from "@/data/queries/month";
 import {
@@ -22,16 +23,16 @@ export default function BudgetPage() {
   const { isLoading: isMonthLoading, month } = useMonth({ monthID });
   const { isLoading: areCategoriesLoading, categoryGroups } = useCategories();
 
-  const categoryBudgets = useMemo(() => {
-    const budgets = {} as { [key: string]: Amount };
+  const categories = useMemo(() => {
+    const monthCategories = {} as { [key: string]: MonthCategory | undefined };
     categoryGroups
       .flatMap((group) => group.categories)
       .forEach((category) => {
-        budgets[category.id] = month?.categories?.find(
+        monthCategories[category.id] = month?.categories?.find(
           ({ category_id }) => category_id === category.id
-        )?.assigned ?? { exponent: 0, coefficient: 0 };
+        );
       });
-    return budgets;
+    return monthCategories;
   }, [month?.categories, categoryGroups]);
 
   if (isMonthLoading || areCategoriesLoading || !month) {
@@ -65,17 +66,15 @@ export default function BudgetPage() {
                   display="flex"
                   flexDir="column"
                 >
-                  <Flex justify="space-between" align="center">
+                  <Flex justify="space-between" align="center" mb={2}>
                     <Heading size="md">{category.name}</Heading>
                     <EditButton
                       category={category}
                       monthID={monthID}
-                      amount={categoryBudgets[category.id]}
+                      amount={categories[category.id]?.assigned ?? zeroAmount}
                     />
                   </Flex>
-                  <Flex mt={2}>
-                    <CategoryStats assigned={categoryBudgets[category.id]} />
-                  </Flex>
+                  <CategoryStats category={categories[category.id]} />
                 </PageCard>
               ))}
             </VStack>

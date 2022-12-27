@@ -14,6 +14,7 @@ export default {
     item: {
       bg: "none",
       rounded: "none",
+      display: "flex",
       justifyContent: "flex-start",
       p: 2,
       _checked: {

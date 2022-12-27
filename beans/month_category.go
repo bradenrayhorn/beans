@@ -14,6 +14,7 @@ type MonthCategory struct {
 
 type MonthCategoryService interface {
 	CreateOrUpdate(ctx context.Context, monthID ID, categoryID ID, amount Amount) error
+	CreateIfNotExists(ctx context.Context, monthID ID, categoryID ID) error
 }
 
 type MonthCategoryRepository interface {

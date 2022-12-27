@@ -19,6 +19,7 @@ func TestTransactions(t *testing.T) {
 	t.Run("can create transaction", func(t *testing.T) {
 		user, session := ta.CreateUserAndSession(t)
 		budget := ta.CreateBudget(t, "my budget", user)
+		_ = ta.CreateMonth(t, budget, testutils.NewDate(t, "2022-05-01"))
 		account := ta.CreateAccount(t, "my account", budget)
 		categoryGroup := ta.CreateCategoryGroup(t, budget, "group")
 		category := ta.CreateCategory(t, budget, categoryGroup, "category")

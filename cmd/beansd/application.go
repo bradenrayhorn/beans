@@ -66,7 +66,13 @@ func (a *Application) Start() error {
 	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
 	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
-	a.transactionService = logic.NewTransactionService(a.transactionRepository, a.accountRepository, a.categoryRepository)
+	a.transactionService = logic.NewTransactionService(
+		a.transactionRepository,
+		a.accountRepository,
+		a.categoryRepository,
+		a.monthService,
+		a.monthCategoryService,
+	)
 	a.userRepository = postgres.NewUserRepository(pool)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 

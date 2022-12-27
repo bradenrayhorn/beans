@@ -14,7 +14,6 @@ import (
 )
 
 func TestCreateOrUpdate(t *testing.T) {
-
 	existing := &beans.MonthCategory{
 		ID:         beans.NewBeansID(),
 		MonthID:    beans.NewBeansID(),
@@ -73,6 +72,48 @@ func TestCreateOrUpdate(t *testing.T) {
 
 		err := svc.CreateOrUpdate(context.Background(), beans.NewBeansID(), beans.NewBeansID(), beans.NewAmount(0, 0))
 		testutils.AssertError(t, err, "Amount must not be zero.")
+		mockassert.NotCalled(t, repository.UpdateAmountFunc)
+		mockassert.NotCalled(t, repository.CreateFunc)
+	})
+}
+
+func TestCreateIfNotExists(t *testing.T) {
+	existing := &beans.MonthCategory{
+		ID:         beans.NewBeansID(),
+		MonthID:    beans.NewBeansID(),
+		CategoryID: beans.NewBeansID(),
+		Amount:     beans.NewAmount(5, -1),
+	}
+
+	t.Run("creates if month category does not exist", func(t *testing.T) {
+		repository := mocks.NewMockMonthCategoryRepository()
+		svc := logic.NewMonthCategoryService(repository)
+		repository.GetByMonthAndCategoryFunc.SetDefaultReturn(nil, beans.ErrorNotFound)
+
+		err := svc.CreateIfNotExists(context.Background(), beans.NewBeansID(), beans.NewBeansID())
+		assert.Nil(t, err)
+		mockassert.NotCalled(t, repository.UpdateAmountFunc)
+		mockassert.CalledOnce(t, repository.CreateFunc)
+	})
+
+	t.Run("does not create if fails to fetch", func(t *testing.T) {
+		repository := mocks.NewMockMonthCategoryRepository()
+		svc := logic.NewMonthCategoryService(repository)
+		repository.GetByMonthAndCategoryFunc.SetDefaultReturn(nil, errors.New("no"))
+
+		err := svc.CreateIfNotExists(context.Background(), beans.NewBeansID(), beans.NewBeansID())
+		assert.NotNil(t, err)
+		mockassert.NotCalled(t, repository.UpdateAmountFunc)
+		mockassert.NotCalled(t, repository.CreateFunc)
+	})
+
+	t.Run("does not create if exists", func(t *testing.T) {
+		repository := mocks.NewMockMonthCategoryRepository()
+		svc := logic.NewMonthCategoryService(repository)
+		repository.GetByMonthAndCategoryFunc.SetDefaultReturn(existing, nil)
+
+		err := svc.CreateIfNotExists(context.Background(), beans.NewBeansID(), beans.NewBeansID())
+		assert.Nil(t, err)
 		mockassert.NotCalled(t, repository.UpdateAmountFunc)
 		mockassert.NotCalled(t, repository.CreateFunc)
 	})

@@ -40,3 +40,23 @@ func (s *monthCategoryService) CreateOrUpdate(ctx context.Context, monthID beans
 
 	return err
 }
+
+func (s *monthCategoryService) CreateIfNotExists(ctx context.Context, monthID beans.ID, categoryID beans.ID) error {
+	monthCategory, err := s.monthCategoryRepository.GetByMonthAndCategory(ctx, monthID, categoryID)
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, beans.ErrorNotFound) {
+		monthCategory = &beans.MonthCategory{
+			ID:         beans.NewBeansID(),
+			MonthID:    monthID,
+			CategoryID: categoryID,
+			Amount:     beans.NewAmount(0, 0),
+		}
+
+		return s.monthCategoryRepository.Create(ctx, monthCategory)
+	}
+
+	return err
+}

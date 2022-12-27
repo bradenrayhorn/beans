@@ -61,7 +61,7 @@ export const createAccount = async (
   budgetID: string,
   name: string,
   request: any
-) => {
+): Promise<string> => {
   const response = await request.post(`/api/v1/accounts`, {
     data: {
       name,
@@ -70,6 +70,8 @@ export const createAccount = async (
   });
 
   expect(response.ok()).toBeTruthy();
+  const data = await response.json();
+  return data.data?.id;
 };
 
 export const createCategoryGroup = async (
@@ -95,11 +97,35 @@ export const createCategory = async (
   groupID: string,
   name: string,
   request: any
-) => {
+): Promise<string> => {
   const response = await request.post(`/api/v1/categories`, {
     data: {
       group_id: groupID,
       name,
+    },
+    headers: { "Budget-ID": budgetID },
+  });
+
+  expect(response.ok()).toBeTruthy();
+
+  const data = await response.json();
+  return data.data?.id;
+};
+
+export const createTransaction = async (
+  budgetID: string,
+  categoryID: string,
+  accountID: string,
+  amount: string,
+  date: string,
+  request: any
+) => {
+  const response = await request.post(`/api/v1/transactions`, {
+    data: {
+      date,
+      category_id: categoryID,
+      account_id: accountID,
+      amount,
     },
     headers: { "Budget-ID": budgetID },
   });

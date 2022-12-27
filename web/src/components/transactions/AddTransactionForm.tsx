@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import AccountSelect from "@/components/AccountSelect";
 import CurrencyInput from "@/components/CurrencyInput";
-import { Account } from "@/constants/types";
+import { Account, Category } from "@/constants/types";
 import { useAddTransaction } from "@/data/queries/transaction";
 import { PropsWithChildren } from "react";
 import {
@@ -18,10 +18,12 @@ import {
   useFormContext,
   useFormState,
 } from "react-hook-form";
+import CategorySelect from "../CategorySelect";
 
 interface FormData {
   date: string;
   account: Account;
+  category: Category;
   amount: string;
   notes: string;
 }
@@ -40,6 +42,7 @@ export const AddTransactionFormFields = ({
     handleSubmit((values) =>
       submit({
         accountID: values.account.id,
+        categoryID: values.category?.id,
         amount: values.amount,
         date: values.date,
         notes: values.notes ? values.notes : undefined,
@@ -70,6 +73,11 @@ export const AddTransactionFormFields = ({
         <FormControl isRequired>
           <FormLabel>Account</FormLabel>
           <AccountSelect name="account" />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Category</FormLabel>
+          <CategorySelect name="category" />
         </FormControl>
 
         <FormControl isRequired>

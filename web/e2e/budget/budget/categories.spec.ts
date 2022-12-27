@@ -1,9 +1,25 @@
 import { expect } from "@playwright/test";
-import { createCategory, createCategoryGroup, test } from "../../test.js";
+import {
+  createAccount,
+  createCategory,
+  createCategoryGroup,
+  createTransaction,
+  test,
+} from "../../test.js";
 
 test("can edit categories", async ({ budget: { id }, page, request }) => {
   const groupID = await createCategoryGroup(id, "Bills", request);
-  await createCategory(id, groupID, "Electric", request);
+  const categoryID = await createCategory(id, groupID, "Electric", request);
+  const accountID = await createAccount(id, "Checking", request);
+  const currentDate = new Date().toISOString().substring(0, 10);
+  await createTransaction(
+    id,
+    categoryID,
+    accountID,
+    "20",
+    currentDate,
+    request
+  );
 
   // go to budget page
   await page.goto(`/budget/${id}`);
@@ -27,7 +43,19 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
       name: "Assigned",
     })
     .getByRole("definition");
+  const spent = electricCategory
+    .getByRole("group", {
+      name: "Spent",
+    })
+    .getByRole("definition");
+  const available = electricCategory
+    .getByRole("group", {
+      name: "Available",
+    })
+    .getByRole("definition");
   await expect(assigned).toHaveText("$0.00");
+  await expect(spent).toHaveText("$20.00");
+  await expect(available).toHaveText("-$20.00");
 
   const drawer = page.getByRole("dialog", { name: "Edit Electric" });
 
@@ -38,4 +66,6 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await expect(drawer).toBeHidden();
 
   await expect(assigned).toHaveText("$60.31");
+  await expect(spent).toHaveText("$20.00");
+  await expect(available).toHaveText("$40.31");
 });

@@ -1,8 +1,19 @@
 import { expect } from "@playwright/test";
-import { createAccount, test } from "../../test.js";
+import {
+  createAccount,
+  createCategory,
+  createCategoryGroup,
+  test,
+} from "../../test.js";
 
 test("can add transaction", async ({ budget: { id }, page }) => {
   await createAccount(id, "Checking", page.context().request);
+  const groupID = await createCategoryGroup(
+    id,
+    "Bills",
+    page.context().request
+  );
+  await createCategory(id, groupID, "Electric", page.context().request);
 
   // go to transactions page
   await page.goto(`/budget/${id}`);
@@ -20,6 +31,8 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await page.getByLabel("Date").fill("2022-10-14");
   await page.getByLabel("Account").click();
   await page.getByRole("option").filter({ hasText: "Checking" }).click();
+  await page.getByLabel("Category").click();
+  await page.getByRole("option").filter({ hasText: "Electric" }).click();
   await page.getByLabel("Amount").fill("10.78");
   await page.getByLabel("Notes").fill("Test notes");
   await page.getByRole("button", { name: "Add" }).click();
@@ -32,7 +45,8 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   expect(await page.getByRole("row").count()).toBe(2);
   const cells = page.getByRole("row").nth(1).getByRole("cell");
   await expect(cells.nth(0)).toHaveText("10/14/2022");
-  await expect(cells.nth(1)).toHaveText("Checking");
-  await expect(cells.nth(2)).toHaveText("Test notes");
-  await expect(cells.nth(3)).toHaveText("$10.78");
+  await expect(cells.nth(1)).toHaveText("Electric");
+  await expect(cells.nth(2)).toHaveText("Checking");
+  await expect(cells.nth(3)).toHaveText("Test notes");
+  await expect(cells.nth(4)).toHaveText("$10.78");
 });

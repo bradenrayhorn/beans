@@ -25,6 +25,9 @@ const columns = [
     header: "Date",
     cell: (info) => formatDate(info.getValue()),
   }),
+  columnHelper.accessor((row) => row.category?.name?.toString(), {
+    header: "Category",
+  }),
   columnHelper.accessor("account.name", { header: "Account" }),
   columnHelper.accessor("notes", { header: "Notes" }),
   columnHelper.accessor("amount", {
