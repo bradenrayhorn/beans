@@ -3,6 +3,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 
@@ -35,6 +36,21 @@ func Sample(s zerolog.Sampler) zerolog.Logger {
 // Hook returns a logger with the h Hook.
 func Hook(h zerolog.Hook) zerolog.Logger {
 	return Logger.Hook(h)
+}
+
+// Err starts a new message with error level with err as a field if not nil or
+// with info level if err is nil.
+//
+// You must call Msg on the returned event in order to send the event.
+func Err(err error) *zerolog.Event {
+	return Logger.Err(err)
+}
+
+// Trace starts a new message with trace level.
+//
+// You must call Msg on the returned event in order to send the event.
+func Trace() *zerolog.Event {
+	return Logger.Trace()
 }
 
 // Debug starts a new message with debug level.
@@ -99,13 +115,13 @@ func Log() *zerolog.Event {
 // Print sends a log event using debug level and no extra field.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
-	Logger.Print(v...)
+	Logger.Debug().CallerSkipFrame(1).Msg(fmt.Sprint(v...))
 }
 
 // Printf sends a log event using debug level and no extra field.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	Logger.Printf(format, v...)
+	Logger.Debug().CallerSkipFrame(1).Msgf(format, v...)
 }
 
 // Ctx returns the Logger associated with the ctx. If no logger
