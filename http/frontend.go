@@ -1,13 +1,13 @@
 package http
 
 import (
-	"log"
 	"mime"
 	"net/http"
 	"path"
 	"path/filepath"
 
 	"github.com/bradenrayhorn/beans/web"
+	"github.com/rs/zerolog/log"
 )
 
 func (s *Server) handleServeFrontend() http.HandlerFunc {
@@ -17,7 +17,7 @@ func (s *Server) handleServeFrontend() http.HandlerFunc {
 
 	index, err := web.FrontendFS.ReadFile("dist/index.html")
 	if err != nil {
-		log.Println(err)
+		log.Error().Msg(err.Error())
 		return errHandler
 	}
 

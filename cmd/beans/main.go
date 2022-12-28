@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 )
@@ -19,7 +19,7 @@ func main() {
 
 	err := run(ctx, os.Args[1:])
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 }
