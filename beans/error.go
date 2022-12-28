@@ -1,27 +1,30 @@
 package beans
 
 const (
-	EINTERNAL     = "internal"
-	EINVALID      = "invalid"
-	ENOTFOUND     = "not_found"
-	EUNAUTHORIZED = "unauthorized"
-	EFORBIDDEN    = "forbidden"
+	EFORBIDDEN     = "forbidden"
+	EINTERNAL      = "internal"
+	EINVALID       = "invalid"
+	ENOTFOUND      = "not_found"
+	EUNAUTHORIZED  = "unauthorized"
+	EUNPROCESSABLE = "unprocessable"
 )
 
 var (
-	ErrorInternal     = &beansError{code: EINTERNAL, msg: "Internal error"}
-	ErrorInvalid      = &beansError{code: EINVALID, msg: "Invalid data provided"}
-	ErrorNotFound     = &beansError{code: ENOTFOUND, msg: "Not found"}
-	ErrorUnauthorized = &beansError{code: EUNAUTHORIZED, msg: "Not authenticated"}
-	ErrorForbidden    = &beansError{code: EFORBIDDEN, msg: "Forbidden"}
+	ErrorForbidden     = &beansError{code: EFORBIDDEN, msg: "Forbidden"}
+	ErrorInternal      = &beansError{code: EINTERNAL, msg: "Internal error"}
+	ErrorInvalid       = &beansError{code: EINVALID, msg: "Invalid data provided"}
+	ErrorNotFound      = &beansError{code: ENOTFOUND, msg: "Not found"}
+	ErrorUnauthorized  = &beansError{code: EUNAUTHORIZED, msg: "Not authenticated"}
+	ErrorUnprocessable = &beansError{code: EUNPROCESSABLE, msg: "Unprocessable request"}
 )
 
 var codeToError = map[string]*beansError{
-	EINTERNAL:     ErrorInternal,
-	EINVALID:      ErrorInvalid,
-	ENOTFOUND:     ErrorNotFound,
-	EUNAUTHORIZED: ErrorUnauthorized,
-	EFORBIDDEN:    ErrorForbidden,
+	EFORBIDDEN:     ErrorForbidden,
+	EINTERNAL:      ErrorInternal,
+	EINVALID:       ErrorInvalid,
+	ENOTFOUND:      ErrorNotFound,
+	EUNAUTHORIZED:  ErrorUnauthorized,
+	EUNPROCESSABLE: ErrorUnprocessable,
 }
 
 func NewError(code string, msg string) Error {

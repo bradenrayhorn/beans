@@ -3,8 +3,12 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"reflect"
+
+	"github.com/bradenrayhorn/beans/beans"
 )
 
 func decodeRequest(r *http.Request, v any) error {
@@ -12,6 +16,33 @@ func decodeRequest(r *http.Request, v any) error {
 		// EOF means no body was sent and can be treated as non-error (further validation should likely fail)
 		if errors.Is(err, io.EOF) {
 			return nil
+		}
+
+		// Some JSON syntax errors are returned as an io.ErrUnexpectedEOF rather than json.SyntaxError.
+		// See https://github.com/golang/go/issues/25956 for reference.
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			return beans.NewError(beans.EUNPROCESSABLE, "Invalid JSON provided.")
+		}
+
+		// JSON syntax error
+		var syntaxError *json.SyntaxError
+		fmt.Println(err.Error())
+		fmt.Println(reflect.TypeOf(err))
+		if errors.As(err, &syntaxError) {
+			return beans.NewError(beans.EUNPROCESSABLE, syntaxError.Error())
+		}
+
+		// JSON type error
+		var unmarshalTypeError *json.UnmarshalTypeError
+		if errors.As(err, &unmarshalTypeError) {
+			return beans.NewError(
+				beans.EUNPROCESSABLE,
+				fmt.Sprintf(
+					"Invalid type `%s` for `%s` field.",
+					unmarshalTypeError.Value,
+					unmarshalTypeError.Field,
+				),
+			)
 		}
 
 		return err
