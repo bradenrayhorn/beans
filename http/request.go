@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
 	"github.com/bradenrayhorn/beans/beans"
 )
@@ -26,8 +25,6 @@ func decodeRequest(r *http.Request, v any) error {
 
 		// JSON syntax error
 		var syntaxError *json.SyntaxError
-		fmt.Println(err.Error())
-		fmt.Println(reflect.TypeOf(err))
 		if errors.As(err, &syntaxError) {
 			return beans.NewError(beans.EUNPROCESSABLE, syntaxError.Error())
 		}

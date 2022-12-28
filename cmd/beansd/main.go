@@ -1,13 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
-	fmt.Println("Starting beans server")
+	// TODO - read this from config
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	log.Info().Msg("starting beans server")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -27,7 +32,7 @@ func main() {
 	}
 
 	<-c
-	fmt.Println("shutting down server")
+	log.Info().Msg("shutting down server")
 
 	if err := application.Stop(); err != nil {
 		panic(err)
