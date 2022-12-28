@@ -10,11 +10,12 @@ import (
 )
 
 var codeToHTTPStatus = map[string]int{
-	beans.EINTERNAL:     http.StatusInternalServerError,
-	beans.EINVALID:      http.StatusUnprocessableEntity,
-	beans.ENOTFOUND:     http.StatusNotFound,
-	beans.EUNAUTHORIZED: http.StatusUnauthorized,
-	beans.EFORBIDDEN:    http.StatusForbidden,
+	beans.EFORBIDDEN:     http.StatusForbidden,
+	beans.EINTERNAL:      http.StatusInternalServerError,
+	beans.EINVALID:       http.StatusUnprocessableEntity,
+	beans.ENOTFOUND:      http.StatusNotFound,
+	beans.EUNAUTHORIZED:  http.StatusUnauthorized,
+	beans.EUNPROCESSABLE: http.StatusBadRequest,
 }
 
 func Error(w http.ResponseWriter, err error) {
