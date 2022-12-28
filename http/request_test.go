@@ -60,6 +60,6 @@ func TestDecodeRequest(t *testing.T) {
 		require.ErrorAs(t, err, &beansError)
 		code, msg := beansError.BeansError()
 		assert.Equal(t, beans.EUNPROCESSABLE, code)
-		assert.Equal(t, "Invalid type `string` for `name` field.", msg)
+		assert.Equal(t, "Invalid data `string` for `name` field.", msg)
 	})
 }

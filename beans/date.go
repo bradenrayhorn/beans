@@ -1,6 +1,11 @@
 package beans
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"reflect"
+	"time"
+)
 
 type Date struct {
 	time.Time
@@ -14,6 +19,15 @@ func NewDate(date time.Time) Date {
 func (t *Date) UnmarshalJSON(b []byte) error {
 	date, err := time.Parse(`"2006-01-02"`, string(b))
 	if err != nil {
+		var parseError *time.ParseError
+		if errors.As(err, &parseError) {
+			return &json.UnmarshalTypeError{
+				Value:  string(b),
+				Offset: 0,
+				Type:   reflect.TypeOf(t),
+			}
+		}
+
 		return err
 	}
 	t.Time = date

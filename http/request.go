@@ -35,7 +35,7 @@ func decodeRequest(r *http.Request, v any) error {
 			return beans.NewError(
 				beans.EUNPROCESSABLE,
 				fmt.Sprintf(
-					"Invalid type `%s` for `%s` field.",
+					"Invalid data `%s` for `%s` field.",
 					unmarshalTypeError.Value,
 					unmarshalTypeError.Field,
 				),
