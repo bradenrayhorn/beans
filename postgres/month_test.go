@@ -30,7 +30,7 @@ func TestMonth(t *testing.T) {
 
 	t.Run("can create and get", func(t *testing.T) {
 		defer cleanup()
-		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewDate(time.Now()), BudgetID: budgetID}
+		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewDate(time.Now().AddDate(0, 1, 0)), BudgetID: budgetID}
 		require.Nil(t, monthRepository.Create(context.Background(), month))
 
 		res, err := monthRepository.GetByDate(context.Background(), budgetID, month.Date.Time)
