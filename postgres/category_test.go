@@ -40,7 +40,7 @@ func TestCategories(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(group2, groups[1]))
 
 		category1 := &beans.Category{ID: beans.NewBeansID(), GroupID: group1.ID, Name: "cat 1", BudgetID: budgetID}
-		category2 := &beans.Category{ID: beans.NewBeansID(), GroupID: group2.ID, Name: "cat 2", BudgetID: budgetID}
+		category2 := &beans.Category{ID: beans.NewBeansID(), GroupID: group2.ID, Name: "cat 2", BudgetID: budgetID, IsIncome: true}
 		require.Nil(t, categoryRepository.Create(context.Background(), category1))
 		require.Nil(t, categoryRepository.Create(context.Background(), category2))
 
@@ -59,7 +59,7 @@ func TestCategories(t *testing.T) {
 		_, err := categoryRepository.GetSingleForBudget(context.Background(), beans.NewBeansID(), budgetID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		category := &beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budgetID}
+		category := &beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budgetID, IsIncome: true}
 		require.Nil(t, categoryRepository.Create(context.Background(), category))
 
 		res, err := categoryRepository.GetSingleForBudget(context.Background(), category.ID, budgetID)

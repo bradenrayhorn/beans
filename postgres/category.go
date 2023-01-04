@@ -18,8 +18,9 @@ func NewCategoryRepository(pool *pgxpool.Pool) *categoryRepository {
 func (r *categoryRepository) Create(ctx context.Context, category *beans.Category) error {
 	return r.db.CreateCategory(ctx, db.CreateCategoryParams{
 		ID:       category.ID.String(),
-		BudgetID: category.BudgetID.String(),
 		Name:     string(category.Name),
+		IsIncome: category.IsIncome,
+		BudgetID: category.BudgetID.String(),
 		GroupID:  category.GroupID.String(),
 	})
 }
@@ -39,9 +40,10 @@ func (r *categoryRepository) GetSingleForBudget(ctx context.Context, id beans.ID
 	}
 	return &beans.Category{
 		ID:       id,
+		Name:     beans.Name(dbCategory.Name),
+		IsIncome: dbCategory.IsIncome,
 		BudgetID: budgetID,
 		GroupID:  groupID,
-		Name:     beans.Name(dbCategory.Name),
 	}, nil
 }
 
@@ -60,7 +62,13 @@ func (r *categoryRepository) GetForBudget(ctx context.Context, budgetID beans.ID
 		if err != nil {
 			return categories, err
 		}
-		categories = append(categories, &beans.Category{ID: id, BudgetID: budgetID, Name: beans.Name(c.Name), GroupID: groupID})
+		categories = append(categories, &beans.Category{
+			ID:       id,
+			Name:     beans.Name(c.Name),
+			IsIncome: c.IsIncome,
+			BudgetID: budgetID,
+			GroupID:  groupID,
+		})
 	}
 
 	return categories, nil
