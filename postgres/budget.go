@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
@@ -10,21 +9,15 @@ import (
 )
 
 type BudgetRepository struct {
-	db   *db.Queries
-	pool *pgxpool.Pool
+	repository
 }
 
 func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
-	return &BudgetRepository{db: db.New(pool), pool: pool}
+	return &BudgetRepository{repository{pool}}
 }
 
-func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.Name, userID beans.UserID, date time.Time) error {
-	tx, err := r.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-	q := db.New(tx)
+func (r *BudgetRepository) Create(ctx context.Context, tx beans.Tx, id beans.ID, name beans.Name, userID beans.UserID) error {
+	q := r.DB(tx)
 
 	if err := q.CreateBudget(ctx, db.CreateBudgetParams{ID: id.String(), Name: string(name)}); err != nil {
 		return err
@@ -32,29 +25,18 @@ func (r *BudgetRepository) Create(ctx context.Context, id beans.ID, name beans.N
 	if err := q.CreateBudgetUser(ctx, db.CreateBudgetUserParams{BudgetID: id.String(), UserID: userID.String()}); err != nil {
 		return err
 	}
-	if err := q.CreateMonth(ctx, db.CreateMonthParams{
-		ID:       beans.NewBeansID().String(),
-		BudgetID: id.String(),
-		Date:     beans.NormalizeMonth(date),
-	}); err != nil {
-		return err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return err
-	}
 
 	return nil
 }
 
 func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget, error) {
-	budget, err := r.db.GetBudget(ctx, id.String())
+	budget, err := r.DB(nil).GetBudget(ctx, id.String())
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}
 
 	// load users
-	userIDStrings, err := r.db.GetBudgetUserIDs(ctx, id.String())
+	userIDStrings, err := r.DB(nil).GetBudgetUserIDs(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +58,7 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 
 func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.UserID) ([]*beans.Budget, error) {
 	budgets := []*beans.Budget{}
-	dbBudgets, err := r.db.GetBudgetsForUser(ctx, userID.String())
+	dbBudgets, err := r.DB(nil).GetBudgetsForUser(ctx, userID.String())
 	if err != nil {
 		return budgets, err
 	}

@@ -38,7 +38,7 @@ func (s categoryService) CreateCategory(ctx context.Context, budgetID beans.ID, 
 		Name:     name,
 	}
 
-	if err := s.categoryRepository.Create(ctx, category); err != nil {
+	if err := s.categoryRepository.Create(ctx, nil, category); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (s categoryService) CreateGroup(ctx context.Context, budgetID beans.ID, nam
 		Name:     name,
 	}
 
-	if err := s.categoryRepository.CreateGroup(ctx, group); err != nil {
+	if err := s.categoryRepository.CreateGroup(ctx, nil, group); err != nil {
 		return nil, err
 	}
 

@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/postgres"
@@ -28,7 +27,7 @@ func makeUser(tb testing.TB, pool *pgxpool.Pool, username string) beans.UserID {
 
 func makeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.UserID) beans.ID {
 	id := beans.NewBeansID()
-	err := postgres.NewBudgetRepository(pool).Create(context.Background(), id, beans.Name(name), userID, time.Now())
+	err := postgres.NewBudgetRepository(pool).Create(context.Background(), nil, id, beans.Name(name), userID)
 	require.Nil(tb, err)
 	return id
 }
@@ -46,21 +45,21 @@ func makeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.
 
 func makeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) *beans.Month {
 	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: date}
-	err := postgres.NewMonthRepository(pool).Create(context.Background(), month)
+	err := postgres.NewMonthRepository(pool).Create(context.Background(), nil, month)
 	require.Nil(tb, err)
 	return month
 }
 
 func makeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
 	id := beans.NewBeansID()
-	err := postgres.NewCategoryRepository(pool).CreateGroup(context.Background(), &beans.CategoryGroup{ID: id, BudgetID: budgetID, Name: beans.Name(name)})
+	err := postgres.NewCategoryRepository(pool).CreateGroup(context.Background(), nil, &beans.CategoryGroup{ID: id, BudgetID: budgetID, Name: beans.Name(name)})
 	require.Nil(tb, err)
 	return id
 }
 
 func makeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) beans.ID {
 	id := beans.NewBeansID()
-	err := postgres.NewCategoryRepository(pool).Create(context.Background(), &beans.Category{ID: id, BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)})
+	err := postgres.NewCategoryRepository(pool).Create(context.Background(), nil, &beans.Category{ID: id, BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)})
 	require.Nil(tb, err)
 	return id
 }

@@ -8,15 +8,15 @@ import (
 )
 
 type categoryRepository struct {
-	db *db.Queries
+	repository
 }
 
 func NewCategoryRepository(pool *pgxpool.Pool) *categoryRepository {
-	return &categoryRepository{db: db.New(pool)}
+	return &categoryRepository{repository{pool}}
 }
 
-func (r *categoryRepository) Create(ctx context.Context, category *beans.Category) error {
-	return r.db.CreateCategory(ctx, db.CreateCategoryParams{
+func (r *categoryRepository) Create(ctx context.Context, tx beans.Tx, category *beans.Category) error {
+	return r.DB(tx).CreateCategory(ctx, db.CreateCategoryParams{
 		ID:       category.ID.String(),
 		Name:     string(category.Name),
 		IsIncome: category.IsIncome,
@@ -26,7 +26,7 @@ func (r *categoryRepository) Create(ctx context.Context, category *beans.Categor
 }
 
 func (r *categoryRepository) GetSingleForBudget(ctx context.Context, id beans.ID, budgetID beans.ID) (*beans.Category, error) {
-	dbCategory, err := r.db.GetCategoryForBudget(ctx, db.GetCategoryForBudgetParams{
+	dbCategory, err := r.DB(nil).GetCategoryForBudget(ctx, db.GetCategoryForBudgetParams{
 		ID:       id.String(),
 		BudgetID: budgetID.String(),
 	})
@@ -49,7 +49,7 @@ func (r *categoryRepository) GetSingleForBudget(ctx context.Context, id beans.ID
 
 func (r *categoryRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Category, error) {
 	var categories []*beans.Category
-	dbCategories, err := r.db.GetCategoriesForBudget(ctx, budgetID.String())
+	dbCategories, err := r.DB(nil).GetCategoriesForBudget(ctx, budgetID.String())
 	if err != nil {
 		return categories, mapPostgresError(err)
 	}
@@ -74,8 +74,8 @@ func (r *categoryRepository) GetForBudget(ctx context.Context, budgetID beans.ID
 	return categories, nil
 }
 
-func (r *categoryRepository) CreateGroup(ctx context.Context, category *beans.CategoryGroup) error {
-	return r.db.CreateCategoryGroup(ctx, db.CreateCategoryGroupParams{
+func (r *categoryRepository) CreateGroup(ctx context.Context, tx beans.Tx, category *beans.CategoryGroup) error {
+	return r.DB(tx).CreateCategoryGroup(ctx, db.CreateCategoryGroupParams{
 		ID:       category.ID.String(),
 		BudgetID: category.BudgetID.String(),
 		Name:     string(category.Name),
@@ -84,7 +84,7 @@ func (r *categoryRepository) CreateGroup(ctx context.Context, category *beans.Ca
 
 func (r *categoryRepository) GetGroupsForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.CategoryGroup, error) {
 	var categoryGroups []*beans.CategoryGroup
-	dbCategoryGroups, err := r.db.GetCategoryGroupsForBudget(ctx, budgetID.String())
+	dbCategoryGroups, err := r.DB(nil).GetCategoryGroupsForBudget(ctx, budgetID.String())
 	if err != nil {
 		return categoryGroups, nil
 	}
@@ -100,5 +100,5 @@ func (r *categoryRepository) GetGroupsForBudget(ctx context.Context, budgetID be
 }
 
 func (r *categoryRepository) GroupExists(ctx context.Context, budgetID beans.ID, id beans.ID) (bool, error) {
-	return r.db.CategoryGroupExists(ctx, db.CategoryGroupExistsParams{BudgetID: budgetID.String(), ID: id.String()})
+	return r.DB(nil).CategoryGroupExists(ctx, db.CategoryGroupExistsParams{BudgetID: budgetID.String(), ID: id.String()})
 }

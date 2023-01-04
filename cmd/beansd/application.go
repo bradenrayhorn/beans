@@ -17,6 +17,8 @@ type Application struct {
 
 	config Config
 
+	transactionManager beans.TxManager
+
 	accountRepository       beans.AccountRepository
 	accountService          beans.AccountService
 	budgetRepository        beans.BudgetRepository
@@ -53,6 +55,8 @@ func (a *Application) Start() error {
 		panic(err)
 	}
 	a.pool = pool
+
+	a.transactionManager = postgres.NewTxManager(pool)
 
 	a.accountRepository = postgres.NewAccountRepository(pool)
 	a.accountService = logic.NewAccountService(a.accountRepository)
