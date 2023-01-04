@@ -17,7 +17,7 @@ type Application struct {
 
 	config Config
 
-	transactionManager beans.TxManager
+	txManager beans.TxManager
 
 	accountRepository       beans.AccountRepository
 	accountService          beans.AccountService
@@ -56,20 +56,23 @@ func (a *Application) Start() error {
 	}
 	a.pool = pool
 
-	a.transactionManager = postgres.NewTxManager(pool)
+	a.txManager = postgres.NewTxManager(pool)
+
+	a.sessionRepository = inmem.NewSessionRepository()
 
 	a.accountRepository = postgres.NewAccountRepository(pool)
-	a.accountService = logic.NewAccountService(a.accountRepository)
 	a.budgetRepository = postgres.NewBudgetRepository(pool)
-	a.budgetService = logic.NewBudgetService(a.budgetRepository)
 	a.categoryRepository = postgres.NewCategoryRepository(pool)
-	a.categoryService = logic.NewCategoryService(a.categoryRepository)
 	a.monthRepository = postgres.NewMonthRepository(pool)
-	a.monthService = logic.NewMonthService(a.monthRepository)
 	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
-	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
-	a.sessionRepository = inmem.NewSessionRepository()
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
+	a.userRepository = postgres.NewUserRepository(pool)
+
+	a.accountService = logic.NewAccountService(a.accountRepository)
+	a.budgetService = logic.NewBudgetService(a.txManager, a.budgetRepository, a.monthRepository, a.categoryRepository)
+	a.categoryService = logic.NewCategoryService(a.categoryRepository)
+	a.monthService = logic.NewMonthService(a.monthRepository)
+	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
 	a.transactionService = logic.NewTransactionService(
 		a.transactionRepository,
 		a.accountRepository,
@@ -77,7 +80,6 @@ func (a *Application) Start() error {
 		a.monthService,
 		a.monthCategoryService,
 	)
-	a.userRepository = postgres.NewUserRepository(pool)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 
 	a.httpServer = http.NewServer(
@@ -124,6 +126,10 @@ func (a *Application) AccountRepository() beans.AccountRepository {
 
 func (a *Application) BudgetRepository() beans.BudgetRepository {
 	return a.budgetRepository
+}
+
+func (a *Application) BudgetService() beans.BudgetService {
+	return a.budgetService
 }
 
 func (a *Application) CategoryRepository() beans.CategoryRepository {

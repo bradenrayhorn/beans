@@ -3605,7 +3605,7 @@ type MockMonthRepository struct {
 func NewMockMonthRepository() *MockMonthRepository {
 	return &MockMonthRepository{
 		CreateFunc: &MonthRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Month) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, *beans.Month) (r0 error) {
 				return
 			},
 		},
@@ -3632,7 +3632,7 @@ func NewMockMonthRepository() *MockMonthRepository {
 func NewStrictMockMonthRepository() *MockMonthRepository {
 	return &MockMonthRepository{
 		CreateFunc: &MonthRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Month) error {
+			defaultHook: func(context.Context, beans.Tx, *beans.Month) error {
 				panic("unexpected invocation of MockMonthRepository.Create")
 			},
 		},
@@ -3677,24 +3677,24 @@ func NewMockMonthRepositoryFrom(i beans.MonthRepository) *MockMonthRepository {
 // MonthRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockMonthRepository instance is invoked.
 type MonthRepositoryCreateFunc struct {
-	defaultHook func(context.Context, *beans.Month) error
-	hooks       []func(context.Context, *beans.Month) error
+	defaultHook func(context.Context, beans.Tx, *beans.Month) error
+	hooks       []func(context.Context, beans.Tx, *beans.Month) error
 	history     []MonthRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockMonthRepository) Create(v0 context.Context, v1 *beans.Month) error {
-	r0 := m.CreateFunc.nextHook()(v0, v1)
-	m.CreateFunc.appendCall(MonthRepositoryCreateFuncCall{v0, v1, r0})
+func (m *MockMonthRepository) Create(v0 context.Context, v1 beans.Tx, v2 *beans.Month) error {
+	r0 := m.CreateFunc.nextHook()(v0, v1, v2)
+	m.CreateFunc.appendCall(MonthRepositoryCreateFuncCall{v0, v1, v2, r0})
 	return r0
 }
 
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockMonthRepository instance is invoked and the hook queue is
 // empty.
-func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *beans.Month) error) {
+func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, *beans.Month) error) {
 	f.defaultHook = hook
 }
 
@@ -3702,7 +3702,7 @@ func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *b
 // Create method of the parent MockMonthRepository instance invokes the hook
 // at the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.Month) error) {
+func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, *beans.Month) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3711,19 +3711,19 @@ func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.M
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *MonthRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, *beans.Month) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, *beans.Month) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *MonthRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, *beans.Month) error {
+	f.PushHook(func(context.Context, beans.Tx, *beans.Month) error {
 		return r0
 	})
 }
 
-func (f *MonthRepositoryCreateFunc) nextHook() func(context.Context, *beans.Month) error {
+func (f *MonthRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, *beans.Month) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3761,7 +3761,10 @@ type MonthRepositoryCreateFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 *beans.Month
+	Arg1 beans.Tx
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 *beans.Month
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -3770,7 +3773,7 @@ type MonthRepositoryCreateFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c MonthRepositoryCreateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this

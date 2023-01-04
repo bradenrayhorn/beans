@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/cmd/beansd"
@@ -184,16 +183,15 @@ func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *be
 }
 
 func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
-	id := beans.NewBeansID()
-	err := ta.application.BudgetRepository().Create(context.Background(), id, beans.Name(name), user.ID, time.Now())
+	budget, err := ta.application.BudgetService().CreateBudget(context.Background(), beans.Name(name), user.ID)
 	require.Nil(tb, err)
-	return &beans.Budget{ID: id, Name: beans.Name(name)}
+	return budget
 }
 
 func (ta *TestApplication) CreateMonth(tb testing.TB, budget *beans.Budget, date beans.Date) *beans.Month {
 	id := beans.NewBeansID()
 	month := &beans.Month{ID: id, BudgetID: budget.ID, Date: date}
-	err := ta.application.MonthRepository().Create(context.Background(), month)
+	err := ta.application.MonthRepository().Create(context.Background(), nil, month)
 	require.Nil(tb, err)
 	return month
 }
@@ -207,7 +205,7 @@ func (ta *TestApplication) GetMonth(tb testing.TB, budget *beans.Budget, date be
 func (ta *TestApplication) CreateCategory(tb testing.TB, budget *beans.Budget, group *beans.CategoryGroup, name string) *beans.Category {
 	id := beans.NewBeansID()
 	category := &beans.Category{ID: id, BudgetID: budget.ID, GroupID: group.ID, Name: beans.Name(name)}
-	err := ta.application.CategoryRepository().Create(context.Background(), category)
+	err := ta.application.CategoryRepository().Create(context.Background(), nil, category)
 	require.Nil(tb, err)
 	return category
 }
@@ -215,7 +213,7 @@ func (ta *TestApplication) CreateCategory(tb testing.TB, budget *beans.Budget, g
 func (ta *TestApplication) CreateCategoryGroup(tb testing.TB, budget *beans.Budget, name string) *beans.CategoryGroup {
 	id := beans.NewBeansID()
 	group := &beans.CategoryGroup{ID: id, BudgetID: budget.ID, Name: beans.Name(name)}
-	err := ta.application.CategoryRepository().CreateGroup(context.Background(), group)
+	err := ta.application.CategoryRepository().CreateGroup(context.Background(), nil, group)
 	require.Nil(tb, err)
 	return group
 }
