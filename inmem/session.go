@@ -49,3 +49,9 @@ func (r *sessionRepository) Get(id beans.SessionID) (*beans.Session, error) {
 
 	return nil, beans.ErrorNotFound
 }
+
+func (r *sessionRepository) Delete(id beans.SessionID) error {
+	delete(r.sessions, string(id))
+
+	return nil
+}

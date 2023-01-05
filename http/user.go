@@ -74,6 +74,31 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 	}
 }
 
+func (s *Server) handleUserLogout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_id")
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorInternal))
+			return
+		}
+
+		err = s.sessionRepository.Delete(beans.SessionID(cookie.Value))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorInternal))
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    "",
+			HttpOnly: true,
+			SameSite: http.SameSiteStrictMode,
+			Path:     "/",
+			Expires:  time.Now().Add(-1 * time.Minute),
+		})
+	}
+}
+
 func (s *Server) handleUserMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getUserID(r)

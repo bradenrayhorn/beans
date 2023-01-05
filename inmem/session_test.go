@@ -37,3 +37,20 @@ func TestCannotGetNonExistent(t *testing.T) {
 	assert.Nil(t, session)
 	assert.ErrorIs(t, err, beans.ErrorNotFound)
 }
+
+func TestCanDeleteSession(t *testing.T) {
+	r := inmem.NewSessionRepository()
+
+	userID := beans.UserID(ksuid.New())
+	session, err := r.Create(userID)
+	require.Nil(t, err)
+
+	_, err = r.Get(session.ID)
+	require.Nil(t, err)
+
+	err = r.Delete(session.ID)
+	require.Nil(t, err)
+
+	_, err = r.Get(session.ID)
+	require.Equal(t, beans.ErrorNotFound, err)
+}

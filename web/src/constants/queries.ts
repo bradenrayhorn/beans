@@ -102,6 +102,8 @@ const buildQueries = (client: KyInstance) => {
     me: ({ cookie }: { cookie?: string } = {}): Promise<User> =>
       client.get("api/v1/user/me", { headers: { cookie } }).json(),
 
+    logout: () => client.post("api/v1/user/logout"),
+
     // accounts
     accounts: {
       get: () => client.get(`api/v1/accounts`).json<GetAccountsResponse>(),

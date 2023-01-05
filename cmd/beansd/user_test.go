@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,7 @@ func TestUsers(t *testing.T) {
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 
-	t.Run("can register, login, and get me", func(t *testing.T) {
+	t.Run("can register, login, get me, and logout", func(t *testing.T) {
 		r := ta.PostRequest(t, "api/v1/user/register", &RequestOptions{Body: `{"username": "user", "password": "password"}`})
 		assert.Equal(t, http.StatusOK, r.StatusCode)
 
@@ -31,6 +32,20 @@ func TestUsers(t *testing.T) {
 		err := json.NewDecoder(bytes.NewReader([]byte(r.Body))).Decode(&responseJson)
 		require.Nil(t, err)
 		assert.Equal(t, "user", responseJson.Username)
+
+		r = ta.PostRequest(t, "api/v1/user/logout", &RequestOptions{SessionID: sessionID})
+		assert.Equal(t, http.StatusOK, r.StatusCode)
+
+		var sessionCookie *http.Cookie
+		for _, c := range r.resp.Cookies() {
+			if c.Name == "session_id" {
+				sessionCookie = c
+			}
+		}
+
+		require.NotNil(t, sessionCookie)
+		assert.Less(t, sessionCookie.Expires, time.Now())
+		assert.Equal(t, "", sessionCookie.Value)
 	})
 
 	t.Run("cannot register with no data", func(t *testing.T) {

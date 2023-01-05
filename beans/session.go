@@ -13,4 +13,5 @@ type Session struct {
 type SessionRepository interface {
 	Create(userID UserID) (*Session, error)
 	Get(id SessionID) (*Session, error)
+	Delete(id SessionID) error
 }
