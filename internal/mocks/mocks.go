@@ -593,7 +593,7 @@ type MockBudgetRepository struct {
 func NewMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) (r0 error) {
 				return
 			},
 		},
@@ -615,7 +615,7 @@ func NewMockBudgetRepository() *MockBudgetRepository {
 func NewStrictMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
+			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
 				panic("unexpected invocation of MockBudgetRepository.Create")
 			},
 		},
@@ -652,15 +652,15 @@ func NewMockBudgetRepositoryFrom(i beans.BudgetRepository) *MockBudgetRepository
 // BudgetRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockBudgetRepository instance is invoked.
 type BudgetRepositoryCreateFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error
-	hooks       []func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error
+	defaultHook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error
+	hooks       []func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error
 	history     []BudgetRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.ID, v2 beans.Name, v3 beans.UserID, v4 time.Time) error {
+func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.Tx, v2 beans.ID, v3 beans.Name, v4 beans.UserID) error {
 	r0 := m.CreateFunc.nextHook()(v0, v1, v2, v3, v4)
 	m.CreateFunc.appendCall(BudgetRepositoryCreateFuncCall{v0, v1, v2, v3, v4, r0})
 	return r0
@@ -669,7 +669,7 @@ func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.ID, v2 beans.
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockBudgetRepository instance is invoked and the hook queue is
 // empty.
-func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error) {
+func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error) {
 	f.defaultHook = hook
 }
 
@@ -677,7 +677,7 @@ func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, b
 // Create method of the parent MockBudgetRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error) {
+func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -686,19 +686,19 @@ func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.I
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
+	f.PushHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
 		return r0
 	})
 }
 
-func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.ID, beans.Name, beans.UserID, time.Time) error {
+func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -736,16 +736,16 @@ type BudgetRepositoryCreateFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.ID
+	Arg1 beans.Tx
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
-	Arg2 beans.Name
+	Arg2 beans.ID
 	// Arg3 is the value of the 4th argument passed to this method
 	// invocation.
-	Arg3 beans.UserID
+	Arg3 beans.Name
 	// Arg4 is the value of the 5th argument passed to this method
 	// invocation.
-	Arg4 time.Time
+	Arg4 beans.UserID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -1167,12 +1167,12 @@ type MockCategoryRepository struct {
 func NewMockCategoryRepository() *MockCategoryRepository {
 	return &MockCategoryRepository{
 		CreateFunc: &CategoryRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Category) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, *beans.Category) (r0 error) {
 				return
 			},
 		},
 		CreateGroupFunc: &CategoryRepositoryCreateGroupFunc{
-			defaultHook: func(context.Context, *beans.CategoryGroup) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, *beans.CategoryGroup) (r0 error) {
 				return
 			},
 		},
@@ -1205,12 +1205,12 @@ func NewMockCategoryRepository() *MockCategoryRepository {
 func NewStrictMockCategoryRepository() *MockCategoryRepository {
 	return &MockCategoryRepository{
 		CreateFunc: &CategoryRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Category) error {
+			defaultHook: func(context.Context, beans.Tx, *beans.Category) error {
 				panic("unexpected invocation of MockCategoryRepository.Create")
 			},
 		},
 		CreateGroupFunc: &CategoryRepositoryCreateGroupFunc{
-			defaultHook: func(context.Context, *beans.CategoryGroup) error {
+			defaultHook: func(context.Context, beans.Tx, *beans.CategoryGroup) error {
 				panic("unexpected invocation of MockCategoryRepository.CreateGroup")
 			},
 		},
@@ -1266,24 +1266,24 @@ func NewMockCategoryRepositoryFrom(i beans.CategoryRepository) *MockCategoryRepo
 // CategoryRepositoryCreateFunc describes the behavior when the Create
 // method of the parent MockCategoryRepository instance is invoked.
 type CategoryRepositoryCreateFunc struct {
-	defaultHook func(context.Context, *beans.Category) error
-	hooks       []func(context.Context, *beans.Category) error
+	defaultHook func(context.Context, beans.Tx, *beans.Category) error
+	hooks       []func(context.Context, beans.Tx, *beans.Category) error
 	history     []CategoryRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockCategoryRepository) Create(v0 context.Context, v1 *beans.Category) error {
-	r0 := m.CreateFunc.nextHook()(v0, v1)
-	m.CreateFunc.appendCall(CategoryRepositoryCreateFuncCall{v0, v1, r0})
+func (m *MockCategoryRepository) Create(v0 context.Context, v1 beans.Tx, v2 *beans.Category) error {
+	r0 := m.CreateFunc.nextHook()(v0, v1, v2)
+	m.CreateFunc.appendCall(CategoryRepositoryCreateFuncCall{v0, v1, v2, r0})
 	return r0
 }
 
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockCategoryRepository instance is invoked and the hook queue is
 // empty.
-func (f *CategoryRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *beans.Category) error) {
+func (f *CategoryRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, *beans.Category) error) {
 	f.defaultHook = hook
 }
 
@@ -1291,7 +1291,7 @@ func (f *CategoryRepositoryCreateFunc) SetDefaultHook(hook func(context.Context,
 // Create method of the parent MockCategoryRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *CategoryRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.Category) error) {
+func (f *CategoryRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, *beans.Category) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1300,19 +1300,19 @@ func (f *CategoryRepositoryCreateFunc) PushHook(hook func(context.Context, *bean
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *CategoryRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, *beans.Category) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, *beans.Category) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *CategoryRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, *beans.Category) error {
+	f.PushHook(func(context.Context, beans.Tx, *beans.Category) error {
 		return r0
 	})
 }
 
-func (f *CategoryRepositoryCreateFunc) nextHook() func(context.Context, *beans.Category) error {
+func (f *CategoryRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, *beans.Category) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1350,7 +1350,10 @@ type CategoryRepositoryCreateFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 *beans.Category
+	Arg1 beans.Tx
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 *beans.Category
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -1359,7 +1362,7 @@ type CategoryRepositoryCreateFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c CategoryRepositoryCreateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
@@ -1372,24 +1375,24 @@ func (c CategoryRepositoryCreateFuncCall) Results() []interface{} {
 // CreateGroup method of the parent MockCategoryRepository instance is
 // invoked.
 type CategoryRepositoryCreateGroupFunc struct {
-	defaultHook func(context.Context, *beans.CategoryGroup) error
-	hooks       []func(context.Context, *beans.CategoryGroup) error
+	defaultHook func(context.Context, beans.Tx, *beans.CategoryGroup) error
+	hooks       []func(context.Context, beans.Tx, *beans.CategoryGroup) error
 	history     []CategoryRepositoryCreateGroupFuncCall
 	mutex       sync.Mutex
 }
 
 // CreateGroup delegates to the next hook function in the queue and stores
 // the parameter and result values of this invocation.
-func (m *MockCategoryRepository) CreateGroup(v0 context.Context, v1 *beans.CategoryGroup) error {
-	r0 := m.CreateGroupFunc.nextHook()(v0, v1)
-	m.CreateGroupFunc.appendCall(CategoryRepositoryCreateGroupFuncCall{v0, v1, r0})
+func (m *MockCategoryRepository) CreateGroup(v0 context.Context, v1 beans.Tx, v2 *beans.CategoryGroup) error {
+	r0 := m.CreateGroupFunc.nextHook()(v0, v1, v2)
+	m.CreateGroupFunc.appendCall(CategoryRepositoryCreateGroupFuncCall{v0, v1, v2, r0})
 	return r0
 }
 
 // SetDefaultHook sets function that is called when the CreateGroup method
 // of the parent MockCategoryRepository instance is invoked and the hook
 // queue is empty.
-func (f *CategoryRepositoryCreateGroupFunc) SetDefaultHook(hook func(context.Context, *beans.CategoryGroup) error) {
+func (f *CategoryRepositoryCreateGroupFunc) SetDefaultHook(hook func(context.Context, beans.Tx, *beans.CategoryGroup) error) {
 	f.defaultHook = hook
 }
 
@@ -1397,7 +1400,7 @@ func (f *CategoryRepositoryCreateGroupFunc) SetDefaultHook(hook func(context.Con
 // CreateGroup method of the parent MockCategoryRepository instance invokes
 // the hook at the front of the queue and discards it. After the queue is
 // empty, the default hook function is invoked for any future action.
-func (f *CategoryRepositoryCreateGroupFunc) PushHook(hook func(context.Context, *beans.CategoryGroup) error) {
+func (f *CategoryRepositoryCreateGroupFunc) PushHook(hook func(context.Context, beans.Tx, *beans.CategoryGroup) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1406,19 +1409,19 @@ func (f *CategoryRepositoryCreateGroupFunc) PushHook(hook func(context.Context, 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *CategoryRepositoryCreateGroupFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, *beans.CategoryGroup) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, *beans.CategoryGroup) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *CategoryRepositoryCreateGroupFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, *beans.CategoryGroup) error {
+	f.PushHook(func(context.Context, beans.Tx, *beans.CategoryGroup) error {
 		return r0
 	})
 }
 
-func (f *CategoryRepositoryCreateGroupFunc) nextHook() func(context.Context, *beans.CategoryGroup) error {
+func (f *CategoryRepositoryCreateGroupFunc) nextHook() func(context.Context, beans.Tx, *beans.CategoryGroup) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1457,7 +1460,10 @@ type CategoryRepositoryCreateGroupFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 *beans.CategoryGroup
+	Arg1 beans.Tx
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 *beans.CategoryGroup
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -1466,7 +1472,7 @@ type CategoryRepositoryCreateGroupFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c CategoryRepositoryCreateGroupFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
@@ -3599,7 +3605,7 @@ type MockMonthRepository struct {
 func NewMockMonthRepository() *MockMonthRepository {
 	return &MockMonthRepository{
 		CreateFunc: &MonthRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Month) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, *beans.Month) (r0 error) {
 				return
 			},
 		},
@@ -3626,7 +3632,7 @@ func NewMockMonthRepository() *MockMonthRepository {
 func NewStrictMockMonthRepository() *MockMonthRepository {
 	return &MockMonthRepository{
 		CreateFunc: &MonthRepositoryCreateFunc{
-			defaultHook: func(context.Context, *beans.Month) error {
+			defaultHook: func(context.Context, beans.Tx, *beans.Month) error {
 				panic("unexpected invocation of MockMonthRepository.Create")
 			},
 		},
@@ -3671,24 +3677,24 @@ func NewMockMonthRepositoryFrom(i beans.MonthRepository) *MockMonthRepository {
 // MonthRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockMonthRepository instance is invoked.
 type MonthRepositoryCreateFunc struct {
-	defaultHook func(context.Context, *beans.Month) error
-	hooks       []func(context.Context, *beans.Month) error
+	defaultHook func(context.Context, beans.Tx, *beans.Month) error
+	hooks       []func(context.Context, beans.Tx, *beans.Month) error
 	history     []MonthRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockMonthRepository) Create(v0 context.Context, v1 *beans.Month) error {
-	r0 := m.CreateFunc.nextHook()(v0, v1)
-	m.CreateFunc.appendCall(MonthRepositoryCreateFuncCall{v0, v1, r0})
+func (m *MockMonthRepository) Create(v0 context.Context, v1 beans.Tx, v2 *beans.Month) error {
+	r0 := m.CreateFunc.nextHook()(v0, v1, v2)
+	m.CreateFunc.appendCall(MonthRepositoryCreateFuncCall{v0, v1, v2, r0})
 	return r0
 }
 
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockMonthRepository instance is invoked and the hook queue is
 // empty.
-func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *beans.Month) error) {
+func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, *beans.Month) error) {
 	f.defaultHook = hook
 }
 
@@ -3696,7 +3702,7 @@ func (f *MonthRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *b
 // Create method of the parent MockMonthRepository instance invokes the hook
 // at the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.Month) error) {
+func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, *beans.Month) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3705,19 +3711,19 @@ func (f *MonthRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.M
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *MonthRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, *beans.Month) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, *beans.Month) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *MonthRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, *beans.Month) error {
+	f.PushHook(func(context.Context, beans.Tx, *beans.Month) error {
 		return r0
 	})
 }
 
-func (f *MonthRepositoryCreateFunc) nextHook() func(context.Context, *beans.Month) error {
+func (f *MonthRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, *beans.Month) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3755,7 +3761,10 @@ type MonthRepositoryCreateFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 *beans.Month
+	Arg1 beans.Tx
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 *beans.Month
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -3764,7 +3773,7 @@ type MonthRepositoryCreateFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c MonthRepositoryCreateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
@@ -5085,6 +5094,412 @@ func (c TransactionServiceCreateFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c TransactionServiceCreateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// MockTx is a mock implementation of the Tx interface (from the package
+// github.com/bradenrayhorn/beans/beans) used for unit testing.
+type MockTx struct {
+	// CommitFunc is an instance of a mock function object controlling the
+	// behavior of the method Commit.
+	CommitFunc *TxCommitFunc
+	// RollbackFunc is an instance of a mock function object controlling the
+	// behavior of the method Rollback.
+	RollbackFunc *TxRollbackFunc
+}
+
+// NewMockTx creates a new mock of the Tx interface. All methods return zero
+// values for all results, unless overwritten.
+func NewMockTx() *MockTx {
+	return &MockTx{
+		CommitFunc: &TxCommitFunc{
+			defaultHook: func(context.Context) (r0 error) {
+				return
+			},
+		},
+		RollbackFunc: &TxRollbackFunc{
+			defaultHook: func(context.Context) (r0 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockTx creates a new mock of the Tx interface. All methods panic
+// on invocation, unless overwritten.
+func NewStrictMockTx() *MockTx {
+	return &MockTx{
+		CommitFunc: &TxCommitFunc{
+			defaultHook: func(context.Context) error {
+				panic("unexpected invocation of MockTx.Commit")
+			},
+		},
+		RollbackFunc: &TxRollbackFunc{
+			defaultHook: func(context.Context) error {
+				panic("unexpected invocation of MockTx.Rollback")
+			},
+		},
+	}
+}
+
+// NewMockTxFrom creates a new mock of the MockTx interface. All methods
+// delegate to the given implementation, unless overwritten.
+func NewMockTxFrom(i beans.Tx) *MockTx {
+	return &MockTx{
+		CommitFunc: &TxCommitFunc{
+			defaultHook: i.Commit,
+		},
+		RollbackFunc: &TxRollbackFunc{
+			defaultHook: i.Rollback,
+		},
+	}
+}
+
+// TxCommitFunc describes the behavior when the Commit method of the parent
+// MockTx instance is invoked.
+type TxCommitFunc struct {
+	defaultHook func(context.Context) error
+	hooks       []func(context.Context) error
+	history     []TxCommitFuncCall
+	mutex       sync.Mutex
+}
+
+// Commit delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTx) Commit(v0 context.Context) error {
+	r0 := m.CommitFunc.nextHook()(v0)
+	m.CommitFunc.appendCall(TxCommitFuncCall{v0, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Commit method of the
+// parent MockTx instance is invoked and the hook queue is empty.
+func (f *TxCommitFunc) SetDefaultHook(hook func(context.Context) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Commit method of the parent MockTx instance invokes the hook at the front
+// of the queue and discards it. After the queue is empty, the default hook
+// function is invoked for any future action.
+func (f *TxCommitFunc) PushHook(hook func(context.Context) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TxCommitFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TxCommitFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context) error {
+		return r0
+	})
+}
+
+func (f *TxCommitFunc) nextHook() func(context.Context) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TxCommitFunc) appendCall(r0 TxCommitFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TxCommitFuncCall objects describing the
+// invocations of this function.
+func (f *TxCommitFunc) History() []TxCommitFuncCall {
+	f.mutex.Lock()
+	history := make([]TxCommitFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TxCommitFuncCall is an object that describes an invocation of method
+// Commit on an instance of MockTx.
+type TxCommitFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TxCommitFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TxCommitFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// TxRollbackFunc describes the behavior when the Rollback method of the
+// parent MockTx instance is invoked.
+type TxRollbackFunc struct {
+	defaultHook func(context.Context) error
+	hooks       []func(context.Context) error
+	history     []TxRollbackFuncCall
+	mutex       sync.Mutex
+}
+
+// Rollback delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTx) Rollback(v0 context.Context) error {
+	r0 := m.RollbackFunc.nextHook()(v0)
+	m.RollbackFunc.appendCall(TxRollbackFuncCall{v0, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Rollback method of
+// the parent MockTx instance is invoked and the hook queue is empty.
+func (f *TxRollbackFunc) SetDefaultHook(hook func(context.Context) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Rollback method of the parent MockTx instance invokes the hook at the
+// front of the queue and discards it. After the queue is empty, the default
+// hook function is invoked for any future action.
+func (f *TxRollbackFunc) PushHook(hook func(context.Context) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TxRollbackFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TxRollbackFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context) error {
+		return r0
+	})
+}
+
+func (f *TxRollbackFunc) nextHook() func(context.Context) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TxRollbackFunc) appendCall(r0 TxRollbackFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TxRollbackFuncCall objects describing the
+// invocations of this function.
+func (f *TxRollbackFunc) History() []TxRollbackFuncCall {
+	f.mutex.Lock()
+	history := make([]TxRollbackFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TxRollbackFuncCall is an object that describes an invocation of method
+// Rollback on an instance of MockTx.
+type TxRollbackFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TxRollbackFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TxRollbackFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// MockTxManager is a mock implementation of the TxManager interface (from
+// the package github.com/bradenrayhorn/beans/beans) used for unit testing.
+type MockTxManager struct {
+	// CreateFunc is an instance of a mock function object controlling the
+	// behavior of the method Create.
+	CreateFunc *TxManagerCreateFunc
+}
+
+// NewMockTxManager creates a new mock of the TxManager interface. All
+// methods return zero values for all results, unless overwritten.
+func NewMockTxManager() *MockTxManager {
+	return &MockTxManager{
+		CreateFunc: &TxManagerCreateFunc{
+			defaultHook: func(context.Context) (r0 beans.Tx, r1 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockTxManager creates a new mock of the TxManager interface. All
+// methods panic on invocation, unless overwritten.
+func NewStrictMockTxManager() *MockTxManager {
+	return &MockTxManager{
+		CreateFunc: &TxManagerCreateFunc{
+			defaultHook: func(context.Context) (beans.Tx, error) {
+				panic("unexpected invocation of MockTxManager.Create")
+			},
+		},
+	}
+}
+
+// NewMockTxManagerFrom creates a new mock of the MockTxManager interface.
+// All methods delegate to the given implementation, unless overwritten.
+func NewMockTxManagerFrom(i beans.TxManager) *MockTxManager {
+	return &MockTxManager{
+		CreateFunc: &TxManagerCreateFunc{
+			defaultHook: i.Create,
+		},
+	}
+}
+
+// TxManagerCreateFunc describes the behavior when the Create method of the
+// parent MockTxManager instance is invoked.
+type TxManagerCreateFunc struct {
+	defaultHook func(context.Context) (beans.Tx, error)
+	hooks       []func(context.Context) (beans.Tx, error)
+	history     []TxManagerCreateFuncCall
+	mutex       sync.Mutex
+}
+
+// Create delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTxManager) Create(v0 context.Context) (beans.Tx, error) {
+	r0, r1 := m.CreateFunc.nextHook()(v0)
+	m.CreateFunc.appendCall(TxManagerCreateFuncCall{v0, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the Create method of the
+// parent MockTxManager instance is invoked and the hook queue is empty.
+func (f *TxManagerCreateFunc) SetDefaultHook(hook func(context.Context) (beans.Tx, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Create method of the parent MockTxManager instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *TxManagerCreateFunc) PushHook(hook func(context.Context) (beans.Tx, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TxManagerCreateFunc) SetDefaultReturn(r0 beans.Tx, r1 error) {
+	f.SetDefaultHook(func(context.Context) (beans.Tx, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TxManagerCreateFunc) PushReturn(r0 beans.Tx, r1 error) {
+	f.PushHook(func(context.Context) (beans.Tx, error) {
+		return r0, r1
+	})
+}
+
+func (f *TxManagerCreateFunc) nextHook() func(context.Context) (beans.Tx, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TxManagerCreateFunc) appendCall(r0 TxManagerCreateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TxManagerCreateFuncCall objects describing
+// the invocations of this function.
+func (f *TxManagerCreateFunc) History() []TxManagerCreateFuncCall {
+	f.mutex.Lock()
+	history := make([]TxManagerCreateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TxManagerCreateFuncCall is an object that describes an invocation of
+// method Create on an instance of MockTxManager.
+type TxManagerCreateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.Tx
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TxManagerCreateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TxManagerCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

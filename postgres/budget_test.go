@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/testutils"
@@ -17,25 +16,41 @@ func TestBudgets(t *testing.T) {
 	defer stop()
 
 	budgetRepository := postgres.NewBudgetRepository(pool)
-	monthRepository := postgres.NewMonthRepository(pool)
+	txManager := postgres.NewTxManager(pool)
 
 	userID := makeUser(t, pool, "user")
 
 	t.Run("can create and get budget", func(t *testing.T) {
 		defer pool.Exec(context.Background(), "truncate budgets;")
 		budgetID := beans.NewBeansID()
-		err := budgetRepository.Create(context.Background(), budgetID, "Budget1", userID, time.Now())
+		err := budgetRepository.Create(context.Background(), nil, budgetID, "Budget1", userID)
 		require.Nil(t, err)
-
-		month, err := monthRepository.GetByDate(context.Background(), budgetID, beans.NormalizeMonth(time.Now()))
-		require.Nil(t, err)
-		assert.Equal(t, budgetID, month.BudgetID)
-		assert.Equal(t, beans.NewDate(beans.NormalizeMonth(time.Now())), month.Date)
 
 		budget, err := budgetRepository.Get(context.Background(), budgetID)
 		require.Nil(t, err)
 		assert.Equal(t, budgetID, budget.ID)
 		assert.Equal(t, "Budget1", string(budget.Name))
 		assert.Equal(t, []beans.UserID{userID}, budget.UserIDs)
+	})
+
+	t.Run("create respects transaction", func(t *testing.T) {
+		defer pool.Exec(context.Background(), "truncate budgets;")
+		budgetID1 := beans.NewBeansID()
+
+		tx, err := txManager.Create(context.Background())
+		require.Nil(t, err)
+		defer tx.Rollback(context.Background())
+
+		err = budgetRepository.Create(context.Background(), tx, budgetID1, "Budget1", userID)
+		require.Nil(t, err)
+
+		_, err = budgetRepository.Get(context.Background(), budgetID1)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		err = tx.Commit(context.Background())
+		require.Nil(t, err)
+
+		_, err = budgetRepository.Get(context.Background(), budgetID1)
+		require.Nil(t, err)
 	})
 }

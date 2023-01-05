@@ -10,15 +10,15 @@ import (
 )
 
 type monthRepository struct {
-	db *db.Queries
+	repository
 }
 
 func NewMonthRepository(pool *pgxpool.Pool) *monthRepository {
-	return &monthRepository{db: db.New(pool)}
+	return &monthRepository{repository{pool}}
 }
 
-func (r *monthRepository) Create(ctx context.Context, month *beans.Month) error {
-	return r.db.CreateMonth(ctx, db.CreateMonthParams{
+func (r *monthRepository) Create(ctx context.Context, tx beans.Tx, month *beans.Month) error {
+	return r.DB(tx).CreateMonth(ctx, db.CreateMonthParams{
 		ID:       month.ID.String(),
 		BudgetID: month.BudgetID.String(),
 		Date:     month.Date.Time,
@@ -26,7 +26,7 @@ func (r *monthRepository) Create(ctx context.Context, month *beans.Month) error 
 }
 
 func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, error) {
-	res, err := r.db.GetMonthByID(ctx, id.String())
+	res, err := r.DB(nil).GetMonthByID(ctx, id.String())
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}
@@ -44,7 +44,7 @@ func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, e
 }
 
 func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
-	res, err := r.db.GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date})
+	res, err := r.DB(nil).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date})
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}
@@ -62,7 +62,7 @@ func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date
 }
 
 func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*beans.Month, error) {
-	res, err := r.db.GetNewestMonth(ctx, budgetID.String())
+	res, err := r.DB(nil).GetNewestMonth(ctx, budgetID.String())
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}

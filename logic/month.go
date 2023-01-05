@@ -36,7 +36,7 @@ func (s *monthService) GetOrCreate(ctx context.Context, budgetID beans.ID, date 
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: beans.NewDate(normalizedMonth)}
-			return month, s.monthRepository.Create(ctx, month)
+			return month, s.monthRepository.Create(ctx, nil, month)
 		}
 		return nil, err
 	}

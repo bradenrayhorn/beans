@@ -18,6 +18,7 @@ func TestMonth(t *testing.T) {
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
+	txManager := postgres.NewTxManager(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 
 	userID := makeUser(t, pool, "user")
@@ -31,7 +32,7 @@ func TestMonth(t *testing.T) {
 	t.Run("can create and get", func(t *testing.T) {
 		defer cleanup()
 		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewDate(time.Now().AddDate(0, 1, 0)), BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), month))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
 
 		res, err := monthRepository.GetByDate(context.Background(), budgetID, month.Date.Time)
 		require.Nil(t, err)
@@ -42,11 +43,30 @@ func TestMonth(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(month, res))
 	})
 
+	t.Run("create respects tx", func(t *testing.T) {
+		defer cleanup()
+		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewDate(time.Now().AddDate(0, 1, 0)), BudgetID: budgetID}
+
+		tx, err := txManager.Create(context.Background())
+		require.Nil(t, err)
+		defer tx.Rollback(context.Background())
+
+		require.Nil(t, monthRepository.Create(context.Background(), tx, month))
+
+		_, err = monthRepository.GetByDate(context.Background(), budgetID, month.Date.Time)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		require.Nil(t, tx.Commit(context.Background()))
+
+		_, err = monthRepository.GetByDate(context.Background(), budgetID, month.Date.Time)
+		require.Nil(t, err)
+	})
+
 	t.Run("cannot create duplicate IDs", func(t *testing.T) {
 		defer cleanup()
 		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewDate(time.Now()), BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), month))
-		assertPgError(t, pgerrcode.UniqueViolation, monthRepository.Create(context.Background(), month))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
+		assertPgError(t, pgerrcode.UniqueViolation, monthRepository.Create(context.Background(), nil, month))
 	})
 
 	t.Run("cannot create same month in same budget", func(t *testing.T) {
@@ -54,8 +74,8 @@ func TestMonth(t *testing.T) {
 		date := beans.NewDate(time.Now())
 		month1 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
 		month2 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), month1))
-		assertPgError(t, pgerrcode.UniqueViolation, monthRepository.Create(context.Background(), month2))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month1))
+		assertPgError(t, pgerrcode.UniqueViolation, monthRepository.Create(context.Background(), nil, month2))
 	})
 
 	t.Run("get month respects budget", func(t *testing.T) {
@@ -63,8 +83,8 @@ func TestMonth(t *testing.T) {
 		date := beans.NewDate(time.Now())
 		month1 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
 		month2 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID2}
-		require.Nil(t, monthRepository.Create(context.Background(), month1))
-		require.Nil(t, monthRepository.Create(context.Background(), month2))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month1))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month2))
 
 		res, err := monthRepository.GetByDate(context.Background(), budgetID, date.Time)
 		require.Nil(t, err)
@@ -89,7 +109,7 @@ func TestMonth(t *testing.T) {
 		loc, err := time.LoadLocation("America/New_York")
 		require.Nil(t, err)
 		month := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), month))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
 
 		res, err := monthRepository.GetByDate(context.Background(), budgetID, time.Date(2022, 05, 26, 23, 50, 0, 0, loc))
 		require.Nil(t, err)
@@ -104,9 +124,9 @@ func TestMonth(t *testing.T) {
 		month1 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewDate(t, "2022-05-01"), BudgetID: budgetID}
 		month2 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewDate(t, "2022-07-01"), BudgetID: budgetID}
 		month3 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewDate(t, "2022-03-01"), BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), month1))
-		require.Nil(t, monthRepository.Create(context.Background(), month2))
-		require.Nil(t, monthRepository.Create(context.Background(), month3))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month1))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month2))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month3))
 
 		res, err := monthRepository.GetLatest(context.Background(), budgetID)
 		require.Nil(t, err)

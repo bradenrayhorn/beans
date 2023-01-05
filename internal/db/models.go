@@ -32,6 +32,7 @@ type BudgetsUser struct {
 type Category struct {
 	ID        string
 	Name      string
+	IsIncome  bool
 	BudgetID  string
 	GroupID   string
 	CreatedAt time.Time

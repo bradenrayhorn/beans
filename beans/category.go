@@ -7,6 +7,7 @@ type Category struct {
 	BudgetID ID
 	GroupID  ID
 	Name     Name
+	IsIncome bool
 }
 
 type CategoryGroup struct {
@@ -16,10 +17,10 @@ type CategoryGroup struct {
 }
 
 type CategoryRepository interface {
-	Create(context.Context, *Category) error
+	Create(ctx context.Context, tx Tx, category *Category) error
 	GetSingleForBudget(ctx context.Context, id ID, budgetID ID) (*Category, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Category, error)
-	CreateGroup(context.Context, *CategoryGroup) error
+	CreateGroup(ctx context.Context, tx Tx, categoryGroup *CategoryGroup) error
 	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]*CategoryGroup, error)
 	GroupExists(ctx context.Context, budgetID ID, id ID) (bool, error)
 }

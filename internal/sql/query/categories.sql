@@ -1,7 +1,7 @@
 -- name: CreateCategory :exec
 INSERT INTO categories (
-  id, budget_id, group_id, name
-) VALUES ($1, $2, $3, $4);
+  id, budget_id, group_id, name, is_income
+) VALUES ($1, $2, $3, $4, $5);
 
 -- name: GetCategoryForBudget :one
 SELECT * FROM categories WHERE id = $1 AND budget_id = $2;

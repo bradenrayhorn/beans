@@ -16,6 +16,7 @@ test("can add category", async ({ budget: { id }, page }) => {
   // add category
   const billsCategory = page
     .getByRole("list", { name: "Categories" })
+    .getByRole("listitem")
     .filter({ hasText: "Bills" });
 
   await expect(billsCategory).toBeVisible();
