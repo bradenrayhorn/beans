@@ -15,6 +15,7 @@ import { routes } from "@/constants/routes";
 import { useBudget } from "@/data/queries/budget";
 import { useUser } from "@/context/AuthContext";
 import { generatePath, Link } from "react-router-dom";
+import { useLogout } from "@/data/queries/user";
 
 const links = [
   { name: "home", pathname: routes.budget.index },
@@ -28,6 +29,8 @@ const Sidebar = () => {
   const user = useUser();
   const styles = useStyleConfig("Sidebar");
   const { budget } = useBudget();
+
+  const { mutate: logout, isLoading: isLoggingOut } = useLogout();
 
   return (
     <Flex
@@ -75,7 +78,9 @@ const Sidebar = () => {
             {user?.username}
           </MenuButton>
           <MenuList>
-            <MenuItem>Log out</MenuItem>
+            <MenuItem onClick={() => logout()} disabled={isLoggingOut}>
+              Log out
+            </MenuItem>
           </MenuList>
         </Menu>
       </Flex>

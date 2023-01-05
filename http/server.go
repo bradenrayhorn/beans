@@ -80,6 +80,7 @@ func NewServer(
 			r.Group(func(r chi.Router) {
 				r.Use(s.authenticate)
 				r.Get("/me", s.handleUserMe())
+				r.Post("/logout", s.handleUserLogout())
 			})
 		})
 

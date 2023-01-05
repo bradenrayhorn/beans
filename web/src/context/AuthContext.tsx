@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { queries, queryKeys } from "@/constants/queries";
+import { useQuery } from "@tanstack/react-query";
 import { HTTPError } from "ky";
-import { PropsWithChildren, useCallback, useState } from "react";
+import { PropsWithChildren, useCallback } from "react";
 import create from "zustand";
 import shallow from "zustand/shallow";
 
@@ -21,6 +21,7 @@ interface AuthState {
   status: AuthStatus;
   user: User | undefined;
   setUser: (user: User) => void;
+  clearUser: () => void;
   setStatus: (status: AuthStatus) => void;
 }
 
@@ -29,6 +30,7 @@ const useAuthStore = create<AuthState>()((set) => ({
   user: undefined,
   setUser: (user: User) => set({ user }),
   setStatus: (status: AuthStatus) => set({ status }),
+  clearUser: () => set({ user: undefined }),
 }));
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -69,6 +71,18 @@ export const useOnLogin = () => {
     },
     [setUser, setStatus]
   );
+};
+
+export const useOnLogout = () => {
+  const [clearUser, setStatus] = useAuthStore(
+    (state) => [state.clearUser, state.setStatus],
+    shallow
+  );
+
+  return useCallback(() => {
+    clearUser();
+    setStatus(AuthStatus.Unauthenticated);
+  }, [clearUser, setStatus]);
 };
 
 export const useAuthStatus = () => useAuthStore((state) => state.status);
