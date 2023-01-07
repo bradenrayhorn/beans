@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
+	"github.com/stretchr/testify/require"
 )
 
 func StartPool(tb testing.TB) (*pgxpool.Pool, func()) {
@@ -59,4 +61,9 @@ func getMigrationQueries(tb testing.TB) string {
 	}
 
 	return queries
+}
+
+func MustExec(t testing.TB, pool *pgxpool.Pool, sql string) {
+	_, err := pool.Exec(context.Background(), sql)
+	require.Nil(t, err)
 }

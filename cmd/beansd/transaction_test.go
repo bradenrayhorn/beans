@@ -13,6 +13,7 @@ import (
 )
 
 func TestTransactions(t *testing.T) {
+	t.Parallel()
 	ta := StartApplication(t)
 	defer ta.Stop(t)
 

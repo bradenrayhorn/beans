@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/http"
 	"github.com/bradenrayhorn/beans/inmem"
 	"github.com/bradenrayhorn/beans/logic"
@@ -22,7 +23,6 @@ type Application struct {
 	accountRepository       beans.AccountRepository
 	accountService          beans.AccountService
 	budgetRepository        beans.BudgetRepository
-	budgetService           beans.BudgetService
 	categoryRepository      beans.CategoryRepository
 	categoryService         beans.CategoryService
 	monthRepository         beans.MonthRepository
@@ -69,7 +69,6 @@ func (a *Application) Start() error {
 	a.userRepository = postgres.NewUserRepository(pool)
 
 	a.accountService = logic.NewAccountService(a.accountRepository)
-	a.budgetService = logic.NewBudgetService(a.txManager, a.budgetRepository, a.monthRepository, a.categoryRepository)
 	a.categoryService = logic.NewCategoryService(a.categoryRepository)
 	a.monthService = logic.NewMonthService(a.monthRepository)
 	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
@@ -86,7 +85,6 @@ func (a *Application) Start() error {
 		a.accountRepository,
 		a.accountService,
 		a.budgetRepository,
-		a.budgetService,
 		a.categoryRepository,
 		a.categoryService,
 		a.monthRepository,
@@ -98,6 +96,8 @@ func (a *Application) Start() error {
 		a.transactionService,
 		a.userRepository,
 		a.userService,
+
+		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
@@ -128,10 +128,6 @@ func (a *Application) BudgetRepository() beans.BudgetRepository {
 	return a.budgetRepository
 }
 
-func (a *Application) BudgetService() beans.BudgetService {
-	return a.budgetService
-}
-
 func (a *Application) CategoryRepository() beans.CategoryRepository {
 	return a.categoryRepository
 }
@@ -154,4 +150,8 @@ func (a *Application) SessionRepository() beans.SessionRepository {
 
 func (a *Application) TransactionRepository() beans.TransactionRepository {
 	return a.transactionRepository
+}
+
+func (a *Application) TxManager() beans.TxManager {
+	return a.txManager
 }

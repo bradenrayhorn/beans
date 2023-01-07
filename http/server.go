@@ -15,10 +15,11 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
+	budgetContract beans.BudgetContract
+
 	accountRepository       beans.AccountRepository
 	accountService          beans.AccountService
 	budgetRepository        beans.BudgetRepository
-	budgetService           beans.BudgetService
 	categoryRepository      beans.CategoryRepository
 	categoryService         beans.CategoryService
 	monthRepository         beans.MonthRepository
@@ -36,7 +37,6 @@ func NewServer(
 	ar beans.AccountRepository,
 	as beans.AccountService,
 	br beans.BudgetRepository,
-	bs beans.BudgetService,
 	cr beans.CategoryRepository,
 	cs beans.CategoryService,
 	mr beans.MonthRepository,
@@ -48,14 +48,18 @@ func NewServer(
 	ts beans.TransactionService,
 	ur beans.UserRepository,
 	us beans.UserService,
+
+	budgetContract beans.BudgetContract,
 ) *Server {
 	s := &Server{
-		router:                  chi.NewRouter(),
-		sv:                      &http.Server{},
+		router: chi.NewRouter(),
+		sv:     &http.Server{},
+
+		budgetContract: budgetContract,
+
 		accountRepository:       ar,
 		accountService:          as,
 		budgetRepository:        br,
-		budgetService:           bs,
 		categoryRepository:      cr,
 		categoryService:         cs,
 		monthRepository:         mr,

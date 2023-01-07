@@ -14,13 +14,14 @@ import (
 )
 
 func TestTransactions(t *testing.T) {
+	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
 	transactionRepository := postgres.NewTransactionRepository(pool)
 
-	userID := makeUser(t, pool, "user")
-	budgetID := makeBudget(t, pool, "budget", userID)
+	userID := testutils.MakeUser(t, pool, "user")
+	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 	account := makeAccount(t, pool, "account", budgetID)
 	categoryGroupID := makeCategoryGroup(t, pool, "group1", budgetID)
 	categoryID := makeCategory(t, pool, "category", categoryGroupID, budgetID)
