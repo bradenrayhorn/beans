@@ -14,19 +14,20 @@ import (
 )
 
 func TestMonthCategory(t *testing.T) {
+	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
 
-	userID := makeUser(t, pool, "user")
-	budgetID := makeBudget(t, pool, "budget", userID)
+	userID := testutils.MakeUser(t, pool, "user")
+	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 	account := makeAccount(t, pool, "account", budgetID)
 	groupID := makeCategoryGroup(t, pool, "group", budgetID)
 	categoryID := makeCategory(t, pool, "group", groupID, budgetID)
 	categoryID2 := makeCategory(t, pool, "group", groupID, budgetID)
-	month := makeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-05-01"))
-	month2 := makeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
+	month := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-05-01"))
+	month2 := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
 
 	cleanup := func() {
 		pool.Exec(context.Background(), "truncate month_categories cascade; truncate transactions cascade;")

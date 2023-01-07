@@ -12,13 +12,14 @@ import (
 )
 
 func TestBudgets(t *testing.T) {
+	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
 	budgetRepository := postgres.NewBudgetRepository(pool)
 	txManager := postgres.NewTxManager(pool)
 
-	userID := makeUser(t, pool, "user")
+	userID := testutils.MakeUser(t, pool, "user")
 
 	t.Run("can create and get budget", func(t *testing.T) {
 		defer pool.Exec(context.Background(), "truncate budgets;")

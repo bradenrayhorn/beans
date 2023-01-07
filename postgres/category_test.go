@@ -14,14 +14,15 @@ import (
 )
 
 func TestCategories(t *testing.T) {
+	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
 	txManager := postgres.NewTxManager(pool)
 	categoryRepository := postgres.NewCategoryRepository(pool)
 
-	userID := makeUser(t, pool, "user")
-	budgetID := makeBudget(t, pool, "budget", userID)
+	userID := testutils.MakeUser(t, pool, "user")
+	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 
 	cleanup := func() {
 		_, err := pool.Exec(context.Background(), "truncate categories, category_groups cascade;")

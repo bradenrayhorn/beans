@@ -11,6 +11,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/cmd/beansd"
+	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
@@ -183,7 +184,13 @@ func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *be
 }
 
 func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
-	budget, err := ta.application.BudgetService().CreateBudget(context.Background(), beans.Name(name), user.ID)
+	c := contract.NewBudgetContract(
+		ta.application.BudgetRepository(),
+		ta.application.CategoryRepository(),
+		ta.application.MonthRepository(),
+		ta.application.TxManager(),
+	)
+	budget, err := c.Create(context.Background(), beans.Name(name), user.ID)
 	require.Nil(tb, err)
 	return budget
 }

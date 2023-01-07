@@ -13,13 +13,14 @@ import (
 )
 
 func TestAccounts(t *testing.T) {
+	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
 	accountRepository := postgres.NewAccountRepository(pool)
 
-	userID := makeUser(t, pool, "user")
-	budgetID := makeBudget(t, pool, "budget", userID)
+	userID := testutils.MakeUser(t, pool, "user")
+	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 
 	t.Run("can create and get account", func(t *testing.T) {
 		defer pool.Exec(context.Background(), "truncate accounts;")

@@ -28,7 +28,7 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 			return
 		}
 
-		budget, err := s.budgetService.CreateBudget(r.Context(), req.Name, getUserID(r))
+		budget, err := s.budgetContract.Create(r.Context(), req.Name, getUserID(r))
 		if err != nil {
 			Error(w, err)
 			return
@@ -43,7 +43,7 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 		Data []responseBudget `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		budgets, err := s.budgetRepository.GetBudgetsForUser(r.Context(), getUserID(r))
+		budgets, err := s.budgetContract.GetAll(r.Context(), getUserID(r))
 
 		if err != nil {
 			Error(w, err)
@@ -68,12 +68,13 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 		Data responseData `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		budget := s.getBudget(chi.URLParam(r, "budgetID"), w, r)
-		if budget == nil {
+		budgetID, err := beans.BeansIDFromString(chi.URLParam(r, "budgetID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return
 		}
 
-		latestMonth, err := s.monthRepository.GetLatest(r.Context(), budget.ID)
+		budget, latestMonth, err := s.budgetContract.Get(r.Context(), budgetID, getUserID(r))
 		if err != nil {
 			Error(w, err)
 			return
@@ -117,7 +118,7 @@ func (s *Server) getBudget(id string, w http.ResponseWriter, r *http.Request) *b
 	}
 
 	if !budget.UserHasAccess(getUserID(r)) {
-		Error(w, beans.ErrorForbidden)
+		Error(w, beans.ErrorNotFound)
 		return nil
 	}
 
