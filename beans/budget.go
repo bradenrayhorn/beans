@@ -41,7 +41,3 @@ type BudgetRepository interface {
 	Get(ctx context.Context, id ID) (*Budget, error)
 	GetBudgetsForUser(ctx context.Context, userID UserID) ([]*Budget, error)
 }
-
-type BudgetService interface {
-	CreateBudget(ctx context.Context, name Name, userID UserID) (*Budget, error)
-}

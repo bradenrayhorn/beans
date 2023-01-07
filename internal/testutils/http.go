@@ -35,11 +35,11 @@ func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, use
 	req = req.WithContext(context.WithValue(req.Context(), "userID", user.ID))
 
 	if options != nil {
+		rctx := chi.NewRouteContext()
 		for k, v := range options.URLParams {
-			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add(k, v)
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 		}
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 	}
 
 	w := httptest.NewRecorder()

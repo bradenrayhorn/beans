@@ -21,7 +21,6 @@ type Application struct {
 	txManager beans.TxManager
 
 	accountRepository       beans.AccountRepository
-	accountService          beans.AccountService
 	budgetRepository        beans.BudgetRepository
 	categoryRepository      beans.CategoryRepository
 	categoryService         beans.CategoryService
@@ -68,7 +67,6 @@ func (a *Application) Start() error {
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.userRepository = postgres.NewUserRepository(pool)
 
-	a.accountService = logic.NewAccountService(a.accountRepository)
 	a.categoryService = logic.NewCategoryService(a.categoryRepository)
 	a.monthService = logic.NewMonthService(a.monthRepository)
 	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
@@ -83,7 +81,6 @@ func (a *Application) Start() error {
 
 	a.httpServer = http.NewServer(
 		a.accountRepository,
-		a.accountService,
 		a.budgetRepository,
 		a.categoryRepository,
 		a.categoryService,
@@ -97,6 +94,7 @@ func (a *Application) Start() error {
 		a.userRepository,
 		a.userService,
 
+		contract.NewAccountContract(a.accountRepository),
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {

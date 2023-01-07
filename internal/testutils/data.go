@@ -34,3 +34,14 @@ func MakeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.
 	require.Nil(tb, err)
 	return month
 }
+
+func MakeAccount(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) *beans.Account {
+	id := beans.NewBeansID()
+	err := postgres.NewAccountRepository(pool).Create(context.Background(), id, beans.Name(name), budgetID)
+	require.Nil(tb, err)
+	return &beans.Account{
+		ID:       id,
+		Name:     beans.Name(name),
+		BudgetID: budgetID,
+	}
+}

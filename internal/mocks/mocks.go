@@ -10,6 +10,286 @@ import (
 	beans "github.com/bradenrayhorn/beans/beans"
 )
 
+// MockAccountContract is a mock implementation of the AccountContract
+// interface (from the package github.com/bradenrayhorn/beans/beans) used
+// for unit testing.
+type MockAccountContract struct {
+	// CreateFunc is an instance of a mock function object controlling the
+	// behavior of the method Create.
+	CreateFunc *AccountContractCreateFunc
+	// GetAllFunc is an instance of a mock function object controlling the
+	// behavior of the method GetAll.
+	GetAllFunc *AccountContractGetAllFunc
+}
+
+// NewMockAccountContract creates a new mock of the AccountContract
+// interface. All methods return zero values for all results, unless
+// overwritten.
+func NewMockAccountContract() *MockAccountContract {
+	return &MockAccountContract{
+		CreateFunc: &AccountContractCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.Name) (r0 *beans.Account, r1 error) {
+				return
+			},
+		},
+		GetAllFunc: &AccountContractGetAllFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 []*beans.Account, r1 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockAccountContract creates a new mock of the AccountContract
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockAccountContract() *MockAccountContract {
+	return &MockAccountContract{
+		CreateFunc: &AccountContractCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.Name) (*beans.Account, error) {
+				panic("unexpected invocation of MockAccountContract.Create")
+			},
+		},
+		GetAllFunc: &AccountContractGetAllFunc{
+			defaultHook: func(context.Context, beans.ID) ([]*beans.Account, error) {
+				panic("unexpected invocation of MockAccountContract.GetAll")
+			},
+		},
+	}
+}
+
+// NewMockAccountContractFrom creates a new mock of the MockAccountContract
+// interface. All methods delegate to the given implementation, unless
+// overwritten.
+func NewMockAccountContractFrom(i beans.AccountContract) *MockAccountContract {
+	return &MockAccountContract{
+		CreateFunc: &AccountContractCreateFunc{
+			defaultHook: i.Create,
+		},
+		GetAllFunc: &AccountContractGetAllFunc{
+			defaultHook: i.GetAll,
+		},
+	}
+}
+
+// AccountContractCreateFunc describes the behavior when the Create method
+// of the parent MockAccountContract instance is invoked.
+type AccountContractCreateFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.Name) (*beans.Account, error)
+	hooks       []func(context.Context, beans.ID, beans.Name) (*beans.Account, error)
+	history     []AccountContractCreateFuncCall
+	mutex       sync.Mutex
+}
+
+// Create delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockAccountContract) Create(v0 context.Context, v1 beans.ID, v2 beans.Name) (*beans.Account, error) {
+	r0, r1 := m.CreateFunc.nextHook()(v0, v1, v2)
+	m.CreateFunc.appendCall(AccountContractCreateFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the Create method of the
+// parent MockAccountContract instance is invoked and the hook queue is
+// empty.
+func (f *AccountContractCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name) (*beans.Account, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Create method of the parent MockAccountContract instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *AccountContractCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.Name) (*beans.Account, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *AccountContractCreateFunc) SetDefaultReturn(r0 *beans.Account, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name) (*beans.Account, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *AccountContractCreateFunc) PushReturn(r0 *beans.Account, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.Name) (*beans.Account, error) {
+		return r0, r1
+	})
+}
+
+func (f *AccountContractCreateFunc) nextHook() func(context.Context, beans.ID, beans.Name) (*beans.Account, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *AccountContractCreateFunc) appendCall(r0 AccountContractCreateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of AccountContractCreateFuncCall objects
+// describing the invocations of this function.
+func (f *AccountContractCreateFunc) History() []AccountContractCreateFuncCall {
+	f.mutex.Lock()
+	history := make([]AccountContractCreateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// AccountContractCreateFuncCall is an object that describes an invocation
+// of method Create on an instance of MockAccountContract.
+type AccountContractCreateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Name
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Account
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c AccountContractCreateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c AccountContractCreateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// AccountContractGetAllFunc describes the behavior when the GetAll method
+// of the parent MockAccountContract instance is invoked.
+type AccountContractGetAllFunc struct {
+	defaultHook func(context.Context, beans.ID) ([]*beans.Account, error)
+	hooks       []func(context.Context, beans.ID) ([]*beans.Account, error)
+	history     []AccountContractGetAllFuncCall
+	mutex       sync.Mutex
+}
+
+// GetAll delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockAccountContract) GetAll(v0 context.Context, v1 beans.ID) ([]*beans.Account, error) {
+	r0, r1 := m.GetAllFunc.nextHook()(v0, v1)
+	m.GetAllFunc.appendCall(AccountContractGetAllFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetAll method of the
+// parent MockAccountContract instance is invoked and the hook queue is
+// empty.
+func (f *AccountContractGetAllFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.Account, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetAll method of the parent MockAccountContract instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *AccountContractGetAllFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.Account, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *AccountContractGetAllFunc) SetDefaultReturn(r0 []*beans.Account, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.Account, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *AccountContractGetAllFunc) PushReturn(r0 []*beans.Account, r1 error) {
+	f.PushHook(func(context.Context, beans.ID) ([]*beans.Account, error) {
+		return r0, r1
+	})
+}
+
+func (f *AccountContractGetAllFunc) nextHook() func(context.Context, beans.ID) ([]*beans.Account, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *AccountContractGetAllFunc) appendCall(r0 AccountContractGetAllFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of AccountContractGetAllFuncCall objects
+// describing the invocations of this function.
+func (f *AccountContractGetAllFunc) History() []AccountContractGetAllFuncCall {
+	f.mutex.Lock()
+	history := make([]AccountContractGetAllFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// AccountContractGetAllFuncCall is an object that describes an invocation
+// of method GetAll on an instance of MockAccountContract.
+type AccountContractGetAllFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 []*beans.Account
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c AccountContractGetAllFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c AccountContractGetAllFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
 // MockAccountRepository is a mock implementation of the AccountRepository
 // interface (from the package github.com/bradenrayhorn/beans/beans) used
 // for unit testing.
@@ -414,161 +694,6 @@ func (c AccountRepositoryGetForBudgetFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c AccountRepositoryGetForBudgetFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// MockAccountService is a mock implementation of the AccountService
-// interface (from the package github.com/bradenrayhorn/beans/beans) used
-// for unit testing.
-type MockAccountService struct {
-	// CreateFunc is an instance of a mock function object controlling the
-	// behavior of the method Create.
-	CreateFunc *AccountServiceCreateFunc
-}
-
-// NewMockAccountService creates a new mock of the AccountService interface.
-// All methods return zero values for all results, unless overwritten.
-func NewMockAccountService() *MockAccountService {
-	return &MockAccountService{
-		CreateFunc: &AccountServiceCreateFunc{
-			defaultHook: func(context.Context, beans.Name, beans.ID) (r0 *beans.Account, r1 error) {
-				return
-			},
-		},
-	}
-}
-
-// NewStrictMockAccountService creates a new mock of the AccountService
-// interface. All methods panic on invocation, unless overwritten.
-func NewStrictMockAccountService() *MockAccountService {
-	return &MockAccountService{
-		CreateFunc: &AccountServiceCreateFunc{
-			defaultHook: func(context.Context, beans.Name, beans.ID) (*beans.Account, error) {
-				panic("unexpected invocation of MockAccountService.Create")
-			},
-		},
-	}
-}
-
-// NewMockAccountServiceFrom creates a new mock of the MockAccountService
-// interface. All methods delegate to the given implementation, unless
-// overwritten.
-func NewMockAccountServiceFrom(i beans.AccountService) *MockAccountService {
-	return &MockAccountService{
-		CreateFunc: &AccountServiceCreateFunc{
-			defaultHook: i.Create,
-		},
-	}
-}
-
-// AccountServiceCreateFunc describes the behavior when the Create method of
-// the parent MockAccountService instance is invoked.
-type AccountServiceCreateFunc struct {
-	defaultHook func(context.Context, beans.Name, beans.ID) (*beans.Account, error)
-	hooks       []func(context.Context, beans.Name, beans.ID) (*beans.Account, error)
-	history     []AccountServiceCreateFuncCall
-	mutex       sync.Mutex
-}
-
-// Create delegates to the next hook function in the queue and stores the
-// parameter and result values of this invocation.
-func (m *MockAccountService) Create(v0 context.Context, v1 beans.Name, v2 beans.ID) (*beans.Account, error) {
-	r0, r1 := m.CreateFunc.nextHook()(v0, v1, v2)
-	m.CreateFunc.appendCall(AccountServiceCreateFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the Create method of the
-// parent MockAccountService instance is invoked and the hook queue is
-// empty.
-func (f *AccountServiceCreateFunc) SetDefaultHook(hook func(context.Context, beans.Name, beans.ID) (*beans.Account, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// Create method of the parent MockAccountService instance invokes the hook
-// at the front of the queue and discards it. After the queue is empty, the
-// default hook function is invoked for any future action.
-func (f *AccountServiceCreateFunc) PushHook(hook func(context.Context, beans.Name, beans.ID) (*beans.Account, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *AccountServiceCreateFunc) SetDefaultReturn(r0 *beans.Account, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Name, beans.ID) (*beans.Account, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *AccountServiceCreateFunc) PushReturn(r0 *beans.Account, r1 error) {
-	f.PushHook(func(context.Context, beans.Name, beans.ID) (*beans.Account, error) {
-		return r0, r1
-	})
-}
-
-func (f *AccountServiceCreateFunc) nextHook() func(context.Context, beans.Name, beans.ID) (*beans.Account, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *AccountServiceCreateFunc) appendCall(r0 AccountServiceCreateFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of AccountServiceCreateFuncCall objects
-// describing the invocations of this function.
-func (f *AccountServiceCreateFunc) History() []AccountServiceCreateFuncCall {
-	f.mutex.Lock()
-	history := make([]AccountServiceCreateFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// AccountServiceCreateFuncCall is an object that describes an invocation of
-// method Create on an instance of MockAccountService.
-type AccountServiceCreateFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.Name
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.ID
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.Account
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c AccountServiceCreateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c AccountServiceCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
@@ -1388,161 +1513,6 @@ func (c BudgetRepositoryGetBudgetsForUserFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c BudgetRepositoryGetBudgetsForUserFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// MockBudgetService is a mock implementation of the BudgetService interface
-// (from the package github.com/bradenrayhorn/beans/beans) used for unit
-// testing.
-type MockBudgetService struct {
-	// CreateBudgetFunc is an instance of a mock function object controlling
-	// the behavior of the method CreateBudget.
-	CreateBudgetFunc *BudgetServiceCreateBudgetFunc
-}
-
-// NewMockBudgetService creates a new mock of the BudgetService interface.
-// All methods return zero values for all results, unless overwritten.
-func NewMockBudgetService() *MockBudgetService {
-	return &MockBudgetService{
-		CreateBudgetFunc: &BudgetServiceCreateBudgetFunc{
-			defaultHook: func(context.Context, beans.Name, beans.UserID) (r0 *beans.Budget, r1 error) {
-				return
-			},
-		},
-	}
-}
-
-// NewStrictMockBudgetService creates a new mock of the BudgetService
-// interface. All methods panic on invocation, unless overwritten.
-func NewStrictMockBudgetService() *MockBudgetService {
-	return &MockBudgetService{
-		CreateBudgetFunc: &BudgetServiceCreateBudgetFunc{
-			defaultHook: func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
-				panic("unexpected invocation of MockBudgetService.CreateBudget")
-			},
-		},
-	}
-}
-
-// NewMockBudgetServiceFrom creates a new mock of the MockBudgetService
-// interface. All methods delegate to the given implementation, unless
-// overwritten.
-func NewMockBudgetServiceFrom(i beans.BudgetService) *MockBudgetService {
-	return &MockBudgetService{
-		CreateBudgetFunc: &BudgetServiceCreateBudgetFunc{
-			defaultHook: i.CreateBudget,
-		},
-	}
-}
-
-// BudgetServiceCreateBudgetFunc describes the behavior when the
-// CreateBudget method of the parent MockBudgetService instance is invoked.
-type BudgetServiceCreateBudgetFunc struct {
-	defaultHook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)
-	hooks       []func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)
-	history     []BudgetServiceCreateBudgetFuncCall
-	mutex       sync.Mutex
-}
-
-// CreateBudget delegates to the next hook function in the queue and stores
-// the parameter and result values of this invocation.
-func (m *MockBudgetService) CreateBudget(v0 context.Context, v1 beans.Name, v2 beans.UserID) (*beans.Budget, error) {
-	r0, r1 := m.CreateBudgetFunc.nextHook()(v0, v1, v2)
-	m.CreateBudgetFunc.appendCall(BudgetServiceCreateBudgetFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the CreateBudget method
-// of the parent MockBudgetService instance is invoked and the hook queue is
-// empty.
-func (f *BudgetServiceCreateBudgetFunc) SetDefaultHook(hook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateBudget method of the parent MockBudgetService instance invokes the
-// hook at the front of the queue and discards it. After the queue is empty,
-// the default hook function is invoked for any future action.
-func (f *BudgetServiceCreateBudgetFunc) PushHook(hook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *BudgetServiceCreateBudgetFunc) SetDefaultReturn(r0 *beans.Budget, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *BudgetServiceCreateBudgetFunc) PushReturn(r0 *beans.Budget, r1 error) {
-	f.PushHook(func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
-		return r0, r1
-	})
-}
-
-func (f *BudgetServiceCreateBudgetFunc) nextHook() func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *BudgetServiceCreateBudgetFunc) appendCall(r0 BudgetServiceCreateBudgetFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of BudgetServiceCreateBudgetFuncCall objects
-// describing the invocations of this function.
-func (f *BudgetServiceCreateBudgetFunc) History() []BudgetServiceCreateBudgetFuncCall {
-	f.mutex.Lock()
-	history := make([]BudgetServiceCreateBudgetFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// BudgetServiceCreateBudgetFuncCall is an object that describes an
-// invocation of method CreateBudget on an instance of MockBudgetService.
-type BudgetServiceCreateBudgetFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.Name
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.UserID
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.Budget
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c BudgetServiceCreateBudgetFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c BudgetServiceCreateBudgetFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

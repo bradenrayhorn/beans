@@ -22,7 +22,7 @@ func TestMonthCategory(t *testing.T) {
 
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	account := makeAccount(t, pool, "account", budgetID)
+	account := testutils.MakeAccount(t, pool, "account", budgetID)
 	groupID := makeCategoryGroup(t, pool, "group", budgetID)
 	categoryID := makeCategory(t, pool, "group", groupID, budgetID)
 	categoryID2 := makeCategory(t, pool, "group", groupID, budgetID)
