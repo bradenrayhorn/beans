@@ -15,17 +15,16 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	accountContract beans.AccountContract
-	budgetContract  beans.BudgetContract
+	accountContract  beans.AccountContract
+	budgetContract   beans.BudgetContract
+	categoryContract beans.CategoryContract
+	monthContract    beans.MonthContract
 
 	accountRepository       beans.AccountRepository
 	budgetRepository        beans.BudgetRepository
 	categoryRepository      beans.CategoryRepository
-	categoryService         beans.CategoryService
 	monthRepository         beans.MonthRepository
-	monthService            beans.MonthService
 	monthCategoryRepository beans.MonthCategoryRepository
-	monthCategoryService    beans.MonthCategoryService
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	transactionService      beans.TransactionService
@@ -37,11 +36,8 @@ func NewServer(
 	ar beans.AccountRepository,
 	br beans.BudgetRepository,
 	cr beans.CategoryRepository,
-	cs beans.CategoryService,
 	mr beans.MonthRepository,
-	ms beans.MonthService,
 	mcr beans.MonthCategoryRepository,
-	mcs beans.MonthCategoryService,
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
 	ts beans.TransactionService,
@@ -50,22 +46,23 @@ func NewServer(
 
 	accountContract beans.AccountContract,
 	budgetContract beans.BudgetContract,
+	categoryContract beans.CategoryContract,
+	monthContract beans.MonthContract,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		sv:     &http.Server{},
 
-		accountContract: accountContract,
-		budgetContract:  budgetContract,
+		accountContract:  accountContract,
+		budgetContract:   budgetContract,
+		categoryContract: categoryContract,
+		monthContract:    monthContract,
 
 		accountRepository:       ar,
 		budgetRepository:        br,
 		categoryRepository:      cr,
-		categoryService:         cs,
 		monthRepository:         mr,
-		monthService:            ms,
 		monthCategoryRepository: mcr,
-		monthCategoryService:    mcs,
 		sessionRepository:       sr,
 		transactionRepository:   tr,
 		transactionService:      ts,

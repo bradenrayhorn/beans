@@ -19,7 +19,8 @@ func HTTP(t testing.TB, f http.HandlerFunc, user *beans.User, budget *beans.Budg
 }
 
 type HTTPOptions struct {
-	URLParams map[string]string
+	URLParams     map[string]string
+	ContextValues map[string]any
 }
 
 func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, user *beans.User, budget *beans.Budget, body any, status int) string {
@@ -40,6 +41,10 @@ func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, use
 			rctx.URLParams.Add(k, v)
 		}
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		for k, v := range options.ContextValues {
+			req = req.WithContext(context.WithValue(req.Context(), k, v))
+		}
 	}
 
 	w := httptest.NewRecorder()

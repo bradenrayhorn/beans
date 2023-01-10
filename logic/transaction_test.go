@@ -23,7 +23,7 @@ func TestCreateTransaction(t *testing.T) {
 	month := &beans.Month{
 		ID:       beans.NewBeansID(),
 		BudgetID: budget.ID,
-		Date:     beans.NewDate(time.Now()),
+		Date:     beans.NewMonthDate(beans.NewDate(time.Now())),
 	}
 	account := &beans.Account{
 		ID:       beans.NewBeansID(),
@@ -45,13 +45,13 @@ func TestCreateTransaction(t *testing.T) {
 	transactionRepository := mocks.NewMockTransactionRepository()
 	accountRepository := mocks.NewMockAccountRepository()
 	categoryRepository := mocks.NewMockCategoryRepository()
-	monthService := mocks.NewMockMonthService()
-	monthCategoryService := mocks.NewMockMonthCategoryService()
+	monthCategoryRepository := mocks.NewMockMonthCategoryRepository()
+	monthRepository := mocks.NewMockMonthRepository()
 
-	monthService.GetOrCreateFunc.SetDefaultReturn(nil, errors.New("invalid"))
-	monthCategoryService.CreateIfNotExistsFunc.SetDefaultReturn(errors.New("invalid"))
+	monthRepository.GetOrCreateFunc.SetDefaultReturn(nil, errors.New("invalid"))
+	monthCategoryRepository.GetOrCreateFunc.SetDefaultReturn(nil, errors.New("invalid"))
 	categoryRepository.GetSingleForBudgetFunc.SetDefaultReturn(nil, errors.New("invalid"))
-	svc := logic.NewTransactionService(transactionRepository, accountRepository, categoryRepository, monthService, monthCategoryService)
+	svc := logic.NewTransactionService(transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository)
 
 	t.Run("fields are required", func(t *testing.T) {
 		_, err := svc.Create(context.Background(), budget, beans.TransactionCreate{})
@@ -79,8 +79,8 @@ func TestCreateTransaction(t *testing.T) {
 
 		accountRepository.GetFunc.SetDefaultReturn(account, nil)
 		categoryRepository.GetSingleForBudgetFunc.PushReturn(category, nil)
-		monthService.GetOrCreateFunc.PushReturn(month, nil)
-		monthCategoryService.CreateIfNotExistsFunc.PushReturn(nil)
+		monthRepository.GetOrCreateFunc.PushReturn(month, nil)
+		monthCategoryRepository.GetOrCreateFunc.PushReturn(nil, nil)
 
 		transaction, err := svc.Create(context.Background(), budget, c)
 		require.Nil(t, err)
@@ -91,7 +91,7 @@ func TestCreateTransaction(t *testing.T) {
 		require.Equal(t, c.Notes, transaction.Notes)
 		assert.True(t, reflect.DeepEqual(account, transaction.Account))
 
-		assert.Equal(t, testutils.NewDate(t, "2022-06-01").Time, monthService.GetOrCreateFunc.History()[0].Arg2)
+		assert.Equal(t, testutils.NewMonthDate(t, "2022-06-01"), monthRepository.GetOrCreateFunc.History()[0].Arg2)
 	})
 
 	t.Run("can create minimum", func(t *testing.T) {
@@ -202,7 +202,7 @@ func TestCreateTransaction(t *testing.T) {
 
 		accountRepository.GetFunc.SetDefaultReturn(account, nil)
 		categoryRepository.GetSingleForBudgetFunc.PushReturn(category, nil)
-		monthService.GetOrCreateFunc.PushReturn(nil, errors.New("some error"))
+		monthRepository.GetOrCreateFunc.PushReturn(nil, errors.New("some error"))
 
 		_, err := svc.Create(context.Background(), budget, c)
 		require.NotNil(t, err)
@@ -219,8 +219,8 @@ func TestCreateTransaction(t *testing.T) {
 
 		accountRepository.GetFunc.SetDefaultReturn(account, nil)
 		categoryRepository.GetSingleForBudgetFunc.PushReturn(category, nil)
-		monthService.GetOrCreateFunc.PushReturn(month, nil)
-		monthCategoryService.CreateIfNotExistsFunc.PushReturn(errors.New("some error"))
+		monthRepository.GetOrCreateFunc.PushReturn(month, nil)
+		monthCategoryRepository.GetOrCreateFunc.PushReturn(nil, errors.New("some error"))
 
 		_, err := svc.Create(context.Background(), budget, c)
 		require.NotNil(t, err)

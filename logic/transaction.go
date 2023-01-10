@@ -8,21 +8,21 @@ import (
 )
 
 type TransactionService struct {
-	transactionRepository beans.TransactionRepository
-	accountRepository     beans.AccountRepository
-	categoryRepository    beans.CategoryRepository
-	monthService          beans.MonthService
-	monthCategoryService  beans.MonthCategoryService
+	transactionRepository   beans.TransactionRepository
+	accountRepository       beans.AccountRepository
+	categoryRepository      beans.CategoryRepository
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthRepository         beans.MonthRepository
 }
 
 func NewTransactionService(
 	transactionRepository beans.TransactionRepository,
 	accountRepository beans.AccountRepository,
 	categoryRepository beans.CategoryRepository,
-	monthService beans.MonthService,
-	monthCategoryService beans.MonthCategoryService,
+	monthCategoryRepository beans.MonthCategoryRepository,
+	monthRepository beans.MonthRepository,
 ) *TransactionService {
-	return &TransactionService{transactionRepository, accountRepository, categoryRepository, monthService, monthCategoryService}
+	return &TransactionService{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository}
 }
 
 func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Budget, data beans.TransactionCreate) (*beans.Transaction, error) {
@@ -51,12 +51,12 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 			}
 		}
 
-		month, err := s.monthService.GetOrCreate(ctx, activeBudget.ID, beans.NormalizeMonth(data.Date.Time))
+		month, err := s.monthRepository.GetOrCreate(ctx, activeBudget.ID, beans.NewMonthDate(data.Date))
 		if err != nil {
 			return nil, err
 		}
 
-		if err := s.monthCategoryService.CreateIfNotExists(ctx, month.ID, data.CategoryID); err != nil {
+		if _, err := s.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
 			return nil, err
 		}
 	}

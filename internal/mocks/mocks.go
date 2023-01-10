@@ -5,7 +5,6 @@ package mocks
 import (
 	"context"
 	"sync"
-	"time"
 
 	beans "github.com/bradenrayhorn/beans/beans"
 )
@@ -1516,6 +1515,422 @@ func (c BudgetRepositoryGetBudgetsForUserFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
+// MockCategoryContract is a mock implementation of the CategoryContract
+// interface (from the package github.com/bradenrayhorn/beans/beans) used
+// for unit testing.
+type MockCategoryContract struct {
+	// CreateCategoryFunc is an instance of a mock function object
+	// controlling the behavior of the method CreateCategory.
+	CreateCategoryFunc *CategoryContractCreateCategoryFunc
+	// CreateGroupFunc is an instance of a mock function object controlling
+	// the behavior of the method CreateGroup.
+	CreateGroupFunc *CategoryContractCreateGroupFunc
+	// GetAllFunc is an instance of a mock function object controlling the
+	// behavior of the method GetAll.
+	GetAllFunc *CategoryContractGetAllFunc
+}
+
+// NewMockCategoryContract creates a new mock of the CategoryContract
+// interface. All methods return zero values for all results, unless
+// overwritten.
+func NewMockCategoryContract() *MockCategoryContract {
+	return &MockCategoryContract{
+		CreateCategoryFunc: &CategoryContractCreateCategoryFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Name) (r0 *beans.Category, r1 error) {
+				return
+			},
+		},
+		CreateGroupFunc: &CategoryContractCreateGroupFunc{
+			defaultHook: func(context.Context, beans.ID, beans.Name) (r0 *beans.CategoryGroup, r1 error) {
+				return
+			},
+		},
+		GetAllFunc: &CategoryContractGetAllFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockCategoryContract creates a new mock of the CategoryContract
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockCategoryContract() *MockCategoryContract {
+	return &MockCategoryContract{
+		CreateCategoryFunc: &CategoryContractCreateCategoryFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
+				panic("unexpected invocation of MockCategoryContract.CreateCategory")
+			},
+		},
+		CreateGroupFunc: &CategoryContractCreateGroupFunc{
+			defaultHook: func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
+				panic("unexpected invocation of MockCategoryContract.CreateGroup")
+			},
+		},
+		GetAllFunc: &CategoryContractGetAllFunc{
+			defaultHook: func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
+				panic("unexpected invocation of MockCategoryContract.GetAll")
+			},
+		},
+	}
+}
+
+// NewMockCategoryContractFrom creates a new mock of the
+// MockCategoryContract interface. All methods delegate to the given
+// implementation, unless overwritten.
+func NewMockCategoryContractFrom(i beans.CategoryContract) *MockCategoryContract {
+	return &MockCategoryContract{
+		CreateCategoryFunc: &CategoryContractCreateCategoryFunc{
+			defaultHook: i.CreateCategory,
+		},
+		CreateGroupFunc: &CategoryContractCreateGroupFunc{
+			defaultHook: i.CreateGroup,
+		},
+		GetAllFunc: &CategoryContractGetAllFunc{
+			defaultHook: i.GetAll,
+		},
+	}
+}
+
+// CategoryContractCreateCategoryFunc describes the behavior when the
+// CreateCategory method of the parent MockCategoryContract instance is
+// invoked.
+type CategoryContractCreateCategoryFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)
+	hooks       []func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)
+	history     []CategoryContractCreateCategoryFuncCall
+	mutex       sync.Mutex
+}
+
+// CreateCategory delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockCategoryContract) CreateCategory(v0 context.Context, v1 beans.ID, v2 beans.ID, v3 beans.Name) (*beans.Category, error) {
+	r0, r1 := m.CreateCategoryFunc.nextHook()(v0, v1, v2, v3)
+	m.CreateCategoryFunc.appendCall(CategoryContractCreateCategoryFuncCall{v0, v1, v2, v3, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the CreateCategory
+// method of the parent MockCategoryContract instance is invoked and the
+// hook queue is empty.
+func (f *CategoryContractCreateCategoryFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CreateCategory method of the parent MockCategoryContract instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *CategoryContractCreateCategoryFunc) PushHook(hook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *CategoryContractCreateCategoryFunc) SetDefaultReturn(r0 *beans.Category, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *CategoryContractCreateCategoryFunc) PushReturn(r0 *beans.Category, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
+		return r0, r1
+	})
+}
+
+func (f *CategoryContractCreateCategoryFunc) nextHook() func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *CategoryContractCreateCategoryFunc) appendCall(r0 CategoryContractCreateCategoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of CategoryContractCreateCategoryFuncCall
+// objects describing the invocations of this function.
+func (f *CategoryContractCreateCategoryFunc) History() []CategoryContractCreateCategoryFuncCall {
+	f.mutex.Lock()
+	history := make([]CategoryContractCreateCategoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// CategoryContractCreateCategoryFuncCall is an object that describes an
+// invocation of method CreateCategory on an instance of
+// MockCategoryContract.
+type CategoryContractCreateCategoryFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.ID
+	// Arg3 is the value of the 4th argument passed to this method
+	// invocation.
+	Arg3 beans.Name
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Category
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c CategoryContractCreateCategoryFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c CategoryContractCreateCategoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// CategoryContractCreateGroupFunc describes the behavior when the
+// CreateGroup method of the parent MockCategoryContract instance is
+// invoked.
+type CategoryContractCreateGroupFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)
+	hooks       []func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)
+	history     []CategoryContractCreateGroupFuncCall
+	mutex       sync.Mutex
+}
+
+// CreateGroup delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockCategoryContract) CreateGroup(v0 context.Context, v1 beans.ID, v2 beans.Name) (*beans.CategoryGroup, error) {
+	r0, r1 := m.CreateGroupFunc.nextHook()(v0, v1, v2)
+	m.CreateGroupFunc.appendCall(CategoryContractCreateGroupFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the CreateGroup method
+// of the parent MockCategoryContract instance is invoked and the hook queue
+// is empty.
+func (f *CategoryContractCreateGroupFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CreateGroup method of the parent MockCategoryContract instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *CategoryContractCreateGroupFunc) PushHook(hook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *CategoryContractCreateGroupFunc) SetDefaultReturn(r0 *beans.CategoryGroup, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *CategoryContractCreateGroupFunc) PushReturn(r0 *beans.CategoryGroup, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
+		return r0, r1
+	})
+}
+
+func (f *CategoryContractCreateGroupFunc) nextHook() func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *CategoryContractCreateGroupFunc) appendCall(r0 CategoryContractCreateGroupFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of CategoryContractCreateGroupFuncCall objects
+// describing the invocations of this function.
+func (f *CategoryContractCreateGroupFunc) History() []CategoryContractCreateGroupFuncCall {
+	f.mutex.Lock()
+	history := make([]CategoryContractCreateGroupFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// CategoryContractCreateGroupFuncCall is an object that describes an
+// invocation of method CreateGroup on an instance of MockCategoryContract.
+type CategoryContractCreateGroupFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Name
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.CategoryGroup
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c CategoryContractCreateGroupFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c CategoryContractCreateGroupFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// CategoryContractGetAllFunc describes the behavior when the GetAll method
+// of the parent MockCategoryContract instance is invoked.
+type CategoryContractGetAllFunc struct {
+	defaultHook func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error)
+	hooks       []func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error)
+	history     []CategoryContractGetAllFuncCall
+	mutex       sync.Mutex
+}
+
+// GetAll delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockCategoryContract) GetAll(v0 context.Context, v1 beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
+	r0, r1, r2 := m.GetAllFunc.nextHook()(v0, v1)
+	m.GetAllFunc.appendCall(CategoryContractGetAllFuncCall{v0, v1, r0, r1, r2})
+	return r0, r1, r2
+}
+
+// SetDefaultHook sets function that is called when the GetAll method of the
+// parent MockCategoryContract instance is invoked and the hook queue is
+// empty.
+func (f *CategoryContractGetAllFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetAll method of the parent MockCategoryContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *CategoryContractGetAllFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *CategoryContractGetAllFunc) SetDefaultReturn(r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
+		return r0, r1, r2
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *CategoryContractGetAllFunc) PushReturn(r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
+	f.PushHook(func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
+		return r0, r1, r2
+	})
+}
+
+func (f *CategoryContractGetAllFunc) nextHook() func(context.Context, beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *CategoryContractGetAllFunc) appendCall(r0 CategoryContractGetAllFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of CategoryContractGetAllFuncCall objects
+// describing the invocations of this function.
+func (f *CategoryContractGetAllFunc) History() []CategoryContractGetAllFuncCall {
+	f.mutex.Lock()
+	history := make([]CategoryContractGetAllFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// CategoryContractGetAllFuncCall is an object that describes an invocation
+// of method GetAll on an instance of MockCategoryContract.
+type CategoryContractGetAllFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 []*beans.CategoryGroup
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 []*beans.Category
+	// Result2 is the value of the 3rd result returned from this method
+	// invocation.
+	Result2 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c CategoryContractGetAllFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c CategoryContractGetAllFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1, c.Result2}
+}
+
 // MockCategoryRepository is a mock implementation of the CategoryRepository
 // interface (from the package github.com/bradenrayhorn/beans/beans) used
 // for unit testing.
@@ -2310,294 +2725,6 @@ func (c CategoryRepositoryGroupExistsFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
-// MockCategoryService is a mock implementation of the CategoryService
-// interface (from the package github.com/bradenrayhorn/beans/beans) used
-// for unit testing.
-type MockCategoryService struct {
-	// CreateCategoryFunc is an instance of a mock function object
-	// controlling the behavior of the method CreateCategory.
-	CreateCategoryFunc *CategoryServiceCreateCategoryFunc
-	// CreateGroupFunc is an instance of a mock function object controlling
-	// the behavior of the method CreateGroup.
-	CreateGroupFunc *CategoryServiceCreateGroupFunc
-}
-
-// NewMockCategoryService creates a new mock of the CategoryService
-// interface. All methods return zero values for all results, unless
-// overwritten.
-func NewMockCategoryService() *MockCategoryService {
-	return &MockCategoryService{
-		CreateCategoryFunc: &CategoryServiceCreateCategoryFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Name) (r0 *beans.Category, r1 error) {
-				return
-			},
-		},
-		CreateGroupFunc: &CategoryServiceCreateGroupFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name) (r0 *beans.CategoryGroup, r1 error) {
-				return
-			},
-		},
-	}
-}
-
-// NewStrictMockCategoryService creates a new mock of the CategoryService
-// interface. All methods panic on invocation, unless overwritten.
-func NewStrictMockCategoryService() *MockCategoryService {
-	return &MockCategoryService{
-		CreateCategoryFunc: &CategoryServiceCreateCategoryFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
-				panic("unexpected invocation of MockCategoryService.CreateCategory")
-			},
-		},
-		CreateGroupFunc: &CategoryServiceCreateGroupFunc{
-			defaultHook: func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
-				panic("unexpected invocation of MockCategoryService.CreateGroup")
-			},
-		},
-	}
-}
-
-// NewMockCategoryServiceFrom creates a new mock of the MockCategoryService
-// interface. All methods delegate to the given implementation, unless
-// overwritten.
-func NewMockCategoryServiceFrom(i beans.CategoryService) *MockCategoryService {
-	return &MockCategoryService{
-		CreateCategoryFunc: &CategoryServiceCreateCategoryFunc{
-			defaultHook: i.CreateCategory,
-		},
-		CreateGroupFunc: &CategoryServiceCreateGroupFunc{
-			defaultHook: i.CreateGroup,
-		},
-	}
-}
-
-// CategoryServiceCreateCategoryFunc describes the behavior when the
-// CreateCategory method of the parent MockCategoryService instance is
-// invoked.
-type CategoryServiceCreateCategoryFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)
-	hooks       []func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)
-	history     []CategoryServiceCreateCategoryFuncCall
-	mutex       sync.Mutex
-}
-
-// CreateCategory delegates to the next hook function in the queue and
-// stores the parameter and result values of this invocation.
-func (m *MockCategoryService) CreateCategory(v0 context.Context, v1 beans.ID, v2 beans.ID, v3 beans.Name) (*beans.Category, error) {
-	r0, r1 := m.CreateCategoryFunc.nextHook()(v0, v1, v2, v3)
-	m.CreateCategoryFunc.appendCall(CategoryServiceCreateCategoryFuncCall{v0, v1, v2, v3, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the CreateCategory
-// method of the parent MockCategoryService instance is invoked and the hook
-// queue is empty.
-func (f *CategoryServiceCreateCategoryFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateCategory method of the parent MockCategoryService instance invokes
-// the hook at the front of the queue and discards it. After the queue is
-// empty, the default hook function is invoked for any future action.
-func (f *CategoryServiceCreateCategoryFunc) PushHook(hook func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *CategoryServiceCreateCategoryFunc) SetDefaultReturn(r0 *beans.Category, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *CategoryServiceCreateCategoryFunc) PushReturn(r0 *beans.Category, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
-		return r0, r1
-	})
-}
-
-func (f *CategoryServiceCreateCategoryFunc) nextHook() func(context.Context, beans.ID, beans.ID, beans.Name) (*beans.Category, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *CategoryServiceCreateCategoryFunc) appendCall(r0 CategoryServiceCreateCategoryFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of CategoryServiceCreateCategoryFuncCall
-// objects describing the invocations of this function.
-func (f *CategoryServiceCreateCategoryFunc) History() []CategoryServiceCreateCategoryFuncCall {
-	f.mutex.Lock()
-	history := make([]CategoryServiceCreateCategoryFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// CategoryServiceCreateCategoryFuncCall is an object that describes an
-// invocation of method CreateCategory on an instance of
-// MockCategoryService.
-type CategoryServiceCreateCategoryFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.ID
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.ID
-	// Arg3 is the value of the 4th argument passed to this method
-	// invocation.
-	Arg3 beans.Name
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.Category
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c CategoryServiceCreateCategoryFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c CategoryServiceCreateCategoryFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// CategoryServiceCreateGroupFunc describes the behavior when the
-// CreateGroup method of the parent MockCategoryService instance is invoked.
-type CategoryServiceCreateGroupFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)
-	hooks       []func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)
-	history     []CategoryServiceCreateGroupFuncCall
-	mutex       sync.Mutex
-}
-
-// CreateGroup delegates to the next hook function in the queue and stores
-// the parameter and result values of this invocation.
-func (m *MockCategoryService) CreateGroup(v0 context.Context, v1 beans.ID, v2 beans.Name) (*beans.CategoryGroup, error) {
-	r0, r1 := m.CreateGroupFunc.nextHook()(v0, v1, v2)
-	m.CreateGroupFunc.appendCall(CategoryServiceCreateGroupFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the CreateGroup method
-// of the parent MockCategoryService instance is invoked and the hook queue
-// is empty.
-func (f *CategoryServiceCreateGroupFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateGroup method of the parent MockCategoryService instance invokes the
-// hook at the front of the queue and discards it. After the queue is empty,
-// the default hook function is invoked for any future action.
-func (f *CategoryServiceCreateGroupFunc) PushHook(hook func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *CategoryServiceCreateGroupFunc) SetDefaultReturn(r0 *beans.CategoryGroup, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *CategoryServiceCreateGroupFunc) PushReturn(r0 *beans.CategoryGroup, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
-		return r0, r1
-	})
-}
-
-func (f *CategoryServiceCreateGroupFunc) nextHook() func(context.Context, beans.ID, beans.Name) (*beans.CategoryGroup, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *CategoryServiceCreateGroupFunc) appendCall(r0 CategoryServiceCreateGroupFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of CategoryServiceCreateGroupFuncCall objects
-// describing the invocations of this function.
-func (f *CategoryServiceCreateGroupFunc) History() []CategoryServiceCreateGroupFuncCall {
-	f.mutex.Lock()
-	history := make([]CategoryServiceCreateGroupFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// CategoryServiceCreateGroupFuncCall is an object that describes an
-// invocation of method CreateGroup on an instance of MockCategoryService.
-type CategoryServiceCreateGroupFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.ID
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.Name
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.CategoryGroup
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c CategoryServiceCreateGroupFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c CategoryServiceCreateGroupFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
 // MockCountable is a mock implementation of the Countable interface (from
 // the package github.com/bradenrayhorn/beans/beans) used for unit testing.
 type MockCountable struct {
@@ -3142,12 +3269,12 @@ type MockMonthCategoryRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *MonthCategoryRepositoryCreateFunc
-	// GetByMonthAndCategoryFunc is an instance of a mock function object
-	// controlling the behavior of the method GetByMonthAndCategory.
-	GetByMonthAndCategoryFunc *MonthCategoryRepositoryGetByMonthAndCategoryFunc
 	// GetForMonthFunc is an instance of a mock function object controlling
 	// the behavior of the method GetForMonth.
 	GetForMonthFunc *MonthCategoryRepositoryGetForMonthFunc
+	// GetOrCreateFunc is an instance of a mock function object controlling
+	// the behavior of the method GetOrCreate.
+	GetOrCreateFunc *MonthCategoryRepositoryGetOrCreateFunc
 	// UpdateAmountFunc is an instance of a mock function object controlling
 	// the behavior of the method UpdateAmount.
 	UpdateAmountFunc *MonthCategoryRepositoryUpdateAmountFunc
@@ -3163,13 +3290,13 @@ func NewMockMonthCategoryRepository() *MockMonthCategoryRepository {
 				return
 			},
 		},
-		GetByMonthAndCategoryFunc: &MonthCategoryRepositoryGetByMonthAndCategoryFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 *beans.MonthCategory, r1 error) {
+		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
+			defaultHook: func(context.Context, *beans.Month) (r0 []*beans.MonthCategory, r1 error) {
 				return
 			},
 		},
-		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
-			defaultHook: func(context.Context, beans.Month) (r0 []*beans.MonthCategory, r1 error) {
+		GetOrCreateFunc: &MonthCategoryRepositoryGetOrCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 *beans.MonthCategory, r1 error) {
 				return
 			},
 		},
@@ -3191,14 +3318,14 @@ func NewStrictMockMonthCategoryRepository() *MockMonthCategoryRepository {
 				panic("unexpected invocation of MockMonthCategoryRepository.Create")
 			},
 		},
-		GetByMonthAndCategoryFunc: &MonthCategoryRepositoryGetByMonthAndCategoryFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
-				panic("unexpected invocation of MockMonthCategoryRepository.GetByMonthAndCategory")
+		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
+			defaultHook: func(context.Context, *beans.Month) ([]*beans.MonthCategory, error) {
+				panic("unexpected invocation of MockMonthCategoryRepository.GetForMonth")
 			},
 		},
-		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
-			defaultHook: func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
-				panic("unexpected invocation of MockMonthCategoryRepository.GetForMonth")
+		GetOrCreateFunc: &MonthCategoryRepositoryGetOrCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
+				panic("unexpected invocation of MockMonthCategoryRepository.GetOrCreate")
 			},
 		},
 		UpdateAmountFunc: &MonthCategoryRepositoryUpdateAmountFunc{
@@ -3217,11 +3344,11 @@ func NewMockMonthCategoryRepositoryFrom(i beans.MonthCategoryRepository) *MockMo
 		CreateFunc: &MonthCategoryRepositoryCreateFunc{
 			defaultHook: i.Create,
 		},
-		GetByMonthAndCategoryFunc: &MonthCategoryRepositoryGetByMonthAndCategoryFunc{
-			defaultHook: i.GetByMonthAndCategory,
-		},
 		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
 			defaultHook: i.GetForMonth,
+		},
+		GetOrCreateFunc: &MonthCategoryRepositoryGetOrCreateFunc{
+			defaultHook: i.GetOrCreate,
 		},
 		UpdateAmountFunc: &MonthCategoryRepositoryUpdateAmountFunc{
 			defaultHook: i.UpdateAmount,
@@ -3335,134 +3462,19 @@ func (c MonthCategoryRepositoryCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
-// MonthCategoryRepositoryGetByMonthAndCategoryFunc describes the behavior
-// when the GetByMonthAndCategory method of the parent
-// MockMonthCategoryRepository instance is invoked.
-type MonthCategoryRepositoryGetByMonthAndCategoryFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)
-	hooks       []func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)
-	history     []MonthCategoryRepositoryGetByMonthAndCategoryFuncCall
-	mutex       sync.Mutex
-}
-
-// GetByMonthAndCategory delegates to the next hook function in the queue
-// and stores the parameter and result values of this invocation.
-func (m *MockMonthCategoryRepository) GetByMonthAndCategory(v0 context.Context, v1 beans.ID, v2 beans.ID) (*beans.MonthCategory, error) {
-	r0, r1 := m.GetByMonthAndCategoryFunc.nextHook()(v0, v1, v2)
-	m.GetByMonthAndCategoryFunc.appendCall(MonthCategoryRepositoryGetByMonthAndCategoryFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the
-// GetByMonthAndCategory method of the parent MockMonthCategoryRepository
-// instance is invoked and the hook queue is empty.
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// GetByMonthAndCategory method of the parent MockMonthCategoryRepository
-// instance invokes the hook at the front of the queue and discards it.
-// After the queue is empty, the default hook function is invoked for any
-// future action.
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) SetDefaultReturn(r0 *beans.MonthCategory, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) PushReturn(r0 *beans.MonthCategory, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
-		return r0, r1
-	})
-}
-
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) nextHook() func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) appendCall(r0 MonthCategoryRepositoryGetByMonthAndCategoryFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of
-// MonthCategoryRepositoryGetByMonthAndCategoryFuncCall objects describing
-// the invocations of this function.
-func (f *MonthCategoryRepositoryGetByMonthAndCategoryFunc) History() []MonthCategoryRepositoryGetByMonthAndCategoryFuncCall {
-	f.mutex.Lock()
-	history := make([]MonthCategoryRepositoryGetByMonthAndCategoryFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// MonthCategoryRepositoryGetByMonthAndCategoryFuncCall is an object that
-// describes an invocation of method GetByMonthAndCategory on an instance of
-// MockMonthCategoryRepository.
-type MonthCategoryRepositoryGetByMonthAndCategoryFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.ID
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.ID
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.MonthCategory
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c MonthCategoryRepositoryGetByMonthAndCategoryFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c MonthCategoryRepositoryGetByMonthAndCategoryFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
 // MonthCategoryRepositoryGetForMonthFunc describes the behavior when the
 // GetForMonth method of the parent MockMonthCategoryRepository instance is
 // invoked.
 type MonthCategoryRepositoryGetForMonthFunc struct {
-	defaultHook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)
-	hooks       []func(context.Context, beans.Month) ([]*beans.MonthCategory, error)
+	defaultHook func(context.Context, *beans.Month) ([]*beans.MonthCategory, error)
+	hooks       []func(context.Context, *beans.Month) ([]*beans.MonthCategory, error)
 	history     []MonthCategoryRepositoryGetForMonthFuncCall
 	mutex       sync.Mutex
 }
 
 // GetForMonth delegates to the next hook function in the queue and stores
 // the parameter and result values of this invocation.
-func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 beans.Month) ([]*beans.MonthCategory, error) {
+func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 *beans.Month) ([]*beans.MonthCategory, error) {
 	r0, r1 := m.GetForMonthFunc.nextHook()(v0, v1)
 	m.GetForMonthFunc.appendCall(MonthCategoryRepositoryGetForMonthFuncCall{v0, v1, r0, r1})
 	return r0, r1
@@ -3471,7 +3483,7 @@ func (m *MockMonthCategoryRepository) GetForMonth(v0 context.Context, v1 beans.M
 // SetDefaultHook sets function that is called when the GetForMonth method
 // of the parent MockMonthCategoryRepository instance is invoked and the
 // hook queue is empty.
-func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(context.Context, *beans.Month) ([]*beans.MonthCategory, error)) {
 	f.defaultHook = hook
 }
 
@@ -3480,7 +3492,7 @@ func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultHook(hook func(contex
 // invokes the hook at the front of the queue and discards it. After the
 // queue is empty, the default hook function is invoked for any future
 // action.
-func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Context, beans.Month) ([]*beans.MonthCategory, error)) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Context, *beans.Month) ([]*beans.MonthCategory, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3489,19 +3501,19 @@ func (f *MonthCategoryRepositoryGetForMonthFunc) PushHook(hook func(context.Cont
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *MonthCategoryRepositoryGetForMonthFunc) SetDefaultReturn(r0 []*beans.MonthCategory, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
+	f.SetDefaultHook(func(context.Context, *beans.Month) ([]*beans.MonthCategory, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *MonthCategoryRepositoryGetForMonthFunc) PushReturn(r0 []*beans.MonthCategory, r1 error) {
-	f.PushHook(func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
+	f.PushHook(func(context.Context, *beans.Month) ([]*beans.MonthCategory, error) {
 		return r0, r1
 	})
 }
 
-func (f *MonthCategoryRepositoryGetForMonthFunc) nextHook() func(context.Context, beans.Month) ([]*beans.MonthCategory, error) {
+func (f *MonthCategoryRepositoryGetForMonthFunc) nextHook() func(context.Context, *beans.Month) ([]*beans.MonthCategory, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3540,7 +3552,7 @@ type MonthCategoryRepositoryGetForMonthFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.Month
+	Arg1 *beans.Month
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 []*beans.MonthCategory
@@ -3558,6 +3570,120 @@ func (c MonthCategoryRepositoryGetForMonthFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c MonthCategoryRepositoryGetForMonthFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// MonthCategoryRepositoryGetOrCreateFunc describes the behavior when the
+// GetOrCreate method of the parent MockMonthCategoryRepository instance is
+// invoked.
+type MonthCategoryRepositoryGetOrCreateFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)
+	hooks       []func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)
+	history     []MonthCategoryRepositoryGetOrCreateFuncCall
+	mutex       sync.Mutex
+}
+
+// GetOrCreate delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockMonthCategoryRepository) GetOrCreate(v0 context.Context, v1 beans.ID, v2 beans.ID) (*beans.MonthCategory, error) {
+	r0, r1 := m.GetOrCreateFunc.nextHook()(v0, v1, v2)
+	m.GetOrCreateFunc.appendCall(MonthCategoryRepositoryGetOrCreateFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetOrCreate method
+// of the parent MockMonthCategoryRepository instance is invoked and the
+// hook queue is empty.
+func (f *MonthCategoryRepositoryGetOrCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetOrCreate method of the parent MockMonthCategoryRepository instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *MonthCategoryRepositoryGetOrCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *MonthCategoryRepositoryGetOrCreateFunc) SetDefaultReturn(r0 *beans.MonthCategory, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *MonthCategoryRepositoryGetOrCreateFunc) PushReturn(r0 *beans.MonthCategory, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
+		return r0, r1
+	})
+}
+
+func (f *MonthCategoryRepositoryGetOrCreateFunc) nextHook() func(context.Context, beans.ID, beans.ID) (*beans.MonthCategory, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *MonthCategoryRepositoryGetOrCreateFunc) appendCall(r0 MonthCategoryRepositoryGetOrCreateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of MonthCategoryRepositoryGetOrCreateFuncCall
+// objects describing the invocations of this function.
+func (f *MonthCategoryRepositoryGetOrCreateFunc) History() []MonthCategoryRepositoryGetOrCreateFuncCall {
+	f.mutex.Lock()
+	history := make([]MonthCategoryRepositoryGetOrCreateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// MonthCategoryRepositoryGetOrCreateFuncCall is an object that describes an
+// invocation of method GetOrCreate on an instance of
+// MockMonthCategoryRepository.
+type MonthCategoryRepositoryGetOrCreateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.MonthCategory
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c MonthCategoryRepositoryGetOrCreateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c MonthCategoryRepositoryGetOrCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
@@ -3672,29 +3798,36 @@ func (c MonthCategoryRepositoryUpdateAmountFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
-// MockMonthCategoryService is a mock implementation of the
-// MonthCategoryService interface (from the package
-// github.com/bradenrayhorn/beans/beans) used for unit testing.
-type MockMonthCategoryService struct {
-	// CreateIfNotExistsFunc is an instance of a mock function object
-	// controlling the behavior of the method CreateIfNotExists.
-	CreateIfNotExistsFunc *MonthCategoryServiceCreateIfNotExistsFunc
-	// CreateOrUpdateFunc is an instance of a mock function object
-	// controlling the behavior of the method CreateOrUpdate.
-	CreateOrUpdateFunc *MonthCategoryServiceCreateOrUpdateFunc
+// MockMonthContract is a mock implementation of the MonthContract interface
+// (from the package github.com/bradenrayhorn/beans/beans) used for unit
+// testing.
+type MockMonthContract struct {
+	// CreateMonthFunc is an instance of a mock function object controlling
+	// the behavior of the method CreateMonth.
+	CreateMonthFunc *MonthContractCreateMonthFunc
+	// GetFunc is an instance of a mock function object controlling the
+	// behavior of the method Get.
+	GetFunc *MonthContractGetFunc
+	// SetCategoryAmountFunc is an instance of a mock function object
+	// controlling the behavior of the method SetCategoryAmount.
+	SetCategoryAmountFunc *MonthContractSetCategoryAmountFunc
 }
 
-// NewMockMonthCategoryService creates a new mock of the
-// MonthCategoryService interface. All methods return zero values for all
-// results, unless overwritten.
-func NewMockMonthCategoryService() *MockMonthCategoryService {
-	return &MockMonthCategoryService{
-		CreateIfNotExistsFunc: &MonthCategoryServiceCreateIfNotExistsFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 error) {
+// NewMockMonthContract creates a new mock of the MonthContract interface.
+// All methods return zero values for all results, unless overwritten.
+func NewMockMonthContract() *MockMonthContract {
+	return &MockMonthContract{
+		CreateMonthFunc: &MonthContractCreateMonthFunc{
+			defaultHook: func(context.Context, beans.ID, beans.MonthDate) (r0 *beans.Month, r1 error) {
 				return
 			},
 		},
-		CreateOrUpdateFunc: &MonthCategoryServiceCreateOrUpdateFunc{
+		GetFunc: &MonthContractGetFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.Month, r1 []*beans.MonthCategory, r2 error) {
+				return
+			},
+		},
+		SetCategoryAmountFunc: &MonthContractSetCategoryAmountFunc{
 			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Amount) (r0 error) {
 				return
 			},
@@ -3702,69 +3835,74 @@ func NewMockMonthCategoryService() *MockMonthCategoryService {
 	}
 }
 
-// NewStrictMockMonthCategoryService creates a new mock of the
-// MonthCategoryService interface. All methods panic on invocation, unless
-// overwritten.
-func NewStrictMockMonthCategoryService() *MockMonthCategoryService {
-	return &MockMonthCategoryService{
-		CreateIfNotExistsFunc: &MonthCategoryServiceCreateIfNotExistsFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) error {
-				panic("unexpected invocation of MockMonthCategoryService.CreateIfNotExists")
+// NewStrictMockMonthContract creates a new mock of the MonthContract
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockMonthContract() *MockMonthContract {
+	return &MockMonthContract{
+		CreateMonthFunc: &MonthContractCreateMonthFunc{
+			defaultHook: func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
+				panic("unexpected invocation of MockMonthContract.CreateMonth")
 			},
 		},
-		CreateOrUpdateFunc: &MonthCategoryServiceCreateOrUpdateFunc{
+		GetFunc: &MonthContractGetFunc{
+			defaultHook: func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
+				panic("unexpected invocation of MockMonthContract.Get")
+			},
+		},
+		SetCategoryAmountFunc: &MonthContractSetCategoryAmountFunc{
 			defaultHook: func(context.Context, beans.ID, beans.ID, beans.Amount) error {
-				panic("unexpected invocation of MockMonthCategoryService.CreateOrUpdate")
+				panic("unexpected invocation of MockMonthContract.SetCategoryAmount")
 			},
 		},
 	}
 }
 
-// NewMockMonthCategoryServiceFrom creates a new mock of the
-// MockMonthCategoryService interface. All methods delegate to the given
-// implementation, unless overwritten.
-func NewMockMonthCategoryServiceFrom(i beans.MonthCategoryService) *MockMonthCategoryService {
-	return &MockMonthCategoryService{
-		CreateIfNotExistsFunc: &MonthCategoryServiceCreateIfNotExistsFunc{
-			defaultHook: i.CreateIfNotExists,
+// NewMockMonthContractFrom creates a new mock of the MockMonthContract
+// interface. All methods delegate to the given implementation, unless
+// overwritten.
+func NewMockMonthContractFrom(i beans.MonthContract) *MockMonthContract {
+	return &MockMonthContract{
+		CreateMonthFunc: &MonthContractCreateMonthFunc{
+			defaultHook: i.CreateMonth,
 		},
-		CreateOrUpdateFunc: &MonthCategoryServiceCreateOrUpdateFunc{
-			defaultHook: i.CreateOrUpdate,
+		GetFunc: &MonthContractGetFunc{
+			defaultHook: i.Get,
+		},
+		SetCategoryAmountFunc: &MonthContractSetCategoryAmountFunc{
+			defaultHook: i.SetCategoryAmount,
 		},
 	}
 }
 
-// MonthCategoryServiceCreateIfNotExistsFunc describes the behavior when the
-// CreateIfNotExists method of the parent MockMonthCategoryService instance
-// is invoked.
-type MonthCategoryServiceCreateIfNotExistsFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.ID) error
-	hooks       []func(context.Context, beans.ID, beans.ID) error
-	history     []MonthCategoryServiceCreateIfNotExistsFuncCall
+// MonthContractCreateMonthFunc describes the behavior when the CreateMonth
+// method of the parent MockMonthContract instance is invoked.
+type MonthContractCreateMonthFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)
+	hooks       []func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)
+	history     []MonthContractCreateMonthFuncCall
 	mutex       sync.Mutex
 }
 
-// CreateIfNotExists delegates to the next hook function in the queue and
-// stores the parameter and result values of this invocation.
-func (m *MockMonthCategoryService) CreateIfNotExists(v0 context.Context, v1 beans.ID, v2 beans.ID) error {
-	r0 := m.CreateIfNotExistsFunc.nextHook()(v0, v1, v2)
-	m.CreateIfNotExistsFunc.appendCall(MonthCategoryServiceCreateIfNotExistsFuncCall{v0, v1, v2, r0})
-	return r0
+// CreateMonth delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockMonthContract) CreateMonth(v0 context.Context, v1 beans.ID, v2 beans.MonthDate) (*beans.Month, error) {
+	r0, r1 := m.CreateMonthFunc.nextHook()(v0, v1, v2)
+	m.CreateMonthFunc.appendCall(MonthContractCreateMonthFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
 }
 
-// SetDefaultHook sets function that is called when the CreateIfNotExists
-// method of the parent MockMonthCategoryService instance is invoked and the
-// hook queue is empty.
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) error) {
+// SetDefaultHook sets function that is called when the CreateMonth method
+// of the parent MockMonthContract instance is invoked and the hook queue is
+// empty.
+func (f *MonthContractCreateMonthFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateIfNotExists method of the parent MockMonthCategoryService instance
-// invokes the hook at the front of the queue and discards it. After the
-// queue is empty, the default hook function is invoked for any future
-// action.
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) error) {
+// CreateMonth method of the parent MockMonthContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *MonthContractCreateMonthFunc) PushHook(hook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3772,20 +3910,20 @@ func (f *MonthCategoryServiceCreateIfNotExistsFunc) PushHook(hook func(context.C
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) error {
-		return r0
+func (f *MonthContractCreateMonthFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
+		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.ID) error {
-		return r0
+func (f *MonthContractCreateMonthFunc) PushReturn(r0 *beans.Month, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
+		return r0, r1
 	})
 }
 
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) nextHook() func(context.Context, beans.ID, beans.ID) error {
+func (f *MonthContractCreateMonthFunc) nextHook() func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3798,28 +3936,26 @@ func (f *MonthCategoryServiceCreateIfNotExistsFunc) nextHook() func(context.Cont
 	return hook
 }
 
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) appendCall(r0 MonthCategoryServiceCreateIfNotExistsFuncCall) {
+func (f *MonthContractCreateMonthFunc) appendCall(r0 MonthContractCreateMonthFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
-// History returns a sequence of
-// MonthCategoryServiceCreateIfNotExistsFuncCall objects describing the
-// invocations of this function.
-func (f *MonthCategoryServiceCreateIfNotExistsFunc) History() []MonthCategoryServiceCreateIfNotExistsFuncCall {
+// History returns a sequence of MonthContractCreateMonthFuncCall objects
+// describing the invocations of this function.
+func (f *MonthContractCreateMonthFunc) History() []MonthContractCreateMonthFuncCall {
 	f.mutex.Lock()
-	history := make([]MonthCategoryServiceCreateIfNotExistsFuncCall, len(f.history))
+	history := make([]MonthContractCreateMonthFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// MonthCategoryServiceCreateIfNotExistsFuncCall is an object that describes
-// an invocation of method CreateIfNotExists on an instance of
-// MockMonthCategoryService.
-type MonthCategoryServiceCreateIfNotExistsFuncCall struct {
+// MonthContractCreateMonthFuncCall is an object that describes an
+// invocation of method CreateMonth on an instance of MockMonthContract.
+type MonthContractCreateMonthFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
@@ -3828,55 +3964,55 @@ type MonthCategoryServiceCreateIfNotExistsFuncCall struct {
 	Arg1 beans.ID
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
-	Arg2 beans.ID
+	Arg2 beans.MonthDate
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
-	Result0 error
+	Result0 *beans.Month
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
 }
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c MonthCategoryServiceCreateIfNotExistsFuncCall) Args() []interface{} {
+func (c MonthContractCreateMonthFuncCall) Args() []interface{} {
 	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c MonthCategoryServiceCreateIfNotExistsFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0}
+func (c MonthContractCreateMonthFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
 }
 
-// MonthCategoryServiceCreateOrUpdateFunc describes the behavior when the
-// CreateOrUpdate method of the parent MockMonthCategoryService instance is
-// invoked.
-type MonthCategoryServiceCreateOrUpdateFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.ID, beans.Amount) error
-	hooks       []func(context.Context, beans.ID, beans.ID, beans.Amount) error
-	history     []MonthCategoryServiceCreateOrUpdateFuncCall
+// MonthContractGetFunc describes the behavior when the Get method of the
+// parent MockMonthContract instance is invoked.
+type MonthContractGetFunc struct {
+	defaultHook func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error)
+	hooks       []func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error)
+	history     []MonthContractGetFuncCall
 	mutex       sync.Mutex
 }
 
-// CreateOrUpdate delegates to the next hook function in the queue and
-// stores the parameter and result values of this invocation.
-func (m *MockMonthCategoryService) CreateOrUpdate(v0 context.Context, v1 beans.ID, v2 beans.ID, v3 beans.Amount) error {
-	r0 := m.CreateOrUpdateFunc.nextHook()(v0, v1, v2, v3)
-	m.CreateOrUpdateFunc.appendCall(MonthCategoryServiceCreateOrUpdateFuncCall{v0, v1, v2, v3, r0})
-	return r0
+// Get delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockMonthContract) Get(v0 context.Context, v1 beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
+	r0, r1, r2 := m.GetFunc.nextHook()(v0, v1)
+	m.GetFunc.appendCall(MonthContractGetFuncCall{v0, v1, r0, r1, r2})
+	return r0, r1, r2
 }
 
-// SetDefaultHook sets function that is called when the CreateOrUpdate
-// method of the parent MockMonthCategoryService instance is invoked and the
-// hook queue is empty.
-func (f *MonthCategoryServiceCreateOrUpdateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID, beans.Amount) error) {
+// SetDefaultHook sets function that is called when the Get method of the
+// parent MockMonthContract instance is invoked and the hook queue is empty.
+func (f *MonthContractGetFunc) SetDefaultHook(hook func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateOrUpdate method of the parent MockMonthCategoryService instance
-// invokes the hook at the front of the queue and discards it. After the
-// queue is empty, the default hook function is invoked for any future
-// action.
-func (f *MonthCategoryServiceCreateOrUpdateFunc) PushHook(hook func(context.Context, beans.ID, beans.ID, beans.Amount) error) {
+// Get method of the parent MockMonthContract instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *MonthContractGetFunc) PushHook(hook func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3884,20 +4020,20 @@ func (f *MonthCategoryServiceCreateOrUpdateFunc) PushHook(hook func(context.Cont
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *MonthCategoryServiceCreateOrUpdateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID, beans.Amount) error {
-		return r0
+func (f *MonthContractGetFunc) SetDefaultReturn(r0 *beans.Month, r1 []*beans.MonthCategory, r2 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
+		return r0, r1, r2
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthCategoryServiceCreateOrUpdateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.ID, beans.Amount) error {
-		return r0
+func (f *MonthContractGetFunc) PushReturn(r0 *beans.Month, r1 []*beans.MonthCategory, r2 error) {
+	f.PushHook(func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
+		return r0, r1, r2
 	})
 }
 
-func (f *MonthCategoryServiceCreateOrUpdateFunc) nextHook() func(context.Context, beans.ID, beans.ID, beans.Amount) error {
+func (f *MonthContractGetFunc) nextHook() func(context.Context, beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3910,27 +4046,139 @@ func (f *MonthCategoryServiceCreateOrUpdateFunc) nextHook() func(context.Context
 	return hook
 }
 
-func (f *MonthCategoryServiceCreateOrUpdateFunc) appendCall(r0 MonthCategoryServiceCreateOrUpdateFuncCall) {
+func (f *MonthContractGetFunc) appendCall(r0 MonthContractGetFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
-// History returns a sequence of MonthCategoryServiceCreateOrUpdateFuncCall
-// objects describing the invocations of this function.
-func (f *MonthCategoryServiceCreateOrUpdateFunc) History() []MonthCategoryServiceCreateOrUpdateFuncCall {
+// History returns a sequence of MonthContractGetFuncCall objects describing
+// the invocations of this function.
+func (f *MonthContractGetFunc) History() []MonthContractGetFuncCall {
 	f.mutex.Lock()
-	history := make([]MonthCategoryServiceCreateOrUpdateFuncCall, len(f.history))
+	history := make([]MonthContractGetFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// MonthCategoryServiceCreateOrUpdateFuncCall is an object that describes an
-// invocation of method CreateOrUpdate on an instance of
-// MockMonthCategoryService.
-type MonthCategoryServiceCreateOrUpdateFuncCall struct {
+// MonthContractGetFuncCall is an object that describes an invocation of
+// method Get on an instance of MockMonthContract.
+type MonthContractGetFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Month
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 []*beans.MonthCategory
+	// Result2 is the value of the 3rd result returned from this method
+	// invocation.
+	Result2 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c MonthContractGetFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c MonthContractGetFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1, c.Result2}
+}
+
+// MonthContractSetCategoryAmountFunc describes the behavior when the
+// SetCategoryAmount method of the parent MockMonthContract instance is
+// invoked.
+type MonthContractSetCategoryAmountFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.ID, beans.Amount) error
+	hooks       []func(context.Context, beans.ID, beans.ID, beans.Amount) error
+	history     []MonthContractSetCategoryAmountFuncCall
+	mutex       sync.Mutex
+}
+
+// SetCategoryAmount delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockMonthContract) SetCategoryAmount(v0 context.Context, v1 beans.ID, v2 beans.ID, v3 beans.Amount) error {
+	r0 := m.SetCategoryAmountFunc.nextHook()(v0, v1, v2, v3)
+	m.SetCategoryAmountFunc.appendCall(MonthContractSetCategoryAmountFuncCall{v0, v1, v2, v3, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the SetCategoryAmount
+// method of the parent MockMonthContract instance is invoked and the hook
+// queue is empty.
+func (f *MonthContractSetCategoryAmountFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID, beans.Amount) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// SetCategoryAmount method of the parent MockMonthContract instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *MonthContractSetCategoryAmountFunc) PushHook(hook func(context.Context, beans.ID, beans.ID, beans.Amount) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *MonthContractSetCategoryAmountFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID, beans.Amount) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *MonthContractSetCategoryAmountFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.ID, beans.Amount) error {
+		return r0
+	})
+}
+
+func (f *MonthContractSetCategoryAmountFunc) nextHook() func(context.Context, beans.ID, beans.ID, beans.Amount) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *MonthContractSetCategoryAmountFunc) appendCall(r0 MonthContractSetCategoryAmountFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of MonthContractSetCategoryAmountFuncCall
+// objects describing the invocations of this function.
+func (f *MonthContractSetCategoryAmountFunc) History() []MonthContractSetCategoryAmountFuncCall {
+	f.mutex.Lock()
+	history := make([]MonthContractSetCategoryAmountFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// MonthContractSetCategoryAmountFuncCall is an object that describes an
+// invocation of method SetCategoryAmount on an instance of
+// MockMonthContract.
+type MonthContractSetCategoryAmountFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
@@ -3950,13 +4198,13 @@ type MonthCategoryServiceCreateOrUpdateFuncCall struct {
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c MonthCategoryServiceCreateOrUpdateFuncCall) Args() []interface{} {
+func (c MonthContractSetCategoryAmountFuncCall) Args() []interface{} {
 	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c MonthCategoryServiceCreateOrUpdateFuncCall) Results() []interface{} {
+func (c MonthContractSetCategoryAmountFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
@@ -3970,12 +4218,12 @@ type MockMonthRepository struct {
 	// GetFunc is an instance of a mock function object controlling the
 	// behavior of the method Get.
 	GetFunc *MonthRepositoryGetFunc
-	// GetByDateFunc is an instance of a mock function object controlling
-	// the behavior of the method GetByDate.
-	GetByDateFunc *MonthRepositoryGetByDateFunc
 	// GetLatestFunc is an instance of a mock function object controlling
 	// the behavior of the method GetLatest.
 	GetLatestFunc *MonthRepositoryGetLatestFunc
+	// GetOrCreateFunc is an instance of a mock function object controlling
+	// the behavior of the method GetOrCreate.
+	GetOrCreateFunc *MonthRepositoryGetOrCreateFunc
 }
 
 // NewMockMonthRepository creates a new mock of the MonthRepository
@@ -3993,13 +4241,13 @@ func NewMockMonthRepository() *MockMonthRepository {
 				return
 			},
 		},
-		GetByDateFunc: &MonthRepositoryGetByDateFunc{
-			defaultHook: func(context.Context, beans.ID, time.Time) (r0 *beans.Month, r1 error) {
+		GetLatestFunc: &MonthRepositoryGetLatestFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.Month, r1 error) {
 				return
 			},
 		},
-		GetLatestFunc: &MonthRepositoryGetLatestFunc{
-			defaultHook: func(context.Context, beans.ID) (r0 *beans.Month, r1 error) {
+		GetOrCreateFunc: &MonthRepositoryGetOrCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.MonthDate) (r0 *beans.Month, r1 error) {
 				return
 			},
 		},
@@ -4020,14 +4268,14 @@ func NewStrictMockMonthRepository() *MockMonthRepository {
 				panic("unexpected invocation of MockMonthRepository.Get")
 			},
 		},
-		GetByDateFunc: &MonthRepositoryGetByDateFunc{
-			defaultHook: func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
-				panic("unexpected invocation of MockMonthRepository.GetByDate")
-			},
-		},
 		GetLatestFunc: &MonthRepositoryGetLatestFunc{
 			defaultHook: func(context.Context, beans.ID) (*beans.Month, error) {
 				panic("unexpected invocation of MockMonthRepository.GetLatest")
+			},
+		},
+		GetOrCreateFunc: &MonthRepositoryGetOrCreateFunc{
+			defaultHook: func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
+				panic("unexpected invocation of MockMonthRepository.GetOrCreate")
 			},
 		},
 	}
@@ -4044,11 +4292,11 @@ func NewMockMonthRepositoryFrom(i beans.MonthRepository) *MockMonthRepository {
 		GetFunc: &MonthRepositoryGetFunc{
 			defaultHook: i.Get,
 		},
-		GetByDateFunc: &MonthRepositoryGetByDateFunc{
-			defaultHook: i.GetByDate,
-		},
 		GetLatestFunc: &MonthRepositoryGetLatestFunc{
 			defaultHook: i.GetLatest,
+		},
+		GetOrCreateFunc: &MonthRepositoryGetOrCreateFunc{
+			defaultHook: i.GetOrCreate,
 		},
 	}
 }
@@ -4269,117 +4517,6 @@ func (c MonthRepositoryGetFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
-// MonthRepositoryGetByDateFunc describes the behavior when the GetByDate
-// method of the parent MockMonthRepository instance is invoked.
-type MonthRepositoryGetByDateFunc struct {
-	defaultHook func(context.Context, beans.ID, time.Time) (*beans.Month, error)
-	hooks       []func(context.Context, beans.ID, time.Time) (*beans.Month, error)
-	history     []MonthRepositoryGetByDateFuncCall
-	mutex       sync.Mutex
-}
-
-// GetByDate delegates to the next hook function in the queue and stores the
-// parameter and result values of this invocation.
-func (m *MockMonthRepository) GetByDate(v0 context.Context, v1 beans.ID, v2 time.Time) (*beans.Month, error) {
-	r0, r1 := m.GetByDateFunc.nextHook()(v0, v1, v2)
-	m.GetByDateFunc.appendCall(MonthRepositoryGetByDateFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the GetByDate method of
-// the parent MockMonthRepository instance is invoked and the hook queue is
-// empty.
-func (f *MonthRepositoryGetByDateFunc) SetDefaultHook(hook func(context.Context, beans.ID, time.Time) (*beans.Month, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// GetByDate method of the parent MockMonthRepository instance invokes the
-// hook at the front of the queue and discards it. After the queue is empty,
-// the default hook function is invoked for any future action.
-func (f *MonthRepositoryGetByDateFunc) PushHook(hook func(context.Context, beans.ID, time.Time) (*beans.Month, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *MonthRepositoryGetByDateFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthRepositoryGetByDateFunc) PushReturn(r0 *beans.Month, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
-		return r0, r1
-	})
-}
-
-func (f *MonthRepositoryGetByDateFunc) nextHook() func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *MonthRepositoryGetByDateFunc) appendCall(r0 MonthRepositoryGetByDateFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of MonthRepositoryGetByDateFuncCall objects
-// describing the invocations of this function.
-func (f *MonthRepositoryGetByDateFunc) History() []MonthRepositoryGetByDateFuncCall {
-	f.mutex.Lock()
-	history := make([]MonthRepositoryGetByDateFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// MonthRepositoryGetByDateFuncCall is an object that describes an
-// invocation of method GetByDate on an instance of MockMonthRepository.
-type MonthRepositoryGetByDateFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.ID
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 time.Time
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.Month
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c MonthRepositoryGetByDateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c MonthRepositoryGetByDateFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
 // MonthRepositoryGetLatestFunc describes the behavior when the GetLatest
 // method of the parent MockMonthRepository instance is invoked.
 type MonthRepositoryGetLatestFunc struct {
@@ -4488,205 +4625,35 @@ func (c MonthRepositoryGetLatestFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
-// MockMonthService is a mock implementation of the MonthService interface
-// (from the package github.com/bradenrayhorn/beans/beans) used for unit
-// testing.
-type MockMonthService struct {
-	// GetFunc is an instance of a mock function object controlling the
-	// behavior of the method Get.
-	GetFunc *MonthServiceGetFunc
-	// GetOrCreateFunc is an instance of a mock function object controlling
-	// the behavior of the method GetOrCreate.
-	GetOrCreateFunc *MonthServiceGetOrCreateFunc
-}
-
-// NewMockMonthService creates a new mock of the MonthService interface. All
-// methods return zero values for all results, unless overwritten.
-func NewMockMonthService() *MockMonthService {
-	return &MockMonthService{
-		GetFunc: &MonthServiceGetFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 *beans.Month, r1 error) {
-				return
-			},
-		},
-		GetOrCreateFunc: &MonthServiceGetOrCreateFunc{
-			defaultHook: func(context.Context, beans.ID, time.Time) (r0 *beans.Month, r1 error) {
-				return
-			},
-		},
-	}
-}
-
-// NewStrictMockMonthService creates a new mock of the MonthService
-// interface. All methods panic on invocation, unless overwritten.
-func NewStrictMockMonthService() *MockMonthService {
-	return &MockMonthService{
-		GetFunc: &MonthServiceGetFunc{
-			defaultHook: func(context.Context, beans.ID, beans.ID) (*beans.Month, error) {
-				panic("unexpected invocation of MockMonthService.Get")
-			},
-		},
-		GetOrCreateFunc: &MonthServiceGetOrCreateFunc{
-			defaultHook: func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
-				panic("unexpected invocation of MockMonthService.GetOrCreate")
-			},
-		},
-	}
-}
-
-// NewMockMonthServiceFrom creates a new mock of the MockMonthService
-// interface. All methods delegate to the given implementation, unless
-// overwritten.
-func NewMockMonthServiceFrom(i beans.MonthService) *MockMonthService {
-	return &MockMonthService{
-		GetFunc: &MonthServiceGetFunc{
-			defaultHook: i.Get,
-		},
-		GetOrCreateFunc: &MonthServiceGetOrCreateFunc{
-			defaultHook: i.GetOrCreate,
-		},
-	}
-}
-
-// MonthServiceGetFunc describes the behavior when the Get method of the
-// parent MockMonthService instance is invoked.
-type MonthServiceGetFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.ID) (*beans.Month, error)
-	hooks       []func(context.Context, beans.ID, beans.ID) (*beans.Month, error)
-	history     []MonthServiceGetFuncCall
-	mutex       sync.Mutex
-}
-
-// Get delegates to the next hook function in the queue and stores the
-// parameter and result values of this invocation.
-func (m *MockMonthService) Get(v0 context.Context, v1 beans.ID, v2 beans.ID) (*beans.Month, error) {
-	r0, r1 := m.GetFunc.nextHook()(v0, v1, v2)
-	m.GetFunc.appendCall(MonthServiceGetFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the Get method of the
-// parent MockMonthService instance is invoked and the hook queue is empty.
-func (f *MonthServiceGetFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Month, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// Get method of the parent MockMonthService instance invokes the hook at
-// the front of the queue and discards it. After the queue is empty, the
-// default hook function is invoked for any future action.
-func (f *MonthServiceGetFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Month, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *MonthServiceGetFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) (*beans.Month, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthServiceGetFunc) PushReturn(r0 *beans.Month, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.ID) (*beans.Month, error) {
-		return r0, r1
-	})
-}
-
-func (f *MonthServiceGetFunc) nextHook() func(context.Context, beans.ID, beans.ID) (*beans.Month, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *MonthServiceGetFunc) appendCall(r0 MonthServiceGetFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of MonthServiceGetFuncCall objects describing
-// the invocations of this function.
-func (f *MonthServiceGetFunc) History() []MonthServiceGetFuncCall {
-	f.mutex.Lock()
-	history := make([]MonthServiceGetFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// MonthServiceGetFuncCall is an object that describes an invocation of
-// method Get on an instance of MockMonthService.
-type MonthServiceGetFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.ID
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.ID
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.Month
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c MonthServiceGetFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c MonthServiceGetFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// MonthServiceGetOrCreateFunc describes the behavior when the GetOrCreate
-// method of the parent MockMonthService instance is invoked.
-type MonthServiceGetOrCreateFunc struct {
-	defaultHook func(context.Context, beans.ID, time.Time) (*beans.Month, error)
-	hooks       []func(context.Context, beans.ID, time.Time) (*beans.Month, error)
-	history     []MonthServiceGetOrCreateFuncCall
+// MonthRepositoryGetOrCreateFunc describes the behavior when the
+// GetOrCreate method of the parent MockMonthRepository instance is invoked.
+type MonthRepositoryGetOrCreateFunc struct {
+	defaultHook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)
+	hooks       []func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)
+	history     []MonthRepositoryGetOrCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // GetOrCreate delegates to the next hook function in the queue and stores
 // the parameter and result values of this invocation.
-func (m *MockMonthService) GetOrCreate(v0 context.Context, v1 beans.ID, v2 time.Time) (*beans.Month, error) {
+func (m *MockMonthRepository) GetOrCreate(v0 context.Context, v1 beans.ID, v2 beans.MonthDate) (*beans.Month, error) {
 	r0, r1 := m.GetOrCreateFunc.nextHook()(v0, v1, v2)
-	m.GetOrCreateFunc.appendCall(MonthServiceGetOrCreateFuncCall{v0, v1, v2, r0, r1})
+	m.GetOrCreateFunc.appendCall(MonthRepositoryGetOrCreateFuncCall{v0, v1, v2, r0, r1})
 	return r0, r1
 }
 
 // SetDefaultHook sets function that is called when the GetOrCreate method
-// of the parent MockMonthService instance is invoked and the hook queue is
-// empty.
-func (f *MonthServiceGetOrCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, time.Time) (*beans.Month, error)) {
+// of the parent MockMonthRepository instance is invoked and the hook queue
+// is empty.
+func (f *MonthRepositoryGetOrCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// GetOrCreate method of the parent MockMonthService instance invokes the
+// GetOrCreate method of the parent MockMonthRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *MonthServiceGetOrCreateFunc) PushHook(hook func(context.Context, beans.ID, time.Time) (*beans.Month, error)) {
+func (f *MonthRepositoryGetOrCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -4694,20 +4661,20 @@ func (f *MonthServiceGetOrCreateFunc) PushHook(hook func(context.Context, beans.
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *MonthServiceGetOrCreateFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
+func (f *MonthRepositoryGetOrCreateFunc) SetDefaultReturn(r0 *beans.Month, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthServiceGetOrCreateFunc) PushReturn(r0 *beans.Month, r1 error) {
-	f.PushHook(func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
+func (f *MonthRepositoryGetOrCreateFunc) PushReturn(r0 *beans.Month, r1 error) {
+	f.PushHook(func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
 		return r0, r1
 	})
 }
 
-func (f *MonthServiceGetOrCreateFunc) nextHook() func(context.Context, beans.ID, time.Time) (*beans.Month, error) {
+func (f *MonthRepositoryGetOrCreateFunc) nextHook() func(context.Context, beans.ID, beans.MonthDate) (*beans.Month, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -4720,26 +4687,26 @@ func (f *MonthServiceGetOrCreateFunc) nextHook() func(context.Context, beans.ID,
 	return hook
 }
 
-func (f *MonthServiceGetOrCreateFunc) appendCall(r0 MonthServiceGetOrCreateFuncCall) {
+func (f *MonthRepositoryGetOrCreateFunc) appendCall(r0 MonthRepositoryGetOrCreateFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
-// History returns a sequence of MonthServiceGetOrCreateFuncCall objects
+// History returns a sequence of MonthRepositoryGetOrCreateFuncCall objects
 // describing the invocations of this function.
-func (f *MonthServiceGetOrCreateFunc) History() []MonthServiceGetOrCreateFuncCall {
+func (f *MonthRepositoryGetOrCreateFunc) History() []MonthRepositoryGetOrCreateFuncCall {
 	f.mutex.Lock()
-	history := make([]MonthServiceGetOrCreateFuncCall, len(f.history))
+	history := make([]MonthRepositoryGetOrCreateFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// MonthServiceGetOrCreateFuncCall is an object that describes an invocation
-// of method GetOrCreate on an instance of MockMonthService.
-type MonthServiceGetOrCreateFuncCall struct {
+// MonthRepositoryGetOrCreateFuncCall is an object that describes an
+// invocation of method GetOrCreate on an instance of MockMonthRepository.
+type MonthRepositoryGetOrCreateFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
@@ -4748,7 +4715,7 @@ type MonthServiceGetOrCreateFuncCall struct {
 	Arg1 beans.ID
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
-	Arg2 time.Time
+	Arg2 beans.MonthDate
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.Month
@@ -4759,13 +4726,13 @@ type MonthServiceGetOrCreateFuncCall struct {
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c MonthServiceGetOrCreateFuncCall) Args() []interface{} {
+func (c MonthRepositoryGetOrCreateFuncCall) Args() []interface{} {
 	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c MonthServiceGetOrCreateFuncCall) Results() []interface{} {
+func (c MonthRepositoryGetOrCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

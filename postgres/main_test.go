@@ -18,20 +18,6 @@ func assertPgError(tb testing.TB, code string, err error) {
 	require.Equal(tb, code, pgErr.Code)
 }
 
-func makeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) beans.ID {
-	id := beans.NewBeansID()
-	err := postgres.NewCategoryRepository(pool).CreateGroup(context.Background(), nil, &beans.CategoryGroup{ID: id, BudgetID: budgetID, Name: beans.Name(name)})
-	require.Nil(tb, err)
-	return id
-}
-
-func makeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) beans.ID {
-	id := beans.NewBeansID()
-	err := postgres.NewCategoryRepository(pool).Create(context.Background(), nil, &beans.Category{ID: id, BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)})
-	require.Nil(tb, err)
-	return id
-}
-
 func makeTransaction(tb testing.TB, pool *pgxpool.Pool, transaction *beans.Transaction) *beans.Transaction {
 	err := postgres.NewTransactionRepository(pool).Create(context.Background(), transaction)
 	require.Nil(tb, err)

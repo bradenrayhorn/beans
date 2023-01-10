@@ -62,6 +62,9 @@ func TestAccount(t *testing.T) {
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 			account := testutils.MakeAccount(t, pool, "Account", budget.ID)
 
+			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
+			_ = testutils.MakeAccount(t, pool, "Account", budget2.ID)
+
 			accounts, err := c.GetAll(context.Background(), budget.ID)
 			require.Nil(t, err)
 			require.Len(t, accounts, 1)

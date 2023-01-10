@@ -23,8 +23,8 @@ func TestTransactions(t *testing.T) {
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 	account := testutils.MakeAccount(t, pool, "account", budgetID)
-	categoryGroupID := makeCategoryGroup(t, pool, "group1", budgetID)
-	categoryID := makeCategory(t, pool, "category", categoryGroupID, budgetID)
+	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
+	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
 
 	cleanup := func() {
 		pool.Exec(context.Background(), "truncate transactions;")

@@ -19,16 +19,15 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 		ID         beans.ID           `json:"id"`
 		Date       string             `json:"date"`
 		Categories []responseCategory `json:"categories"`
-		// todo - return available $ to assign
 	}
 	type response struct {
 		Data responseMonth `json:"data"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		month := getMonth(r)
+		monthID := getMonth(r).ID
 
-		categories, err := s.monthCategoryRepository.GetForMonth(r.Context(), *month)
+		month, categories, err := s.monthContract.Get(r.Context(), monthID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -70,7 +69,7 @@ func (s *Server) handleMonthCreate() http.HandlerFunc {
 			return
 		}
 
-		month, err := s.monthService.GetOrCreate(r.Context(), getBudget(r).ID, req.Date.Time)
+		month, err := s.monthContract.CreateMonth(r.Context(), getBudget(r).ID, beans.NewMonthDate(req.Date))
 		if err != nil {
 			Error(w, err)
 			return
@@ -99,12 +98,7 @@ func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
 
 		monthID := getMonth(r).ID
 
-		if _, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID); err != nil {
-			Error(w, err)
-			return
-		}
-
-		if err := s.monthCategoryService.CreateOrUpdate(r.Context(), monthID, req.CategoryID, req.Amount); err != nil {
+		if err := s.monthContract.SetCategoryAmount(r.Context(), monthID, req.CategoryID, req.Amount); err != nil {
 			Error(w, err)
 			return
 		}
@@ -119,9 +113,15 @@ func (s *Server) validateMonth(next http.Handler) http.Handler {
 			return
 		}
 
-		month, err := s.monthService.Get(r.Context(), monthID, getBudget(r).ID)
+		month, err := s.monthRepository.Get(r.Context(), monthID)
 		if err != nil {
 			Error(w, err)
+			return
+		}
+
+		// month must be a part of the budget
+		if month.BudgetID != getBudget(r).ID {
+			Error(w, beans.ErrorNotFound)
 			return
 		}
 

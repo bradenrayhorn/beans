@@ -197,14 +197,8 @@ func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.
 
 func (ta *TestApplication) CreateMonth(tb testing.TB, budget *beans.Budget, date beans.Date) *beans.Month {
 	id := beans.NewBeansID()
-	month := &beans.Month{ID: id, BudgetID: budget.ID, Date: date}
+	month := &beans.Month{ID: id, BudgetID: budget.ID, Date: beans.NewMonthDate(date)}
 	err := ta.application.MonthRepository().Create(context.Background(), nil, month)
-	require.Nil(tb, err)
-	return month
-}
-
-func (ta *TestApplication) GetMonth(tb testing.TB, budget *beans.Budget, date beans.Date) *beans.Month {
-	month, err := ta.application.MonthRepository().GetByDate(context.Background(), budget.ID, date.Time)
 	require.Nil(tb, err)
 	return month
 }

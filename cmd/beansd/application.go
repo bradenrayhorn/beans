@@ -23,11 +23,8 @@ type Application struct {
 	accountRepository       beans.AccountRepository
 	budgetRepository        beans.BudgetRepository
 	categoryRepository      beans.CategoryRepository
-	categoryService         beans.CategoryService
 	monthRepository         beans.MonthRepository
-	monthService            beans.MonthService
 	monthCategoryRepository beans.MonthCategoryRepository
-	monthCategoryService    beans.MonthCategoryService
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	transactionService      beans.TransactionService
@@ -67,15 +64,12 @@ func (a *Application) Start() error {
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.userRepository = postgres.NewUserRepository(pool)
 
-	a.categoryService = logic.NewCategoryService(a.categoryRepository)
-	a.monthService = logic.NewMonthService(a.monthRepository)
-	a.monthCategoryService = logic.NewMonthCategoryService(a.monthCategoryRepository)
 	a.transactionService = logic.NewTransactionService(
 		a.transactionRepository,
 		a.accountRepository,
 		a.categoryRepository,
-		a.monthService,
-		a.monthCategoryService,
+		a.monthCategoryRepository,
+		a.monthRepository,
 	)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 
@@ -83,11 +77,8 @@ func (a *Application) Start() error {
 		a.accountRepository,
 		a.budgetRepository,
 		a.categoryRepository,
-		a.categoryService,
 		a.monthRepository,
-		a.monthService,
 		a.monthCategoryRepository,
-		a.monthCategoryService,
 		a.sessionRepository,
 		a.transactionRepository,
 		a.transactionService,
@@ -96,6 +87,8 @@ func (a *Application) Start() error {
 
 		contract.NewAccountContract(a.accountRepository),
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
+		contract.NewCategoryContract(a.categoryRepository),
+		contract.NewMonthContract(a.monthRepository, a.monthCategoryRepository),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
