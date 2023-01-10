@@ -15,10 +15,11 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	accountContract  beans.AccountContract
-	budgetContract   beans.BudgetContract
-	categoryContract beans.CategoryContract
-	monthContract    beans.MonthContract
+	accountContract     beans.AccountContract
+	budgetContract      beans.BudgetContract
+	categoryContract    beans.CategoryContract
+	monthContract       beans.MonthContract
+	transactionContract beans.TransactionContract
 
 	accountRepository       beans.AccountRepository
 	budgetRepository        beans.BudgetRepository
@@ -27,7 +28,6 @@ type Server struct {
 	monthCategoryRepository beans.MonthCategoryRepository
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
-	transactionService      beans.TransactionService
 	userRepository          beans.UserRepository
 	userService             beans.UserService
 }
@@ -40,7 +40,6 @@ func NewServer(
 	mcr beans.MonthCategoryRepository,
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
-	ts beans.TransactionService,
 	ur beans.UserRepository,
 	us beans.UserService,
 
@@ -48,15 +47,17 @@ func NewServer(
 	budgetContract beans.BudgetContract,
 	categoryContract beans.CategoryContract,
 	monthContract beans.MonthContract,
+	transactionContract beans.TransactionContract,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		sv:     &http.Server{},
 
-		accountContract:  accountContract,
-		budgetContract:   budgetContract,
-		categoryContract: categoryContract,
-		monthContract:    monthContract,
+		accountContract:     accountContract,
+		budgetContract:      budgetContract,
+		categoryContract:    categoryContract,
+		monthContract:       monthContract,
+		transactionContract: transactionContract,
 
 		accountRepository:       ar,
 		budgetRepository:        br,
@@ -65,7 +66,6 @@ func NewServer(
 		monthCategoryRepository: mcr,
 		sessionRepository:       sr,
 		transactionRepository:   tr,
-		transactionService:      ts,
 		userRepository:          ur,
 		userService:             us,
 	}

@@ -27,7 +27,6 @@ type Application struct {
 	monthCategoryRepository beans.MonthCategoryRepository
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
-	transactionService      beans.TransactionService
 	userRepository          beans.UserRepository
 	userService             beans.UserService
 }
@@ -64,13 +63,6 @@ func (a *Application) Start() error {
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.userRepository = postgres.NewUserRepository(pool)
 
-	a.transactionService = logic.NewTransactionService(
-		a.transactionRepository,
-		a.accountRepository,
-		a.categoryRepository,
-		a.monthCategoryRepository,
-		a.monthRepository,
-	)
 	a.userService = &logic.UserService{UserRepository: a.userRepository}
 
 	a.httpServer = http.NewServer(
@@ -81,7 +73,6 @@ func (a *Application) Start() error {
 		a.monthCategoryRepository,
 		a.sessionRepository,
 		a.transactionRepository,
-		a.transactionService,
 		a.userRepository,
 		a.userService,
 
@@ -89,6 +80,13 @@ func (a *Application) Start() error {
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
 		contract.NewCategoryContract(a.categoryRepository),
 		contract.NewMonthContract(a.monthRepository, a.monthCategoryRepository),
+		contract.NewTransactionContract(
+			a.transactionRepository,
+			a.accountRepository,
+			a.categoryRepository,
+			a.monthCategoryRepository,
+			a.monthRepository,
+		),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)

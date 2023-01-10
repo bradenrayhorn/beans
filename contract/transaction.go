@@ -1,4 +1,4 @@
-package logic
+package contract
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/bradenrayhorn/beans/beans"
 )
 
-type TransactionService struct {
+type TransactionContract struct {
 	transactionRepository   beans.TransactionRepository
 	accountRepository       beans.AccountRepository
 	categoryRepository      beans.CategoryRepository
@@ -15,22 +15,22 @@ type TransactionService struct {
 	monthRepository         beans.MonthRepository
 }
 
-func NewTransactionService(
+func NewTransactionContract(
 	transactionRepository beans.TransactionRepository,
 	accountRepository beans.AccountRepository,
 	categoryRepository beans.CategoryRepository,
 	monthCategoryRepository beans.MonthCategoryRepository,
 	monthRepository beans.MonthRepository,
-) *TransactionService {
-	return &TransactionService{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository}
+) *TransactionContract {
+	return &TransactionContract{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository}
 }
 
-func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Budget, data beans.TransactionCreate) (*beans.Transaction, error) {
+func (c *TransactionContract) Create(ctx context.Context, budgetID beans.ID, data beans.TransactionCreateParams) (*beans.Transaction, error) {
 	if err := data.ValidateAll(); err != nil {
 		return nil, err
 	}
 
-	account, err := s.accountRepository.Get(ctx, data.AccountID)
+	account, err := c.accountRepository.Get(ctx, data.AccountID)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return nil, beans.NewError(beans.EINVALID, "Invalid Account ID")
@@ -38,12 +38,12 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 			return nil, err
 		}
 	}
-	if account.BudgetID != activeBudget.ID {
+	if account.BudgetID != budgetID {
 		return nil, beans.NewError(beans.EINVALID, "Invalid Account ID")
 	}
 
 	if !data.CategoryID.Empty() {
-		if _, err = s.categoryRepository.GetSingleForBudget(ctx, data.CategoryID, activeBudget.ID); err != nil {
+		if _, err = c.categoryRepository.GetSingleForBudget(ctx, data.CategoryID, budgetID); err != nil {
 			if errors.Is(err, beans.ErrorNotFound) {
 				return nil, beans.NewError(beans.EINVALID, "Invalid Category ID")
 			} else {
@@ -51,12 +51,12 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 			}
 		}
 
-		month, err := s.monthRepository.GetOrCreate(ctx, activeBudget.ID, beans.NewMonthDate(data.Date))
+		month, err := c.monthRepository.GetOrCreate(ctx, budgetID, beans.NewMonthDate(data.Date))
 		if err != nil {
 			return nil, err
 		}
 
-		if _, err := s.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
+		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
 			return nil, err
 		}
 	}
@@ -71,10 +71,14 @@ func (s *TransactionService) Create(ctx context.Context, activeBudget *beans.Bud
 
 		Account: account,
 	}
-	err = s.transactionRepository.Create(ctx, transaction)
+	err = c.transactionRepository.Create(ctx, transaction)
 	if err != nil {
 		return nil, err
 	}
 
 	return transaction, nil
+}
+
+func (c *TransactionContract) GetAll(ctx context.Context, budgetID beans.ID) ([]*beans.Transaction, error) {
+	return c.transactionRepository.GetForBudget(ctx, budgetID)
 }
