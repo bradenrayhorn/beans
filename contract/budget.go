@@ -45,7 +45,7 @@ func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID bea
 	if err := c.monthRepository.Create(ctx, tx, &beans.Month{
 		ID:       beans.NewBeansID(),
 		BudgetID: budgetID,
-		Date:     beans.NewDate(beans.NormalizeMonth(time.Now())),
+		Date:     beans.NewMonthDate(beans.NewDate(time.Now())),
 	}); err != nil {
 		return nil, err
 	}

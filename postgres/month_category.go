@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
@@ -32,12 +33,12 @@ func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategor
 	})
 }
 
-func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.Month) ([]*beans.MonthCategory, error) {
+func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.Month) ([]*beans.MonthCategory, error) {
 	monthCategories := []*beans.MonthCategory{}
 
 	res, err := r.db.GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
-		FromDate: month.Date.Time,
-		ToDate:   month.Date.Time.AddDate(0, 1, -month.Date.Time.Day()),
+		FromDate: month.Date.Time(),
+		ToDate:   month.Date.Time().AddDate(0, 1, -month.Date.Time().Day()),
 		MonthID:  month.ID.String(),
 	})
 	if err != nil {
@@ -77,14 +78,25 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.M
 	return monthCategories, nil
 }
 
-func (r *monthCategoryRepository) GetByMonthAndCategory(ctx context.Context, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
+func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
 	res, err := r.db.GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
 		MonthID:    monthID.String(),
 		CategoryID: categoryID.String(),
 	})
 
 	if err != nil {
-		return nil, mapPostgresError(err)
+		err = mapPostgresError(err)
+
+		if errors.Is(err, beans.ErrorNotFound) {
+			monthCategory := &beans.MonthCategory{
+				ID:         beans.NewBeansID(),
+				MonthID:    monthID,
+				CategoryID: categoryID,
+				Amount:     beans.NewAmount(0, 0),
+			}
+
+			return monthCategory, r.Create(ctx, monthCategory)
+		}
 	}
 
 	id, err := beans.BeansIDFromString(res.ID)

@@ -34,7 +34,7 @@ func TestBudget(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: beans.NewDate(time.Now())}
+		month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: beans.NewMonthDate(beans.NewDate(time.Now()))}
 		contract.GetFunc.PushReturn(budget, month, nil)
 
 		options := &testutils.HTTPOptions{URLParams: map[string]string{"budgetID": budget.ID.String()}}

@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"time"
+	"errors"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
@@ -21,7 +21,7 @@ func (r *monthRepository) Create(ctx context.Context, tx beans.Tx, month *beans.
 	return r.DB(tx).CreateMonth(ctx, db.CreateMonthParams{
 		ID:       month.ID.String(),
 		BudgetID: month.BudgetID.String(),
-		Date:     month.Date.Time,
+		Date:     month.Date.Time(),
 	})
 }
 
@@ -39,14 +39,19 @@ func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, e
 	return &beans.Month{
 		ID:       id,
 		BudgetID: budgetID,
-		Date:     beans.NewDate(res.Date),
+		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
 	}, nil
 }
 
-func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date time.Time) (*beans.Month, error) {
-	res, err := r.DB(nil).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date})
+func (r *monthRepository) GetOrCreate(ctx context.Context, budgetID beans.ID, date beans.MonthDate) (*beans.Month, error) {
+	res, err := r.DB(nil).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date.Time()})
 	if err != nil {
-		return nil, mapPostgresError(err)
+		err = mapPostgresError(err)
+
+		if errors.Is(err, beans.ErrorNotFound) {
+			month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: date}
+			return month, r.Create(ctx, nil, month)
+		}
 	}
 
 	id, err := beans.BeansIDFromString(res.ID)
@@ -57,7 +62,7 @@ func (r *monthRepository) GetByDate(ctx context.Context, budgetID beans.ID, date
 	return &beans.Month{
 		ID:       id,
 		BudgetID: budgetID,
-		Date:     beans.NewDate(res.Date),
+		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
 	}, nil
 }
 
@@ -75,6 +80,6 @@ func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*be
 	return &beans.Month{
 		ID:       id,
 		BudgetID: budgetID,
-		Date:     beans.NewDate(res.Date),
+		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
 	}, nil
 }

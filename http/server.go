@@ -15,60 +15,57 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	budgetContract beans.BudgetContract
+	accountContract     beans.AccountContract
+	budgetContract      beans.BudgetContract
+	categoryContract    beans.CategoryContract
+	monthContract       beans.MonthContract
+	transactionContract beans.TransactionContract
 
 	accountRepository       beans.AccountRepository
-	accountService          beans.AccountService
 	budgetRepository        beans.BudgetRepository
 	categoryRepository      beans.CategoryRepository
-	categoryService         beans.CategoryService
 	monthRepository         beans.MonthRepository
-	monthService            beans.MonthService
 	monthCategoryRepository beans.MonthCategoryRepository
-	monthCategoryService    beans.MonthCategoryService
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
-	transactionService      beans.TransactionService
 	userRepository          beans.UserRepository
 	userService             beans.UserService
 }
 
 func NewServer(
 	ar beans.AccountRepository,
-	as beans.AccountService,
 	br beans.BudgetRepository,
 	cr beans.CategoryRepository,
-	cs beans.CategoryService,
 	mr beans.MonthRepository,
-	ms beans.MonthService,
 	mcr beans.MonthCategoryRepository,
-	mcs beans.MonthCategoryService,
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
-	ts beans.TransactionService,
 	ur beans.UserRepository,
 	us beans.UserService,
 
+	accountContract beans.AccountContract,
 	budgetContract beans.BudgetContract,
+	categoryContract beans.CategoryContract,
+	monthContract beans.MonthContract,
+	transactionContract beans.TransactionContract,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		sv:     &http.Server{},
 
-		budgetContract: budgetContract,
+		accountContract:     accountContract,
+		budgetContract:      budgetContract,
+		categoryContract:    categoryContract,
+		monthContract:       monthContract,
+		transactionContract: transactionContract,
 
 		accountRepository:       ar,
-		accountService:          as,
 		budgetRepository:        br,
 		categoryRepository:      cr,
-		categoryService:         cs,
 		monthRepository:         mr,
-		monthService:            ms,
 		monthCategoryRepository: mcr,
-		monthCategoryService:    mcs,
 		sessionRepository:       sr,
 		transactionRepository:   tr,
-		transactionService:      ts,
 		userRepository:          ur,
 		userService:             us,
 	}

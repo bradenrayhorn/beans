@@ -127,6 +127,9 @@ func TestBudget(t *testing.T) {
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 
+			userID2 := testutils.MakeUser(t, pool, "user")
+			_ = testutils.MakeBudget(t, pool, "Budget", userID2)
+
 			budgets, err := c.GetAll(context.Background(), userID)
 			require.Nil(t, err)
 			require.Len(t, budgets, 1)

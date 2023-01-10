@@ -22,9 +22,9 @@ func TestTransactions(t *testing.T) {
 
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	account := makeAccount(t, pool, "account", budgetID)
-	categoryGroupID := makeCategoryGroup(t, pool, "group1", budgetID)
-	categoryID := makeCategory(t, pool, "category", categoryGroupID, budgetID)
+	account := testutils.MakeAccount(t, pool, "account", budgetID)
+	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
+	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
 
 	cleanup := func() {
 		pool.Exec(context.Background(), "truncate transactions;")
@@ -55,7 +55,7 @@ func TestTransactions(t *testing.T) {
 			Amount:       beans.NewAmount(5, 0),
 			Date:         testutils.NewDate(t, "2022-08-28"),
 			Notes:        beans.NewTransactionNotes("notes"),
-			Account:      &account,
+			Account:      account,
 			CategoryName: beans.NewNullString("category"),
 		}
 		transaction2 := &beans.Transaction{
@@ -65,7 +65,7 @@ func TestTransactions(t *testing.T) {
 			Amount:       beans.NewAmount(7, 0),
 			Date:         testutils.NewDate(t, "2022-08-26"),
 			Notes:        beans.NewTransactionNotes("my notes"),
-			Account:      &account,
+			Account:      account,
 			CategoryName: beans.NewNullString("category"),
 		}
 		err := transactionRepository.Create(context.Background(), transaction1)
