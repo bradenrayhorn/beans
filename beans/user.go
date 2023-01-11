@@ -5,17 +5,6 @@ import (
 	"strings"
 )
 
-type UserID ID
-
-func (u UserID) String() string {
-	return ID(u).String()
-}
-
-func UserIDFromString(id string) (UserID, error) {
-	beansID, err := BeansIDFromString(id)
-	return UserID(beansID), err
-}
-
 type Username string
 
 func (u Username) ValidatableField() validatableField {
@@ -47,19 +36,19 @@ func (p Password) Length() int {
 type PasswordHash string
 
 type User struct {
-	ID           UserID
+	ID           ID
 	Username     Username
 	PasswordHash PasswordHash
 }
 
-type UserRepository interface {
-	Create(ctx context.Context, id UserID, username Username, passwordHash PasswordHash) error
-	Exists(ctx context.Context, username Username) (bool, error)
-	Get(ctx context.Context, id UserID) (*User, error)
-	GetByUsername(ctx context.Context, username Username) (*User, error)
-}
-
-type UserService interface {
+type UserContract interface {
 	CreateUser(ctx context.Context, username Username, password Password) (*User, error)
 	Login(ctx context.Context, username Username, password Password) (*User, error)
+}
+
+type UserRepository interface {
+	Create(ctx context.Context, id ID, username Username, passwordHash PasswordHash) error
+	Exists(ctx context.Context, username Username) (bool, error)
+	Get(ctx context.Context, id ID) (*User, error)
+	GetByUsername(ctx context.Context, username Username) (*User, error)
 }

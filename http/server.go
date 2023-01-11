@@ -20,6 +20,7 @@ type Server struct {
 	categoryContract    beans.CategoryContract
 	monthContract       beans.MonthContract
 	transactionContract beans.TransactionContract
+	userContract        beans.UserContract
 
 	accountRepository       beans.AccountRepository
 	budgetRepository        beans.BudgetRepository
@@ -29,7 +30,6 @@ type Server struct {
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	userRepository          beans.UserRepository
-	userService             beans.UserService
 }
 
 func NewServer(
@@ -41,13 +41,13 @@ func NewServer(
 	sr beans.SessionRepository,
 	tr beans.TransactionRepository,
 	ur beans.UserRepository,
-	us beans.UserService,
 
 	accountContract beans.AccountContract,
 	budgetContract beans.BudgetContract,
 	categoryContract beans.CategoryContract,
 	monthContract beans.MonthContract,
 	transactionContract beans.TransactionContract,
+	userContract beans.UserContract,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
@@ -58,6 +58,7 @@ func NewServer(
 		categoryContract:    categoryContract,
 		monthContract:       monthContract,
 		transactionContract: transactionContract,
+		userContract:        userContract,
 
 		accountRepository:       ar,
 		budgetRepository:        br,
@@ -67,7 +68,6 @@ func NewServer(
 		sessionRepository:       sr,
 		transactionRepository:   tr,
 		userRepository:          ur,
-		userService:             us,
 	}
 
 	s.sv.Handler = s.router

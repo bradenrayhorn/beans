@@ -19,3 +19,8 @@ func AssertErrorCode(t testing.TB, err error, expected string) {
 	code, _ := err.(beans.Error).BeansError()
 	assert.Equal(t, expected, code)
 }
+
+func AssertErrorAndCode(t testing.TB, err error, code string, msg string) {
+	AssertError(t, err, msg)
+	AssertErrorCode(t, err, code)
+}

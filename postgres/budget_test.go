@@ -31,7 +31,7 @@ func TestBudgets(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, budgetID, budget.ID)
 		assert.Equal(t, "Budget1", string(budget.Name))
-		assert.Equal(t, []beans.UserID{userID}, budget.UserIDs)
+		assert.Equal(t, []beans.ID{userID}, budget.UserIDs)
 	})
 
 	t.Run("create respects transaction", func(t *testing.T) {

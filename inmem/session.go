@@ -19,7 +19,7 @@ func NewSessionRepository() *sessionRepository {
 	}
 }
 
-func (r *sessionRepository) Create(userID beans.UserID) (*beans.Session, error) {
+func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
 	bytes := make([]byte, 64)
 	_, err := rand.Read(bytes)
 	if err != nil {
