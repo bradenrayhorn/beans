@@ -16,7 +16,7 @@ func TestBudget(t *testing.T) {
 	contract := mocks.NewMockBudgetContract()
 	sv := Server{budgetContract: contract}
 
-	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
+	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 
 	t.Run("create", func(t *testing.T) {

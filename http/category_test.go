@@ -15,7 +15,7 @@ func TestCategory(t *testing.T) {
 	contract := mocks.NewMockCategoryContract()
 	sv := Server{categoryContract: contract}
 
-	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
+	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	group := &beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Group1"}
 	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Category1", GroupID: group.ID}

@@ -9,7 +9,6 @@ import (
 	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/internal/testutils"
 	"github.com/bradenrayhorn/beans/postgres"
-	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +37,7 @@ func TestBudget(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.Create(context.Background(), beans.Name(""), beans.UserID(ksuid.New()))
+			_, err := c.Create(context.Background(), beans.Name(""), beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 

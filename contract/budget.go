@@ -23,7 +23,7 @@ func NewBudgetContract(
 	return &budgetContract{budgetRepository, categoryRepository, monthRepository, txManager}
 }
 
-func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID beans.UserID) (*beans.Budget, error) {
+func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID beans.ID) (*beans.Budget, error) {
 	if err := beans.ValidateFields(beans.Field("Budget name", name)); err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID bea
 	}, nil
 }
 
-func (c *budgetContract) Get(ctx context.Context, id beans.ID, userID beans.UserID) (*beans.Budget, *beans.Month, error) {
+func (c *budgetContract) Get(ctx context.Context, id beans.ID, userID beans.ID) (*beans.Budget, *beans.Month, error) {
 	budget, err := c.budgetRepository.Get(ctx, id)
 	if err != nil {
 		return nil, nil, err
@@ -100,6 +100,6 @@ func (c *budgetContract) Get(ctx context.Context, id beans.ID, userID beans.User
 	return budget, month, nil
 }
 
-func (c *budgetContract) GetAll(ctx context.Context, userID beans.UserID) ([]*beans.Budget, error) {
+func (c *budgetContract) GetAll(ctx context.Context, userID beans.ID) ([]*beans.Budget, error) {
 	return c.budgetRepository.GetBudgetsForUser(ctx, userID)
 }

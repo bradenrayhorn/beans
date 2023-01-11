@@ -15,7 +15,7 @@ func TestMonth(t *testing.T) {
 	contract := mocks.NewMockMonthContract()
 	sv := Server{monthContract: contract}
 
-	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
+	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: testutils.NewMonthDate(t, "2022-05-01")}
 

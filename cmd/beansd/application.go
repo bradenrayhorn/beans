@@ -7,7 +7,6 @@ import (
 	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/http"
 	"github.com/bradenrayhorn/beans/inmem"
-	"github.com/bradenrayhorn/beans/logic"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -28,7 +27,6 @@ type Application struct {
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	userRepository          beans.UserRepository
-	userService             beans.UserService
 }
 
 func NewApplication(c Config) *Application {
@@ -63,8 +61,6 @@ func (a *Application) Start() error {
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.userRepository = postgres.NewUserRepository(pool)
 
-	a.userService = &logic.UserService{UserRepository: a.userRepository}
-
 	a.httpServer = http.NewServer(
 		a.accountRepository,
 		a.budgetRepository,
@@ -74,7 +70,6 @@ func (a *Application) Start() error {
 		a.sessionRepository,
 		a.transactionRepository,
 		a.userRepository,
-		a.userService,
 
 		contract.NewAccountContract(a.accountRepository),
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
@@ -87,6 +82,7 @@ func (a *Application) Start() error {
 			a.monthCategoryRepository,
 			a.monthRepository,
 		),
+		contract.NewUserContract(a.userRepository),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)

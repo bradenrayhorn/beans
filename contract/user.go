@@ -1,4 +1,4 @@
-package logic
+package contract
 
 import (
 	"context"
@@ -6,28 +6,31 @@ import (
 
 	"github.com/bradenrayhorn/beans/argon2"
 	"github.com/bradenrayhorn/beans/beans"
-	"github.com/segmentio/ksuid"
 )
 
 var errorInvalidCredentials = beans.NewError(beans.EUNAUTHORIZED, "Invalid username or password")
 
-type UserService struct {
-	UserRepository beans.UserRepository
+type userContract struct {
+	userRepository beans.UserRepository
 }
 
-func (s *UserService) CreateUser(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
+func NewUserContract(userRepository beans.UserRepository) *userContract {
+	return &userContract{userRepository}
+}
+
+func (c *userContract) CreateUser(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
 	if err := beans.ValidateFields(username.ValidatableField(), password.ValidatableField()); err != nil {
 		return nil, err
 	}
 
-	id := beans.UserID(ksuid.New())
+	id := beans.NewBeansID()
 
 	hashedPassword, err := argon2.GenerateHash(string(password))
 	if err != nil {
 		return nil, err
 	}
 
-	usernameTaken, err := s.UserRepository.Exists(ctx, username)
+	usernameTaken, err := c.userRepository.Exists(ctx, username)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 		return nil, beans.WrapError(errors.New("invalid username"), beans.ErrorInvalid)
 	}
 
-	err = s.UserRepository.Create(ctx, id, username, beans.PasswordHash(hashedPassword))
+	err = c.userRepository.Create(ctx, id, username, beans.PasswordHash(hashedPassword))
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +50,12 @@ func (s *UserService) CreateUser(ctx context.Context, username beans.Username, p
 	}, nil
 }
 
-func (s *UserService) Login(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
+func (c *userContract) Login(ctx context.Context, username beans.Username, password beans.Password) (*beans.User, error) {
 	if err := beans.ValidateFields(username.ValidatableField(), password.ValidatableField()); err != nil {
 		return nil, err
 	}
 
-	user, err := s.UserRepository.GetByUsername(ctx, username)
+	user, err := c.userRepository.GetByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return nil, beans.WrapError(err, errorInvalidCredentials)

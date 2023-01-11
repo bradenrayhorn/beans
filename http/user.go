@@ -25,7 +25,7 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.userService.CreateUser(r.Context(), req.Username, req.Password)
+		_, err := s.userContract.CreateUser(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return
@@ -46,7 +46,7 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 			return
 		}
 
-		user, err := s.userService.Login(r.Context(), req.Username, req.Password)
+		user, err := s.userContract.Login(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return

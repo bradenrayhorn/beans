@@ -6,7 +6,6 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/inmem"
-	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +13,7 @@ import (
 func TestCanCreateAndGetSession(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
-	userID := beans.UserID(ksuid.New())
+	userID := beans.NewBeansID()
 	sessionTimestamp := time.Now()
 	session, err := r.Create(userID)
 	require.Nil(t, err)
@@ -41,7 +40,7 @@ func TestCannotGetNonExistent(t *testing.T) {
 func TestCanDeleteSession(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
-	userID := beans.UserID(ksuid.New())
+	userID := beans.NewBeansID()
 	session, err := r.Create(userID)
 	require.Nil(t, err)
 

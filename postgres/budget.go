@@ -16,7 +16,7 @@ func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
 	return &BudgetRepository{repository{pool}}
 }
 
-func (r *BudgetRepository) Create(ctx context.Context, tx beans.Tx, id beans.ID, name beans.Name, userID beans.UserID) error {
+func (r *BudgetRepository) Create(ctx context.Context, tx beans.Tx, id beans.ID, name beans.Name, userID beans.ID) error {
 	q := r.DB(tx)
 
 	if err := q.CreateBudget(ctx, db.CreateBudgetParams{ID: id.String(), Name: string(name)}); err != nil {
@@ -40,9 +40,9 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 	if err != nil {
 		return nil, err
 	}
-	userIDs := make([]beans.UserID, 0, len(userIDStrings))
+	userIDs := make([]beans.ID, 0, len(userIDStrings))
 	for _, v := range userIDStrings {
-		userID, err := beans.UserIDFromString(v)
+		userID, err := beans.BeansIDFromString(v)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 	}, nil
 }
 
-func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.UserID) ([]*beans.Budget, error) {
+func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.ID) ([]*beans.Budget, error) {
 	budgets := []*beans.Budget{}
 	dbBudgets, err := r.DB(nil).GetBudgetsForUser(ctx, userID.String())
 	if err != nil {

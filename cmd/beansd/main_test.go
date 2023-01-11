@@ -15,7 +15,6 @@ import (
 	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
-	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -163,7 +162,7 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 // database helpers
 
 func (ta *TestApplication) CreateUser(tb testing.TB, username string, password string) *beans.User {
-	userID := beans.UserID(ksuid.New())
+	userID := beans.NewBeansID()
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	require.Nil(tb, err)
 	err = ta.application.UserRepository().Create(context.Background(), userID, beans.Username(username), beans.PasswordHash(passwordHash))

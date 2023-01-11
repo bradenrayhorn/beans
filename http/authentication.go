@@ -26,6 +26,6 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 	})
 }
 
-func getUserID(r *http.Request) beans.UserID {
-	return r.Context().Value("userID").(beans.UserID)
+func getUserID(r *http.Request) beans.ID {
+	return r.Context().Value("userID").(beans.ID)
 }

@@ -6,12 +6,12 @@ type SessionID string
 
 type Session struct {
 	ID        SessionID
-	UserID    UserID
+	UserID    ID
 	CreatedAt time.Time
 }
 
 type SessionRepository interface {
-	Create(userID UserID) (*Session, error)
+	Create(userID ID) (*Session, error)
 	Get(id SessionID) (*Session, error)
 	Delete(id SessionID) error
 }

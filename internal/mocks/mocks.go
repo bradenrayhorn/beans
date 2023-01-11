@@ -716,17 +716,17 @@ type MockBudgetContract struct {
 func NewMockBudgetContract() *MockBudgetContract {
 	return &MockBudgetContract{
 		CreateFunc: &BudgetContractCreateFunc{
-			defaultHook: func(context.Context, beans.Name, beans.UserID) (r0 *beans.Budget, r1 error) {
+			defaultHook: func(context.Context, beans.Name, beans.ID) (r0 *beans.Budget, r1 error) {
 				return
 			},
 		},
 		GetFunc: &BudgetContractGetFunc{
-			defaultHook: func(context.Context, beans.ID, beans.UserID) (r0 *beans.Budget, r1 *beans.Month, r2 error) {
+			defaultHook: func(context.Context, beans.ID, beans.ID) (r0 *beans.Budget, r1 *beans.Month, r2 error) {
 				return
 			},
 		},
 		GetAllFunc: &BudgetContractGetAllFunc{
-			defaultHook: func(context.Context, beans.UserID) (r0 []*beans.Budget, r1 error) {
+			defaultHook: func(context.Context, beans.ID) (r0 []*beans.Budget, r1 error) {
 				return
 			},
 		},
@@ -738,17 +738,17 @@ func NewMockBudgetContract() *MockBudgetContract {
 func NewStrictMockBudgetContract() *MockBudgetContract {
 	return &MockBudgetContract{
 		CreateFunc: &BudgetContractCreateFunc{
-			defaultHook: func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
+			defaultHook: func(context.Context, beans.Name, beans.ID) (*beans.Budget, error) {
 				panic("unexpected invocation of MockBudgetContract.Create")
 			},
 		},
 		GetFunc: &BudgetContractGetFunc{
-			defaultHook: func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error) {
+			defaultHook: func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error) {
 				panic("unexpected invocation of MockBudgetContract.Get")
 			},
 		},
 		GetAllFunc: &BudgetContractGetAllFunc{
-			defaultHook: func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+			defaultHook: func(context.Context, beans.ID) ([]*beans.Budget, error) {
 				panic("unexpected invocation of MockBudgetContract.GetAll")
 			},
 		},
@@ -775,15 +775,15 @@ func NewMockBudgetContractFrom(i beans.BudgetContract) *MockBudgetContract {
 // BudgetContractCreateFunc describes the behavior when the Create method of
 // the parent MockBudgetContract instance is invoked.
 type BudgetContractCreateFunc struct {
-	defaultHook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)
-	hooks       []func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)
+	defaultHook func(context.Context, beans.Name, beans.ID) (*beans.Budget, error)
+	hooks       []func(context.Context, beans.Name, beans.ID) (*beans.Budget, error)
 	history     []BudgetContractCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetContract) Create(v0 context.Context, v1 beans.Name, v2 beans.UserID) (*beans.Budget, error) {
+func (m *MockBudgetContract) Create(v0 context.Context, v1 beans.Name, v2 beans.ID) (*beans.Budget, error) {
 	r0, r1 := m.CreateFunc.nextHook()(v0, v1, v2)
 	m.CreateFunc.appendCall(BudgetContractCreateFuncCall{v0, v1, v2, r0, r1})
 	return r0, r1
@@ -792,7 +792,7 @@ func (m *MockBudgetContract) Create(v0 context.Context, v1 beans.Name, v2 beans.
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockBudgetContract instance is invoked and the hook queue is
 // empty.
-func (f *BudgetContractCreateFunc) SetDefaultHook(hook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)) {
+func (f *BudgetContractCreateFunc) SetDefaultHook(hook func(context.Context, beans.Name, beans.ID) (*beans.Budget, error)) {
 	f.defaultHook = hook
 }
 
@@ -800,7 +800,7 @@ func (f *BudgetContractCreateFunc) SetDefaultHook(hook func(context.Context, bea
 // Create method of the parent MockBudgetContract instance invokes the hook
 // at the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *BudgetContractCreateFunc) PushHook(hook func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error)) {
+func (f *BudgetContractCreateFunc) PushHook(hook func(context.Context, beans.Name, beans.ID) (*beans.Budget, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -809,19 +809,19 @@ func (f *BudgetContractCreateFunc) PushHook(hook func(context.Context, beans.Nam
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetContractCreateFunc) SetDefaultReturn(r0 *beans.Budget, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
+	f.SetDefaultHook(func(context.Context, beans.Name, beans.ID) (*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetContractCreateFunc) PushReturn(r0 *beans.Budget, r1 error) {
-	f.PushHook(func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
+	f.PushHook(func(context.Context, beans.Name, beans.ID) (*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
-func (f *BudgetContractCreateFunc) nextHook() func(context.Context, beans.Name, beans.UserID) (*beans.Budget, error) {
+func (f *BudgetContractCreateFunc) nextHook() func(context.Context, beans.Name, beans.ID) (*beans.Budget, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -862,7 +862,7 @@ type BudgetContractCreateFuncCall struct {
 	Arg1 beans.Name
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
-	Arg2 beans.UserID
+	Arg2 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.Budget
@@ -886,15 +886,15 @@ func (c BudgetContractCreateFuncCall) Results() []interface{} {
 // BudgetContractGetFunc describes the behavior when the Get method of the
 // parent MockBudgetContract instance is invoked.
 type BudgetContractGetFunc struct {
-	defaultHook func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error)
-	hooks       []func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error)
+	defaultHook func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error)
+	hooks       []func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error)
 	history     []BudgetContractGetFuncCall
 	mutex       sync.Mutex
 }
 
 // Get delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetContract) Get(v0 context.Context, v1 beans.ID, v2 beans.UserID) (*beans.Budget, *beans.Month, error) {
+func (m *MockBudgetContract) Get(v0 context.Context, v1 beans.ID, v2 beans.ID) (*beans.Budget, *beans.Month, error) {
 	r0, r1, r2 := m.GetFunc.nextHook()(v0, v1, v2)
 	m.GetFunc.appendCall(BudgetContractGetFuncCall{v0, v1, v2, r0, r1, r2})
 	return r0, r1, r2
@@ -903,7 +903,7 @@ func (m *MockBudgetContract) Get(v0 context.Context, v1 beans.ID, v2 beans.UserI
 // SetDefaultHook sets function that is called when the Get method of the
 // parent MockBudgetContract instance is invoked and the hook queue is
 // empty.
-func (f *BudgetContractGetFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error)) {
+func (f *BudgetContractGetFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error)) {
 	f.defaultHook = hook
 }
 
@@ -911,7 +911,7 @@ func (f *BudgetContractGetFunc) SetDefaultHook(hook func(context.Context, beans.
 // Get method of the parent MockBudgetContract instance invokes the hook at
 // the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *BudgetContractGetFunc) PushHook(hook func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error)) {
+func (f *BudgetContractGetFunc) PushHook(hook func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -920,19 +920,19 @@ func (f *BudgetContractGetFunc) PushHook(hook func(context.Context, beans.ID, be
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetContractGetFunc) SetDefaultReturn(r0 *beans.Budget, r1 *beans.Month, r2 error) {
-	f.SetDefaultHook(func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error) {
 		return r0, r1, r2
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetContractGetFunc) PushReturn(r0 *beans.Budget, r1 *beans.Month, r2 error) {
-	f.PushHook(func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error) {
+	f.PushHook(func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error) {
 		return r0, r1, r2
 	})
 }
 
-func (f *BudgetContractGetFunc) nextHook() func(context.Context, beans.ID, beans.UserID) (*beans.Budget, *beans.Month, error) {
+func (f *BudgetContractGetFunc) nextHook() func(context.Context, beans.ID, beans.ID) (*beans.Budget, *beans.Month, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -973,7 +973,7 @@ type BudgetContractGetFuncCall struct {
 	Arg1 beans.ID
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
-	Arg2 beans.UserID
+	Arg2 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.Budget
@@ -1000,15 +1000,15 @@ func (c BudgetContractGetFuncCall) Results() []interface{} {
 // BudgetContractGetAllFunc describes the behavior when the GetAll method of
 // the parent MockBudgetContract instance is invoked.
 type BudgetContractGetAllFunc struct {
-	defaultHook func(context.Context, beans.UserID) ([]*beans.Budget, error)
-	hooks       []func(context.Context, beans.UserID) ([]*beans.Budget, error)
+	defaultHook func(context.Context, beans.ID) ([]*beans.Budget, error)
+	hooks       []func(context.Context, beans.ID) ([]*beans.Budget, error)
 	history     []BudgetContractGetAllFuncCall
 	mutex       sync.Mutex
 }
 
 // GetAll delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetContract) GetAll(v0 context.Context, v1 beans.UserID) ([]*beans.Budget, error) {
+func (m *MockBudgetContract) GetAll(v0 context.Context, v1 beans.ID) ([]*beans.Budget, error) {
 	r0, r1 := m.GetAllFunc.nextHook()(v0, v1)
 	m.GetAllFunc.appendCall(BudgetContractGetAllFuncCall{v0, v1, r0, r1})
 	return r0, r1
@@ -1017,7 +1017,7 @@ func (m *MockBudgetContract) GetAll(v0 context.Context, v1 beans.UserID) ([]*bea
 // SetDefaultHook sets function that is called when the GetAll method of the
 // parent MockBudgetContract instance is invoked and the hook queue is
 // empty.
-func (f *BudgetContractGetAllFunc) SetDefaultHook(hook func(context.Context, beans.UserID) ([]*beans.Budget, error)) {
+func (f *BudgetContractGetAllFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.Budget, error)) {
 	f.defaultHook = hook
 }
 
@@ -1025,7 +1025,7 @@ func (f *BudgetContractGetAllFunc) SetDefaultHook(hook func(context.Context, bea
 // GetAll method of the parent MockBudgetContract instance invokes the hook
 // at the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *BudgetContractGetAllFunc) PushHook(hook func(context.Context, beans.UserID) ([]*beans.Budget, error)) {
+func (f *BudgetContractGetAllFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.Budget, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1034,19 +1034,19 @@ func (f *BudgetContractGetAllFunc) PushHook(hook func(context.Context, beans.Use
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetContractGetAllFunc) SetDefaultReturn(r0 []*beans.Budget, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetContractGetAllFunc) PushReturn(r0 []*beans.Budget, r1 error) {
-	f.PushHook(func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+	f.PushHook(func(context.Context, beans.ID) ([]*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
-func (f *BudgetContractGetAllFunc) nextHook() func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+func (f *BudgetContractGetAllFunc) nextHook() func(context.Context, beans.ID) ([]*beans.Budget, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1084,7 +1084,7 @@ type BudgetContractGetAllFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.UserID
+	Arg1 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 []*beans.Budget
@@ -1126,7 +1126,7 @@ type MockBudgetRepository struct {
 func NewMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) (r0 error) {
+			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) (r0 error) {
 				return
 			},
 		},
@@ -1136,7 +1136,7 @@ func NewMockBudgetRepository() *MockBudgetRepository {
 			},
 		},
 		GetBudgetsForUserFunc: &BudgetRepositoryGetBudgetsForUserFunc{
-			defaultHook: func(context.Context, beans.UserID) (r0 []*beans.Budget, r1 error) {
+			defaultHook: func(context.Context, beans.ID) (r0 []*beans.Budget, r1 error) {
 				return
 			},
 		},
@@ -1148,7 +1148,7 @@ func NewMockBudgetRepository() *MockBudgetRepository {
 func NewStrictMockBudgetRepository() *MockBudgetRepository {
 	return &MockBudgetRepository{
 		CreateFunc: &BudgetRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
+			defaultHook: func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error {
 				panic("unexpected invocation of MockBudgetRepository.Create")
 			},
 		},
@@ -1158,7 +1158,7 @@ func NewStrictMockBudgetRepository() *MockBudgetRepository {
 			},
 		},
 		GetBudgetsForUserFunc: &BudgetRepositoryGetBudgetsForUserFunc{
-			defaultHook: func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+			defaultHook: func(context.Context, beans.ID) ([]*beans.Budget, error) {
 				panic("unexpected invocation of MockBudgetRepository.GetBudgetsForUser")
 			},
 		},
@@ -1185,15 +1185,15 @@ func NewMockBudgetRepositoryFrom(i beans.BudgetRepository) *MockBudgetRepository
 // BudgetRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockBudgetRepository instance is invoked.
 type BudgetRepositoryCreateFunc struct {
-	defaultHook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error
-	hooks       []func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error
+	defaultHook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error
+	hooks       []func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error
 	history     []BudgetRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.Tx, v2 beans.ID, v3 beans.Name, v4 beans.UserID) error {
+func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.Tx, v2 beans.ID, v3 beans.Name, v4 beans.ID) error {
 	r0 := m.CreateFunc.nextHook()(v0, v1, v2, v3, v4)
 	m.CreateFunc.appendCall(BudgetRepositoryCreateFuncCall{v0, v1, v2, v3, v4, r0})
 	return r0
@@ -1202,7 +1202,7 @@ func (m *MockBudgetRepository) Create(v0 context.Context, v1 beans.Tx, v2 beans.
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockBudgetRepository instance is invoked and the hook queue is
 // empty.
-func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error) {
+func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error) {
 	f.defaultHook = hook
 }
 
@@ -1210,7 +1210,7 @@ func (f *BudgetRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, b
 // Create method of the parent MockBudgetRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error) {
+func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1219,19 +1219,19 @@ func (f *BudgetRepositoryCreateFunc) PushHook(hook func(context.Context, beans.T
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
+	f.SetDefaultHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
+	f.PushHook(func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error {
 		return r0
 	})
 }
 
-func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, beans.ID, beans.Name, beans.UserID) error {
+func (f *BudgetRepositoryCreateFunc) nextHook() func(context.Context, beans.Tx, beans.ID, beans.Name, beans.ID) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1278,7 +1278,7 @@ type BudgetRepositoryCreateFuncCall struct {
 	Arg3 beans.Name
 	// Arg4 is the value of the 5th argument passed to this method
 	// invocation.
-	Arg4 beans.UserID
+	Arg4 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 error
@@ -1408,15 +1408,15 @@ func (c BudgetRepositoryGetFuncCall) Results() []interface{} {
 // GetBudgetsForUser method of the parent MockBudgetRepository instance is
 // invoked.
 type BudgetRepositoryGetBudgetsForUserFunc struct {
-	defaultHook func(context.Context, beans.UserID) ([]*beans.Budget, error)
-	hooks       []func(context.Context, beans.UserID) ([]*beans.Budget, error)
+	defaultHook func(context.Context, beans.ID) ([]*beans.Budget, error)
+	hooks       []func(context.Context, beans.ID) ([]*beans.Budget, error)
 	history     []BudgetRepositoryGetBudgetsForUserFuncCall
 	mutex       sync.Mutex
 }
 
 // GetBudgetsForUser delegates to the next hook function in the queue and
 // stores the parameter and result values of this invocation.
-func (m *MockBudgetRepository) GetBudgetsForUser(v0 context.Context, v1 beans.UserID) ([]*beans.Budget, error) {
+func (m *MockBudgetRepository) GetBudgetsForUser(v0 context.Context, v1 beans.ID) ([]*beans.Budget, error) {
 	r0, r1 := m.GetBudgetsForUserFunc.nextHook()(v0, v1)
 	m.GetBudgetsForUserFunc.appendCall(BudgetRepositoryGetBudgetsForUserFuncCall{v0, v1, r0, r1})
 	return r0, r1
@@ -1425,7 +1425,7 @@ func (m *MockBudgetRepository) GetBudgetsForUser(v0 context.Context, v1 beans.Us
 // SetDefaultHook sets function that is called when the GetBudgetsForUser
 // method of the parent MockBudgetRepository instance is invoked and the
 // hook queue is empty.
-func (f *BudgetRepositoryGetBudgetsForUserFunc) SetDefaultHook(hook func(context.Context, beans.UserID) ([]*beans.Budget, error)) {
+func (f *BudgetRepositoryGetBudgetsForUserFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.Budget, error)) {
 	f.defaultHook = hook
 }
 
@@ -1434,7 +1434,7 @@ func (f *BudgetRepositoryGetBudgetsForUserFunc) SetDefaultHook(hook func(context
 // invokes the hook at the front of the queue and discards it. After the
 // queue is empty, the default hook function is invoked for any future
 // action.
-func (f *BudgetRepositoryGetBudgetsForUserFunc) PushHook(hook func(context.Context, beans.UserID) ([]*beans.Budget, error)) {
+func (f *BudgetRepositoryGetBudgetsForUserFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.Budget, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1443,19 +1443,19 @@ func (f *BudgetRepositoryGetBudgetsForUserFunc) PushHook(hook func(context.Conte
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *BudgetRepositoryGetBudgetsForUserFunc) SetDefaultReturn(r0 []*beans.Budget, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *BudgetRepositoryGetBudgetsForUserFunc) PushReturn(r0 []*beans.Budget, r1 error) {
-	f.PushHook(func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+	f.PushHook(func(context.Context, beans.ID) ([]*beans.Budget, error) {
 		return r0, r1
 	})
 }
 
-func (f *BudgetRepositoryGetBudgetsForUserFunc) nextHook() func(context.Context, beans.UserID) ([]*beans.Budget, error) {
+func (f *BudgetRepositoryGetBudgetsForUserFunc) nextHook() func(context.Context, beans.ID) ([]*beans.Budget, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1494,7 +1494,7 @@ type BudgetRepositoryGetBudgetsForUserFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.UserID
+	Arg1 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 []*beans.Budget
@@ -4757,7 +4757,7 @@ type MockSessionRepository struct {
 func NewMockSessionRepository() *MockSessionRepository {
 	return &MockSessionRepository{
 		CreateFunc: &SessionRepositoryCreateFunc{
-			defaultHook: func(beans.UserID) (r0 *beans.Session, r1 error) {
+			defaultHook: func(beans.ID) (r0 *beans.Session, r1 error) {
 				return
 			},
 		},
@@ -4780,7 +4780,7 @@ func NewMockSessionRepository() *MockSessionRepository {
 func NewStrictMockSessionRepository() *MockSessionRepository {
 	return &MockSessionRepository{
 		CreateFunc: &SessionRepositoryCreateFunc{
-			defaultHook: func(beans.UserID) (*beans.Session, error) {
+			defaultHook: func(beans.ID) (*beans.Session, error) {
 				panic("unexpected invocation of MockSessionRepository.Create")
 			},
 		},
@@ -4817,15 +4817,15 @@ func NewMockSessionRepositoryFrom(i beans.SessionRepository) *MockSessionReposit
 // SessionRepositoryCreateFunc describes the behavior when the Create method
 // of the parent MockSessionRepository instance is invoked.
 type SessionRepositoryCreateFunc struct {
-	defaultHook func(beans.UserID) (*beans.Session, error)
-	hooks       []func(beans.UserID) (*beans.Session, error)
+	defaultHook func(beans.ID) (*beans.Session, error)
+	hooks       []func(beans.ID) (*beans.Session, error)
 	history     []SessionRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockSessionRepository) Create(v0 beans.UserID) (*beans.Session, error) {
+func (m *MockSessionRepository) Create(v0 beans.ID) (*beans.Session, error) {
 	r0, r1 := m.CreateFunc.nextHook()(v0)
 	m.CreateFunc.appendCall(SessionRepositoryCreateFuncCall{v0, r0, r1})
 	return r0, r1
@@ -4834,7 +4834,7 @@ func (m *MockSessionRepository) Create(v0 beans.UserID) (*beans.Session, error) 
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockSessionRepository instance is invoked and the hook queue is
 // empty.
-func (f *SessionRepositoryCreateFunc) SetDefaultHook(hook func(beans.UserID) (*beans.Session, error)) {
+func (f *SessionRepositoryCreateFunc) SetDefaultHook(hook func(beans.ID) (*beans.Session, error)) {
 	f.defaultHook = hook
 }
 
@@ -4842,7 +4842,7 @@ func (f *SessionRepositoryCreateFunc) SetDefaultHook(hook func(beans.UserID) (*b
 // Create method of the parent MockSessionRepository instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *SessionRepositoryCreateFunc) PushHook(hook func(beans.UserID) (*beans.Session, error)) {
+func (f *SessionRepositoryCreateFunc) PushHook(hook func(beans.ID) (*beans.Session, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -4851,19 +4851,19 @@ func (f *SessionRepositoryCreateFunc) PushHook(hook func(beans.UserID) (*beans.S
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *SessionRepositoryCreateFunc) SetDefaultReturn(r0 *beans.Session, r1 error) {
-	f.SetDefaultHook(func(beans.UserID) (*beans.Session, error) {
+	f.SetDefaultHook(func(beans.ID) (*beans.Session, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *SessionRepositoryCreateFunc) PushReturn(r0 *beans.Session, r1 error) {
-	f.PushHook(func(beans.UserID) (*beans.Session, error) {
+	f.PushHook(func(beans.ID) (*beans.Session, error) {
 		return r0, r1
 	})
 }
 
-func (f *SessionRepositoryCreateFunc) nextHook() func(beans.UserID) (*beans.Session, error) {
+func (f *SessionRepositoryCreateFunc) nextHook() func(beans.ID) (*beans.Session, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -4898,7 +4898,7 @@ func (f *SessionRepositoryCreateFunc) History() []SessionRepositoryCreateFuncCal
 type SessionRepositoryCreateFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
-	Arg0 beans.UserID
+	Arg0 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.Session
@@ -6091,6 +6091,287 @@ func (c TxManagerCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
+// MockUserContract is a mock implementation of the UserContract interface
+// (from the package github.com/bradenrayhorn/beans/beans) used for unit
+// testing.
+type MockUserContract struct {
+	// CreateUserFunc is an instance of a mock function object controlling
+	// the behavior of the method CreateUser.
+	CreateUserFunc *UserContractCreateUserFunc
+	// LoginFunc is an instance of a mock function object controlling the
+	// behavior of the method Login.
+	LoginFunc *UserContractLoginFunc
+}
+
+// NewMockUserContract creates a new mock of the UserContract interface. All
+// methods return zero values for all results, unless overwritten.
+func NewMockUserContract() *MockUserContract {
+	return &MockUserContract{
+		CreateUserFunc: &UserContractCreateUserFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
+				return
+			},
+		},
+		LoginFunc: &UserContractLoginFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockUserContract creates a new mock of the UserContract
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockUserContract() *MockUserContract {
+	return &MockUserContract{
+		CreateUserFunc: &UserContractCreateUserFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+				panic("unexpected invocation of MockUserContract.CreateUser")
+			},
+		},
+		LoginFunc: &UserContractLoginFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+				panic("unexpected invocation of MockUserContract.Login")
+			},
+		},
+	}
+}
+
+// NewMockUserContractFrom creates a new mock of the MockUserContract
+// interface. All methods delegate to the given implementation, unless
+// overwritten.
+func NewMockUserContractFrom(i beans.UserContract) *MockUserContract {
+	return &MockUserContract{
+		CreateUserFunc: &UserContractCreateUserFunc{
+			defaultHook: i.CreateUser,
+		},
+		LoginFunc: &UserContractLoginFunc{
+			defaultHook: i.Login,
+		},
+	}
+}
+
+// UserContractCreateUserFunc describes the behavior when the CreateUser
+// method of the parent MockUserContract instance is invoked.
+type UserContractCreateUserFunc struct {
+	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
+	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
+	history     []UserContractCreateUserFuncCall
+	mutex       sync.Mutex
+}
+
+// CreateUser delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockUserContract) CreateUser(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
+	r0, r1 := m.CreateUserFunc.nextHook()(v0, v1, v2)
+	m.CreateUserFunc.appendCall(UserContractCreateUserFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the CreateUser method of
+// the parent MockUserContract instance is invoked and the hook queue is
+// empty.
+func (f *UserContractCreateUserFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CreateUser method of the parent MockUserContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *UserContractCreateUserFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *UserContractCreateUserFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *UserContractCreateUserFunc) PushReturn(r0 *beans.User, r1 error) {
+	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+		return r0, r1
+	})
+}
+
+func (f *UserContractCreateUserFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *UserContractCreateUserFunc) appendCall(r0 UserContractCreateUserFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of UserContractCreateUserFuncCall objects
+// describing the invocations of this function.
+func (f *UserContractCreateUserFunc) History() []UserContractCreateUserFuncCall {
+	f.mutex.Lock()
+	history := make([]UserContractCreateUserFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// UserContractCreateUserFuncCall is an object that describes an invocation
+// of method CreateUser on an instance of MockUserContract.
+type UserContractCreateUserFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.Username
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Password
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.User
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c UserContractCreateUserFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c UserContractCreateUserFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// UserContractLoginFunc describes the behavior when the Login method of the
+// parent MockUserContract instance is invoked.
+type UserContractLoginFunc struct {
+	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
+	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
+	history     []UserContractLoginFuncCall
+	mutex       sync.Mutex
+}
+
+// Login delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockUserContract) Login(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
+	r0, r1 := m.LoginFunc.nextHook()(v0, v1, v2)
+	m.LoginFunc.appendCall(UserContractLoginFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the Login method of the
+// parent MockUserContract instance is invoked and the hook queue is empty.
+func (f *UserContractLoginFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Login method of the parent MockUserContract instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *UserContractLoginFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *UserContractLoginFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *UserContractLoginFunc) PushReturn(r0 *beans.User, r1 error) {
+	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+		return r0, r1
+	})
+}
+
+func (f *UserContractLoginFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *UserContractLoginFunc) appendCall(r0 UserContractLoginFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of UserContractLoginFuncCall objects
+// describing the invocations of this function.
+func (f *UserContractLoginFunc) History() []UserContractLoginFuncCall {
+	f.mutex.Lock()
+	history := make([]UserContractLoginFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// UserContractLoginFuncCall is an object that describes an invocation of
+// method Login on an instance of MockUserContract.
+type UserContractLoginFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.Username
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Password
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.User
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c UserContractLoginFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c UserContractLoginFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
 // MockUserRepository is a mock implementation of the UserRepository
 // interface (from the package github.com/bradenrayhorn/beans/beans) used
 // for unit testing.
@@ -6114,7 +6395,7 @@ type MockUserRepository struct {
 func NewMockUserRepository() *MockUserRepository {
 	return &MockUserRepository{
 		CreateFunc: &UserRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) (r0 error) {
+			defaultHook: func(context.Context, beans.ID, beans.Username, beans.PasswordHash) (r0 error) {
 				return
 			},
 		},
@@ -6124,7 +6405,7 @@ func NewMockUserRepository() *MockUserRepository {
 			},
 		},
 		GetFunc: &UserRepositoryGetFunc{
-			defaultHook: func(context.Context, beans.UserID) (r0 *beans.User, r1 error) {
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.User, r1 error) {
 				return
 			},
 		},
@@ -6141,7 +6422,7 @@ func NewMockUserRepository() *MockUserRepository {
 func NewStrictMockUserRepository() *MockUserRepository {
 	return &MockUserRepository{
 		CreateFunc: &UserRepositoryCreateFunc{
-			defaultHook: func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error {
+			defaultHook: func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error {
 				panic("unexpected invocation of MockUserRepository.Create")
 			},
 		},
@@ -6151,7 +6432,7 @@ func NewStrictMockUserRepository() *MockUserRepository {
 			},
 		},
 		GetFunc: &UserRepositoryGetFunc{
-			defaultHook: func(context.Context, beans.UserID) (*beans.User, error) {
+			defaultHook: func(context.Context, beans.ID) (*beans.User, error) {
 				panic("unexpected invocation of MockUserRepository.Get")
 			},
 		},
@@ -6186,15 +6467,15 @@ func NewMockUserRepositoryFrom(i beans.UserRepository) *MockUserRepository {
 // UserRepositoryCreateFunc describes the behavior when the Create method of
 // the parent MockUserRepository instance is invoked.
 type UserRepositoryCreateFunc struct {
-	defaultHook func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error
-	hooks       []func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error
+	defaultHook func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error
+	hooks       []func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error
 	history     []UserRepositoryCreateFuncCall
 	mutex       sync.Mutex
 }
 
 // Create delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockUserRepository) Create(v0 context.Context, v1 beans.UserID, v2 beans.Username, v3 beans.PasswordHash) error {
+func (m *MockUserRepository) Create(v0 context.Context, v1 beans.ID, v2 beans.Username, v3 beans.PasswordHash) error {
 	r0 := m.CreateFunc.nextHook()(v0, v1, v2, v3)
 	m.CreateFunc.appendCall(UserRepositoryCreateFuncCall{v0, v1, v2, v3, r0})
 	return r0
@@ -6203,7 +6484,7 @@ func (m *MockUserRepository) Create(v0 context.Context, v1 beans.UserID, v2 bean
 // SetDefaultHook sets function that is called when the Create method of the
 // parent MockUserRepository instance is invoked and the hook queue is
 // empty.
-func (f *UserRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error) {
+func (f *UserRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error) {
 	f.defaultHook = hook
 }
 
@@ -6211,7 +6492,7 @@ func (f *UserRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, bea
 // Create method of the parent MockUserRepository instance invokes the hook
 // at the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *UserRepositoryCreateFunc) PushHook(hook func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error) {
+func (f *UserRepositoryCreateFunc) PushHook(hook func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -6220,19 +6501,19 @@ func (f *UserRepositoryCreateFunc) PushHook(hook func(context.Context, beans.Use
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *UserRepositoryCreateFunc) SetDefaultReturn(r0 error) {
-	f.SetDefaultHook(func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error {
 		return r0
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *UserRepositoryCreateFunc) PushReturn(r0 error) {
-	f.PushHook(func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error {
+	f.PushHook(func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error {
 		return r0
 	})
 }
 
-func (f *UserRepositoryCreateFunc) nextHook() func(context.Context, beans.UserID, beans.Username, beans.PasswordHash) error {
+func (f *UserRepositoryCreateFunc) nextHook() func(context.Context, beans.ID, beans.Username, beans.PasswordHash) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -6270,7 +6551,7 @@ type UserRepositoryCreateFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.UserID
+	Arg1 beans.ID
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
 	Arg2 beans.Username
@@ -6405,15 +6686,15 @@ func (c UserRepositoryExistsFuncCall) Results() []interface{} {
 // UserRepositoryGetFunc describes the behavior when the Get method of the
 // parent MockUserRepository instance is invoked.
 type UserRepositoryGetFunc struct {
-	defaultHook func(context.Context, beans.UserID) (*beans.User, error)
-	hooks       []func(context.Context, beans.UserID) (*beans.User, error)
+	defaultHook func(context.Context, beans.ID) (*beans.User, error)
+	hooks       []func(context.Context, beans.ID) (*beans.User, error)
 	history     []UserRepositoryGetFuncCall
 	mutex       sync.Mutex
 }
 
 // Get delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockUserRepository) Get(v0 context.Context, v1 beans.UserID) (*beans.User, error) {
+func (m *MockUserRepository) Get(v0 context.Context, v1 beans.ID) (*beans.User, error) {
 	r0, r1 := m.GetFunc.nextHook()(v0, v1)
 	m.GetFunc.appendCall(UserRepositoryGetFuncCall{v0, v1, r0, r1})
 	return r0, r1
@@ -6422,7 +6703,7 @@ func (m *MockUserRepository) Get(v0 context.Context, v1 beans.UserID) (*beans.Us
 // SetDefaultHook sets function that is called when the Get method of the
 // parent MockUserRepository instance is invoked and the hook queue is
 // empty.
-func (f *UserRepositoryGetFunc) SetDefaultHook(hook func(context.Context, beans.UserID) (*beans.User, error)) {
+func (f *UserRepositoryGetFunc) SetDefaultHook(hook func(context.Context, beans.ID) (*beans.User, error)) {
 	f.defaultHook = hook
 }
 
@@ -6430,7 +6711,7 @@ func (f *UserRepositoryGetFunc) SetDefaultHook(hook func(context.Context, beans.
 // Get method of the parent MockUserRepository instance invokes the hook at
 // the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *UserRepositoryGetFunc) PushHook(hook func(context.Context, beans.UserID) (*beans.User, error)) {
+func (f *UserRepositoryGetFunc) PushHook(hook func(context.Context, beans.ID) (*beans.User, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -6439,19 +6720,19 @@ func (f *UserRepositoryGetFunc) PushHook(hook func(context.Context, beans.UserID
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *UserRepositoryGetFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.UserID) (*beans.User, error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) (*beans.User, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *UserRepositoryGetFunc) PushReturn(r0 *beans.User, r1 error) {
-	f.PushHook(func(context.Context, beans.UserID) (*beans.User, error) {
+	f.PushHook(func(context.Context, beans.ID) (*beans.User, error) {
 		return r0, r1
 	})
 }
 
-func (f *UserRepositoryGetFunc) nextHook() func(context.Context, beans.UserID) (*beans.User, error) {
+func (f *UserRepositoryGetFunc) nextHook() func(context.Context, beans.ID) (*beans.User, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -6489,7 +6770,7 @@ type UserRepositoryGetFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.UserID
+	Arg1 beans.ID
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.User
@@ -6616,287 +6897,6 @@ func (c UserRepositoryGetByUsernameFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c UserRepositoryGetByUsernameFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// MockUserService is a mock implementation of the UserService interface
-// (from the package github.com/bradenrayhorn/beans/beans) used for unit
-// testing.
-type MockUserService struct {
-	// CreateUserFunc is an instance of a mock function object controlling
-	// the behavior of the method CreateUser.
-	CreateUserFunc *UserServiceCreateUserFunc
-	// LoginFunc is an instance of a mock function object controlling the
-	// behavior of the method Login.
-	LoginFunc *UserServiceLoginFunc
-}
-
-// NewMockUserService creates a new mock of the UserService interface. All
-// methods return zero values for all results, unless overwritten.
-func NewMockUserService() *MockUserService {
-	return &MockUserService{
-		CreateUserFunc: &UserServiceCreateUserFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
-				return
-			},
-		},
-		LoginFunc: &UserServiceLoginFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
-				return
-			},
-		},
-	}
-}
-
-// NewStrictMockUserService creates a new mock of the UserService interface.
-// All methods panic on invocation, unless overwritten.
-func NewStrictMockUserService() *MockUserService {
-	return &MockUserService{
-		CreateUserFunc: &UserServiceCreateUserFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-				panic("unexpected invocation of MockUserService.CreateUser")
-			},
-		},
-		LoginFunc: &UserServiceLoginFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-				panic("unexpected invocation of MockUserService.Login")
-			},
-		},
-	}
-}
-
-// NewMockUserServiceFrom creates a new mock of the MockUserService
-// interface. All methods delegate to the given implementation, unless
-// overwritten.
-func NewMockUserServiceFrom(i beans.UserService) *MockUserService {
-	return &MockUserService{
-		CreateUserFunc: &UserServiceCreateUserFunc{
-			defaultHook: i.CreateUser,
-		},
-		LoginFunc: &UserServiceLoginFunc{
-			defaultHook: i.Login,
-		},
-	}
-}
-
-// UserServiceCreateUserFunc describes the behavior when the CreateUser
-// method of the parent MockUserService instance is invoked.
-type UserServiceCreateUserFunc struct {
-	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	history     []UserServiceCreateUserFuncCall
-	mutex       sync.Mutex
-}
-
-// CreateUser delegates to the next hook function in the queue and stores
-// the parameter and result values of this invocation.
-func (m *MockUserService) CreateUser(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
-	r0, r1 := m.CreateUserFunc.nextHook()(v0, v1, v2)
-	m.CreateUserFunc.appendCall(UserServiceCreateUserFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the CreateUser method of
-// the parent MockUserService instance is invoked and the hook queue is
-// empty.
-func (f *UserServiceCreateUserFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateUser method of the parent MockUserService instance invokes the hook
-// at the front of the queue and discards it. After the queue is empty, the
-// default hook function is invoked for any future action.
-func (f *UserServiceCreateUserFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *UserServiceCreateUserFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *UserServiceCreateUserFunc) PushReturn(r0 *beans.User, r1 error) {
-	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-		return r0, r1
-	})
-}
-
-func (f *UserServiceCreateUserFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *UserServiceCreateUserFunc) appendCall(r0 UserServiceCreateUserFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of UserServiceCreateUserFuncCall objects
-// describing the invocations of this function.
-func (f *UserServiceCreateUserFunc) History() []UserServiceCreateUserFuncCall {
-	f.mutex.Lock()
-	history := make([]UserServiceCreateUserFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// UserServiceCreateUserFuncCall is an object that describes an invocation
-// of method CreateUser on an instance of MockUserService.
-type UserServiceCreateUserFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.Username
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.Password
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.User
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c UserServiceCreateUserFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c UserServiceCreateUserFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1}
-}
-
-// UserServiceLoginFunc describes the behavior when the Login method of the
-// parent MockUserService instance is invoked.
-type UserServiceLoginFunc struct {
-	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	history     []UserServiceLoginFuncCall
-	mutex       sync.Mutex
-}
-
-// Login delegates to the next hook function in the queue and stores the
-// parameter and result values of this invocation.
-func (m *MockUserService) Login(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
-	r0, r1 := m.LoginFunc.nextHook()(v0, v1, v2)
-	m.LoginFunc.appendCall(UserServiceLoginFuncCall{v0, v1, v2, r0, r1})
-	return r0, r1
-}
-
-// SetDefaultHook sets function that is called when the Login method of the
-// parent MockUserService instance is invoked and the hook queue is empty.
-func (f *UserServiceLoginFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
-	f.defaultHook = hook
-}
-
-// PushHook adds a function to the end of hook queue. Each invocation of the
-// Login method of the parent MockUserService instance invokes the hook at
-// the front of the queue and discards it. After the queue is empty, the
-// default hook function is invoked for any future action.
-func (f *UserServiceLoginFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
-	f.mutex.Lock()
-	f.hooks = append(f.hooks, hook)
-	f.mutex.Unlock()
-}
-
-// SetDefaultReturn calls SetDefaultHook with a function that returns the
-// given values.
-func (f *UserServiceLoginFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-		return r0, r1
-	})
-}
-
-// PushReturn calls PushHook with a function that returns the given values.
-func (f *UserServiceLoginFunc) PushReturn(r0 *beans.User, r1 error) {
-	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-		return r0, r1
-	})
-}
-
-func (f *UserServiceLoginFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-
-	if len(f.hooks) == 0 {
-		return f.defaultHook
-	}
-
-	hook := f.hooks[0]
-	f.hooks = f.hooks[1:]
-	return hook
-}
-
-func (f *UserServiceLoginFunc) appendCall(r0 UserServiceLoginFuncCall) {
-	f.mutex.Lock()
-	f.history = append(f.history, r0)
-	f.mutex.Unlock()
-}
-
-// History returns a sequence of UserServiceLoginFuncCall objects describing
-// the invocations of this function.
-func (f *UserServiceLoginFunc) History() []UserServiceLoginFuncCall {
-	f.mutex.Lock()
-	history := make([]UserServiceLoginFuncCall, len(f.history))
-	copy(history, f.history)
-	f.mutex.Unlock()
-
-	return history
-}
-
-// UserServiceLoginFuncCall is an object that describes an invocation of
-// method Login on an instance of MockUserService.
-type UserServiceLoginFuncCall struct {
-	// Arg0 is the value of the 1st argument passed to this method
-	// invocation.
-	Arg0 context.Context
-	// Arg1 is the value of the 2nd argument passed to this method
-	// invocation.
-	Arg1 beans.Username
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.Password
-	// Result0 is the value of the 1st result returned from this method
-	// invocation.
-	Result0 *beans.User
-	// Result1 is the value of the 2nd result returned from this method
-	// invocation.
-	Result1 error
-}
-
-// Args returns an interface slice containing the arguments of this
-// invocation.
-func (c UserServiceLoginFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
-}
-
-// Results returns an interface slice containing the results of this
-// invocation.
-func (c UserServiceLoginFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

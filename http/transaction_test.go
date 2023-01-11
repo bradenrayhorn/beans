@@ -15,7 +15,7 @@ func TestTransaction(t *testing.T) {
 	contract := mocks.NewMockTransactionContract()
 	sv := Server{transactionContract: contract}
 
-	user := &beans.User{ID: beans.UserID(beans.NewBeansID())}
+	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
 	account := &beans.Account{ID: beans.NewBeansID(), Name: "Accounty", BudgetID: budget.ID}
 	category := &beans.Category{ID: beans.NewBeansID(), Name: "Cool Category", BudgetID: budget.ID, GroupID: beans.NewBeansID()}

@@ -18,7 +18,7 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{db: db.New(pool)}
 }
 
-func (r *UserRepository) Create(ctx context.Context, id beans.UserID, username beans.Username, passwordHash beans.PasswordHash) error {
+func (r *UserRepository) Create(ctx context.Context, id beans.ID, username beans.Username, passwordHash beans.PasswordHash) error {
 	return r.db.CreateUser(ctx, db.CreateUserParams{
 		ID:       id.String(),
 		Username: string(username),
@@ -30,7 +30,7 @@ func (r *UserRepository) Exists(ctx context.Context, username beans.Username) (b
 	return r.db.UserExists(ctx, string(username))
 }
 
-func (r *UserRepository) Get(ctx context.Context, id beans.UserID) (*beans.User, error) {
+func (r *UserRepository) Get(ctx context.Context, id beans.ID) (*beans.User, error) {
 	res, err := r.db.GetUserByID(ctx, id.String())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -55,7 +55,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username beans.Usern
 
 		return nil, err
 	}
-	id, err := beans.UserIDFromString(res.ID)
+	id, err := beans.BeansIDFromString(res.ID)
 	if err != nil {
 		return nil, err
 	}
