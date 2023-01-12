@@ -38,6 +38,9 @@ type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) error
 	// Attaches Account, CategoryName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
+
+	// Gets sum of all income transactions before or on the date.
+	GetIncomeBeforeOrOnDate(ctx context.Context, date Date) (Amount, error)
 }
 
 type TransactionCreateParams struct {

@@ -17,6 +17,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	type responseMonth struct {
 		ID         beans.ID           `json:"id"`
 		Date       string             `json:"date"`
+		Budgetable beans.Amount       `json:"budgetable"`
 		Categories []responseCategory `json:"categories"`
 	}
 	type response struct {
@@ -30,7 +31,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 			return
 		}
 
-		month, categories, err := s.monthContract.Get(r.Context(), getBudgetAuth(r), monthID)
+		month, categories, budgetable, err := s.monthContract.Get(r.Context(), getBudgetAuth(r), monthID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -50,6 +51,7 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 			Data: responseMonth{
 				ID:         month.ID,
 				Date:       month.Date.String(),
+				Budgetable: budgetable,
 				Categories: responseCategories,
 			},
 		}, http.StatusOK)

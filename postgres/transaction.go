@@ -70,3 +70,17 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 
 	return transactions, nil
 }
+
+func (r *TransactionRepository) GetIncomeBeforeOrOnDate(ctx context.Context, date beans.Date) (beans.Amount, error) {
+	res, err := r.db.GetIncomeBeforeOrOnDate(ctx, date.Time)
+	if err != nil {
+		return beans.NewEmptyAmount(), err
+	}
+
+	amount, err := numericToAmount(res)
+	if err != nil {
+		return beans.NewEmptyAmount(), err
+	}
+
+	return amount, nil
+}

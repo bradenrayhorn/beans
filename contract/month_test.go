@@ -25,7 +25,8 @@ func TestMonth(t *testing.T) {
 
 	monthRepository := postgres.NewMonthRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
-	c := contract.NewMonthContract(monthRepository, monthCategoryRepository)
+	transactionRepository := postgres.NewTransactionRepository(pool)
+	c := contract.NewMonthContract(monthRepository, monthCategoryRepository, transactionRepository)
 
 	t.Run("get", func(t *testing.T) {
 		t.Run("cannot get non existant month", func(t *testing.T) {
@@ -35,7 +36,7 @@ func TestMonth(t *testing.T) {
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			_, _, err := c.Get(context.Background(), auth, beans.NewBeansID())
+			_, _, _, err := c.Get(context.Background(), auth, beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -49,7 +50,7 @@ func TestMonth(t *testing.T) {
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			_, _, err := c.Get(context.Background(), auth, month.ID)
+			_, _, _, err := c.Get(context.Background(), auth, month.ID)
 			testutils.AssertErrorCode(t, err, beans.EFORBIDDEN)
 		})
 
@@ -62,11 +63,28 @@ func TestMonth(t *testing.T) {
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
+			incomeCategory := testutils.MakeIncomeCategory(t, pool, "Income", group.ID, budget.ID)
 			monthCategory := testutils.MakeMonthCategory(t, pool, month.ID, category.ID, beans.NewAmount(34, -1))
 
-			dbMonth, dbCategories, err := c.Get(context.Background(), auth, month.ID)
+			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+				ID:         beans.NewBeansID(),
+				AccountID:  account.ID,
+				Amount:     beans.NewAmount(6, 0),
+				Date:       testutils.NewDate(t, "2022-03-01"),
+				CategoryID: incomeCategory.ID,
+			}))
+			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+				ID:         beans.NewBeansID(),
+				AccountID:  account.ID,
+				Amount:     beans.NewAmount(3, 0),
+				Date:       testutils.NewDate(t, "2022-06-01"),
+				CategoryID: incomeCategory.ID,
+			}))
+
+			dbMonth, dbCategories, available, err := c.Get(context.Background(), auth, month.ID)
 			require.Nil(t, err)
 
 			assert.True(t, reflect.DeepEqual(month, dbMonth))
@@ -74,6 +92,8 @@ func TestMonth(t *testing.T) {
 
 			monthCategory.Spent = beans.NewAmount(0, 0)
 			assert.True(t, reflect.DeepEqual(monthCategory, dbCategories[0]))
+
+			assert.Equal(t, beans.NewAmount(26, -1), available)
 		})
 	})
 

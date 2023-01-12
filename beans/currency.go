@@ -41,6 +41,21 @@ func (a *Amount) Coefficient() *big.Int {
 	return bigInt
 }
 
+func (a *Amount) Subtract(b Amount) (Amount, error) {
+	res := apd.New(0, 0)
+
+	_, err := apd.BaseContext.Sub(res, &a.decimal, &b.decimal)
+	if err != nil {
+		return NewEmptyAmount(), err
+	}
+
+	bigInt := res.Coeff.MathBigInt()
+	if res.Negative {
+		bigInt.Neg(bigInt)
+	}
+	return NewAmountWithBigInt(bigInt, res.Exponent), nil
+}
+
 func (a *Amount) String() string {
 	if !a.set {
 		return ""

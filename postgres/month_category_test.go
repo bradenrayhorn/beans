@@ -22,12 +22,17 @@ func TestMonthCategory(t *testing.T) {
 
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
+	budgetID2 := testutils.MakeBudget(t, pool, "budget2", userID).ID
 	account := testutils.MakeAccount(t, pool, "account", budgetID)
 	groupID := testutils.MakeCategoryGroup(t, pool, "group", budgetID).ID
 	categoryID := testutils.MakeCategory(t, pool, "group", groupID, budgetID).ID
 	categoryID2 := testutils.MakeCategory(t, pool, "group", groupID, budgetID).ID
 	month := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-05-01"))
 	month2 := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
+
+	budget2Month := testutils.MakeMonth(t, pool, budgetID2, testutils.NewDate(t, "2022-05-01"))
+	budget2GroupID := testutils.MakeCategoryGroup(t, pool, "group", budgetID2).ID
+	budget2CategoryID := testutils.MakeCategory(t, pool, "group", budget2GroupID, budgetID2).ID
 
 	cleanup := func() {
 		pool.Exec(context.Background(), "truncate month_categories cascade; truncate transactions cascade;")
@@ -183,5 +188,22 @@ func TestMonthCategory(t *testing.T) {
 				Amount:     beans.NewAmount(0, 0),
 			},
 		))
+	})
+
+	t.Run("can get amount in budget", func(t *testing.T) {
+		defer cleanup()
+		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(7, 0)}
+		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month2.ID, CategoryID: categoryID2, Amount: beans.NewAmount(8, 0)}
+
+		monthCategory3 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: budget2Month.ID, CategoryID: budget2CategoryID, Amount: beans.NewAmount(9, 0)}
+
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory1))
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory2))
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory3))
+
+		amount, err := monthCategoryRepository.GetAmountInBudget(context.Background(), budgetID)
+		require.Nil(t, err)
+
+		assert.Equal(t, beans.NewAmount(15, 0), amount)
 	})
 }
