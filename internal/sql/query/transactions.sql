@@ -11,3 +11,11 @@ JOIN accounts
 LEFT JOIN categories
   ON categories.id = transactions.category_id;
 
+-- name: GetIncomeBeforeOrOnDate :one
+SELECT sum(transactions.amount)::numeric
+FROM transactions
+JOIN categories
+  ON categories.id = transactions.category_id
+  AND categories.is_income = true
+WHERE transactions.date <= $1;
+

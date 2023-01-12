@@ -40,6 +40,22 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
+const getIncomeBeforeOrOnDate = `-- name: GetIncomeBeforeOrOnDate :one
+SELECT sum(transactions.amount)::numeric
+FROM transactions
+JOIN categories
+  ON categories.id = transactions.category_id
+  AND categories.is_income = true
+WHERE transactions.date <= $1
+`
+
+func (q *Queries) GetIncomeBeforeOrOnDate(ctx context.Context, date time.Time) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, getIncomeBeforeOrOnDate, date)
+	var column_1 pgtype.Numeric
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
 SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, categories.name as category_name from transactions
 JOIN accounts

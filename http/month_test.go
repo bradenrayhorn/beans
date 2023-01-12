@@ -53,7 +53,7 @@ func TestMonth(t *testing.T) {
 
 	t.Run("get", func(t *testing.T) {
 		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Spent: beans.NewAmount(4, 0)}
-		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, nil)
+		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, beans.NewAmount(55, 0), nil)
 
 		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
 		res := testutils.HTTPWithOptions(t, sv.handleMonthGet(), options, user, budget, nil, http.StatusOK)
@@ -61,6 +61,10 @@ func TestMonth(t *testing.T) {
 		expected := fmt.Sprintf(`{"data": {
 			"id": "%s",
 			"date": "2022-05-01",
+			"budgetable": {
+				"coefficient": 55,
+				"exponent": 0
+			},
 			"categories": [
 				{
 					"id": "%s",

@@ -60,6 +60,13 @@ func MakeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.
 	return category
 }
 
+func MakeIncomeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) *beans.Category {
+	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name), IsIncome: true}
+	err := postgres.NewCategoryRepository(pool).Create(context.Background(), nil, category)
+	require.Nil(tb, err)
+	return category
+}
+
 func MakeMonthCategory(tb testing.TB, pool *pgxpool.Pool, monthID beans.ID, categoryID beans.ID, amount beans.Amount) *beans.MonthCategory {
 	category := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: amount}
 	err := postgres.NewMonthCategoryRepository(pool).Create(context.Background(), category)

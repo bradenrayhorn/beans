@@ -38,7 +38,7 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 
 	res, err := r.db.GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
 		FromDate: month.Date.Time(),
-		ToDate:   month.Date.Time().AddDate(0, 1, -month.Date.Time().Day()),
+		ToDate:   month.Date.LastDay().Time,
 		MonthID:  month.ID.String(),
 	})
 	if err != nil {
@@ -114,4 +114,18 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, monthID beans
 		CategoryID: categoryID,
 		Amount:     amount,
 	}, nil
+}
+
+func (r *monthCategoryRepository) GetAmountInBudget(ctx context.Context, budgetID beans.ID) (beans.Amount, error) {
+	res, err := r.db.GetAmountInBudget(ctx, budgetID.String())
+	if err != nil {
+		return beans.NewEmptyAmount(), err
+	}
+
+	amount, err := numericToAmount(res)
+	if err != nil {
+		return beans.NewEmptyAmount(), err
+	}
+
+	return amount, nil
 }

@@ -24,6 +24,10 @@ func (d MonthDate) Time() time.Time {
 	return d.date.Time
 }
 
+func (d MonthDate) LastDay() Date {
+	return NewDate(d.Time().AddDate(0, 1, -d.Time().Day()))
+}
+
 func NewMonthDate(date Date) MonthDate {
 	return MonthDate{date: NewDate(normalizeMonth(date.Time))}
 }
@@ -39,8 +43,8 @@ func normalizeMonth(date time.Time) time.Time {
 }
 
 type MonthContract interface {
-	// Gets a month and its categories.
-	Get(ctx context.Context, auth *BudgetAuthContext, monthID ID) (*Month, []*MonthCategory, error)
+	// Gets a month, its categories, and budgetable amount.
+	Get(ctx context.Context, auth *BudgetAuthContext, monthID ID) (*Month, []*MonthCategory, Amount, error)
 
 	// Creates a month in the budget with the provided date. If the month already exists, it is returned instead with no error.
 	CreateMonth(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (*Month, error)

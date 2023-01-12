@@ -9,27 +9,44 @@ import (
 type monthContract struct {
 	monthRepository         beans.MonthRepository
 	monthCategoryRepository beans.MonthCategoryRepository
+	transactionRepository   beans.TransactionRepository
 }
 
 func NewMonthContract(
 	monthRepository beans.MonthRepository,
 	monthCategoryRepository beans.MonthCategoryRepository,
+	transactionRepository beans.TransactionRepository,
 ) *monthContract {
-	return &monthContract{monthRepository, monthCategoryRepository}
+	return &monthContract{monthRepository, monthCategoryRepository, transactionRepository}
 }
 
-func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID) (*beans.Month, []*beans.MonthCategory, error) {
+func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID) (*beans.Month, []*beans.MonthCategory, beans.Amount, error) {
 	month, err := c.getAndVerifyMonth(ctx, auth, monthID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
 	categories, err := c.monthCategoryRepository.GetForMonth(ctx, month)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	return month, categories, nil
+	income, err := c.transactionRepository.GetIncomeBeforeOrOnDate(ctx, month.Date.LastDay())
+	if err != nil {
+		return nil, nil, beans.NewEmptyAmount(), err
+	}
+
+	amountInBudget, err := c.monthCategoryRepository.GetAmountInBudget(ctx, auth.BudgetID())
+	if err != nil {
+		return nil, nil, beans.NewEmptyAmount(), err
+	}
+
+	available, err := income.Subtract(amountInBudget)
+	if err != nil {
+		return nil, nil, beans.NewEmptyAmount(), err
+	}
+
+	return month, categories, available, nil
 }
 
 func (c *monthContract) CreateMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {

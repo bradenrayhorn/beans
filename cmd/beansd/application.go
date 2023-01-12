@@ -74,7 +74,7 @@ func (a *Application) Start() error {
 		contract.NewAccountContract(a.accountRepository),
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
 		contract.NewCategoryContract(a.categoryRepository),
-		contract.NewMonthContract(a.monthRepository, a.monthCategoryRepository),
+		contract.NewMonthContract(a.monthRepository, a.monthCategoryRepository, a.transactionRepository),
 		contract.NewTransactionContract(
 			a.transactionRepository,
 			a.accountRepository,

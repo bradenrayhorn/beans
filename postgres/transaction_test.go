@@ -25,6 +25,7 @@ func TestTransactions(t *testing.T) {
 	account := testutils.MakeAccount(t, pool, "account", budgetID)
 	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
 	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
+	incomeCategory := testutils.MakeIncomeCategory(t, pool, "category", categoryGroupID, budgetID)
 
 	cleanup := func() {
 		pool.Exec(context.Background(), "truncate transactions;")
@@ -102,5 +103,50 @@ func TestTransactions(t *testing.T) {
 		assert.Len(t, transactions, 2)
 		assert.True(t, transactions[0].CategoryID.Empty())
 		assert.True(t, transactions[1].CategoryID.Empty())
+	})
+
+	t.Run("can get income", func(t *testing.T) {
+		defer cleanup()
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(1, 0),
+			Date:       testutils.NewDate(t, "2022-09-01"),
+			CategoryID: incomeCategory.ID,
+		}))
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(2, 0),
+			Date:       testutils.NewDate(t, "2022-08-31"),
+			CategoryID: incomeCategory.ID,
+		}))
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(3, 0),
+			Date:       testutils.NewDate(t, "2022-03-01"),
+			CategoryID: incomeCategory.ID,
+		}))
+
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(99, 0),
+			Date:       testutils.NewDate(t, "2022-08-31"),
+			CategoryID: categoryID,
+		}))
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(99, 0),
+			Date:       testutils.NewDate(t, "2022-07-29"),
+			CategoryID: categoryID,
+		}))
+
+		amount, err := transactionRepository.GetIncomeBeforeOrOnDate(context.Background(), testutils.NewDate(t, "2022-08-31"))
+		require.Nil(t, err)
+
+		require.Equal(t, beans.NewAmount(5, 0), amount)
 	})
 }
