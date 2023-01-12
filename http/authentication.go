@@ -22,10 +22,15 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", session.UserID)
+		ctx = context.WithValue(ctx, "auth", beans.NewAuthContext(session.UserID))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func getUserID(r *http.Request) beans.ID {
 	return r.Context().Value("userID").(beans.ID)
+}
+
+func getAuth(r *http.Request) *beans.AuthContext {
+	return r.Context().Value("auth").(*beans.AuthContext)
 }

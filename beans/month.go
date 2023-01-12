@@ -40,13 +40,13 @@ func normalizeMonth(date time.Time) time.Time {
 
 type MonthContract interface {
 	// Gets a month and its categories.
-	Get(ctx context.Context, monthID ID) (*Month, []*MonthCategory, error)
+	Get(ctx context.Context, auth *BudgetAuthContext, monthID ID) (*Month, []*MonthCategory, error)
 
 	// Creates a month in the budget with the provided date. If the month already exists, it is returned instead with no error.
-	CreateMonth(ctx context.Context, budgetID ID, date MonthDate) (*Month, error)
+	CreateMonth(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (*Month, error)
 
-	// Sets the assigned amount on a category for a month. The user must have access to the month.
-	SetCategoryAmount(ctx context.Context, monthID ID, categoryID ID, amount Amount) error
+	// Sets the assigned amount on a category for a month.
+	SetCategoryAmount(ctx context.Context, auth *BudgetAuthContext, monthID ID, categoryID ID, amount Amount) error
 }
 
 type MonthRepository interface {

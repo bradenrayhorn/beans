@@ -30,7 +30,10 @@ func TestAccount(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.Create(context.Background(), beans.NewBeansID(), beans.Name(""))
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+
+			_, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
@@ -40,7 +43,7 @@ func TestAccount(t *testing.T) {
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 
-			account, err := c.Create(context.Background(), budget.ID, beans.Name("Account"))
+			account, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name("Account"))
 			require.Nil(t, err)
 
 			// account was returned
@@ -65,7 +68,7 @@ func TestAccount(t *testing.T) {
 			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
 			_ = testutils.MakeAccount(t, pool, "Account", budget2.ID)
 
-			accounts, err := c.GetAll(context.Background(), budget.ID)
+			accounts, err := c.GetAll(context.Background(), testutils.BudgetAuthContext(t, userID, budget))
 			require.Nil(t, err)
 			require.Len(t, accounts, 1)
 

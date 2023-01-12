@@ -23,7 +23,7 @@ func NewBudgetContract(
 	return &budgetContract{budgetRepository, categoryRepository, monthRepository, txManager}
 }
 
-func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID beans.ID) (*beans.Budget, error) {
+func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, name beans.Name) (*beans.Budget, error) {
 	if err := beans.ValidateFields(beans.Field("Budget name", name)); err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID bea
 	defer tx.Rollback(ctx)
 
 	// create budget
-	if err := c.budgetRepository.Create(ctx, tx, budgetID, name, userID); err != nil {
+	if err := c.budgetRepository.Create(ctx, tx, budgetID, name, auth.UserID()); err != nil {
 		return nil, err
 	}
 
@@ -82,13 +82,13 @@ func (c *budgetContract) Create(ctx context.Context, name beans.Name, userID bea
 	}, nil
 }
 
-func (c *budgetContract) Get(ctx context.Context, id beans.ID, userID beans.ID) (*beans.Budget, *beans.Month, error) {
+func (c *budgetContract) Get(ctx context.Context, auth *beans.AuthContext, id beans.ID) (*beans.Budget, *beans.Month, error) {
 	budget, err := c.budgetRepository.Get(ctx, id)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if !budget.UserHasAccess(userID) {
+	if !budget.UserHasAccess(auth.UserID()) {
 		return nil, nil, beans.ErrorNotFound
 	}
 
@@ -100,6 +100,6 @@ func (c *budgetContract) Get(ctx context.Context, id beans.ID, userID beans.ID) 
 	return budget, month, nil
 }
 
-func (c *budgetContract) GetAll(ctx context.Context, userID beans.ID) ([]*beans.Budget, error) {
-	return c.budgetRepository.GetBudgetsForUser(ctx, userID)
+func (c *budgetContract) GetAll(ctx context.Context, auth *beans.AuthContext) ([]*beans.Budget, error) {
+	return c.budgetRepository.GetBudgetsForUser(ctx, auth.UserID())
 }

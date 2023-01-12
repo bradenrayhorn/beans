@@ -16,7 +16,7 @@ func TestCategory(t *testing.T) {
 	sv := Server{categoryContract: contract}
 
 	user := &beans.User{ID: beans.NewBeansID()}
-	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
+	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
 	group := &beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Group1"}
 	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Category1", GroupID: group.ID}
 
@@ -30,7 +30,7 @@ func TestCategory(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateCategoryFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, category.GroupID, params.Arg2)
 		assert.Equal(t, "Category1", string(params.Arg3))
 	})
@@ -45,7 +45,7 @@ func TestCategory(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateGroupFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, "Group1", string(params.Arg2))
 	})
 

@@ -24,14 +24,14 @@ func (b *Budget) UserHasAccess(userID ID) bool {
 
 type BudgetContract interface {
 	// Creates a budget.
-	Create(ctx context.Context, name Name, userID ID) (*Budget, error)
+	Create(ctx context.Context, auth *AuthContext, name Name) (*Budget, error)
 
 	// Gets a budget and its latest month by the budget ID.
 	// Ensures the user has access to the budget.
-	Get(ctx context.Context, id ID, userID ID) (*Budget, *Month, error)
+	Get(ctx context.Context, auth *AuthContext, id ID) (*Budget, *Month, error)
 
 	// Gets all budgets accessible to the user.
-	GetAll(ctx context.Context, userID ID) ([]*Budget, error)
+	GetAll(ctx context.Context, auth *AuthContext) ([]*Budget, error)
 }
 
 type BudgetRepository interface {
