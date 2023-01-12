@@ -18,7 +18,7 @@
     "@chakra-ui/theme-tools": "2.0.16",
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.10.5",
-    "@tanstack/react-query": "4.21.0",
+    "@tanstack/react-query": "4.22.0",
     "@tanstack/react-table": "8.7.4",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
