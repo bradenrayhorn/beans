@@ -25,7 +25,7 @@ func NewTransactionContract(
 	return &TransactionContract{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository}
 }
 
-func (c *TransactionContract) Create(ctx context.Context, budgetID beans.ID, data beans.TransactionCreateParams) (*beans.Transaction, error) {
+func (c *TransactionContract) Create(ctx context.Context, auth *beans.BudgetAuthContext, data beans.TransactionCreateParams) (*beans.Transaction, error) {
 	if err := data.ValidateAll(); err != nil {
 		return nil, err
 	}
@@ -38,12 +38,12 @@ func (c *TransactionContract) Create(ctx context.Context, budgetID beans.ID, dat
 			return nil, err
 		}
 	}
-	if account.BudgetID != budgetID {
+	if account.BudgetID != auth.BudgetID() {
 		return nil, beans.NewError(beans.EINVALID, "Invalid Account ID")
 	}
 
 	if !data.CategoryID.Empty() {
-		if _, err = c.categoryRepository.GetSingleForBudget(ctx, data.CategoryID, budgetID); err != nil {
+		if _, err = c.categoryRepository.GetSingleForBudget(ctx, data.CategoryID, auth.BudgetID()); err != nil {
 			if errors.Is(err, beans.ErrorNotFound) {
 				return nil, beans.NewError(beans.EINVALID, "Invalid Category ID")
 			} else {
@@ -51,7 +51,7 @@ func (c *TransactionContract) Create(ctx context.Context, budgetID beans.ID, dat
 			}
 		}
 
-		month, err := c.monthRepository.GetOrCreate(ctx, budgetID, beans.NewMonthDate(data.Date))
+		month, err := c.monthRepository.GetOrCreate(ctx, auth.BudgetID(), beans.NewMonthDate(data.Date))
 		if err != nil {
 			return nil, err
 		}
@@ -79,6 +79,6 @@ func (c *TransactionContract) Create(ctx context.Context, budgetID beans.ID, dat
 	return transaction, nil
 }
 
-func (c *TransactionContract) GetAll(ctx context.Context, budgetID beans.ID) ([]*beans.Transaction, error) {
-	return c.transactionRepository.GetForBudget(ctx, budgetID)
+func (c *TransactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.Transaction, error) {
+	return c.transactionRepository.GetForBudget(ctx, auth.BudgetID())
 }

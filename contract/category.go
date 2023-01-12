@@ -16,16 +16,16 @@ func NewCategoryContract(
 	return &categoryContract{categoryRepository}
 }
 
-func (c *categoryContract) CreateCategory(ctx context.Context, budgetID beans.ID, groupID beans.ID, name beans.Name) (*beans.Category, error) {
+func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.BudgetAuthContext, groupID beans.ID, name beans.Name) (*beans.Category, error) {
 	if err := beans.ValidateFields(
-		beans.Field("Budget ID", beans.Required(budgetID)),
+		beans.Field("Budget ID", beans.Required(auth.BudgetID())),
 		beans.Field("Group ID", beans.Required(groupID)),
 		beans.Field("Name", name),
 	); err != nil {
 		return nil, err
 	}
 
-	groupExists, err := c.categoryRepository.GroupExists(ctx, budgetID, groupID)
+	groupExists, err := c.categoryRepository.GroupExists(ctx, auth.BudgetID(), groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (c *categoryContract) CreateCategory(ctx context.Context, budgetID beans.ID
 
 	category := &beans.Category{
 		ID:       beans.NewBeansID(),
-		BudgetID: budgetID,
+		BudgetID: auth.BudgetID(),
 		GroupID:  groupID,
 		Name:     name,
 	}
@@ -47,9 +47,9 @@ func (c *categoryContract) CreateCategory(ctx context.Context, budgetID beans.ID
 	return category, nil
 }
 
-func (c *categoryContract) CreateGroup(ctx context.Context, budgetID beans.ID, name beans.Name) (*beans.CategoryGroup, error) {
+func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (*beans.CategoryGroup, error) {
 	if err := beans.ValidateFields(
-		beans.Field("Budget ID", beans.Required(budgetID)),
+		beans.Field("Budget ID", beans.Required(auth.BudgetID())),
 		beans.Field("Name", name),
 	); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *categoryContract) CreateGroup(ctx context.Context, budgetID beans.ID, n
 
 	group := &beans.CategoryGroup{
 		ID:       beans.NewBeansID(),
-		BudgetID: budgetID,
+		BudgetID: auth.BudgetID(),
 		Name:     name,
 	}
 
@@ -68,13 +68,13 @@ func (c *categoryContract) CreateGroup(ctx context.Context, budgetID beans.ID, n
 	return group, nil
 }
 
-func (c *categoryContract) GetAll(ctx context.Context, budgetID beans.ID) ([]*beans.CategoryGroup, []*beans.Category, error) {
-	groups, err := c.categoryRepository.GetGroupsForBudget(ctx, budgetID)
+func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
+	groups, err := c.categoryRepository.GetGroupsForBudget(ctx, auth.BudgetID())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	categories, err := c.categoryRepository.GetForBudget(ctx, budgetID)
+	categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
 	if err != nil {
 		return nil, nil, err
 	}

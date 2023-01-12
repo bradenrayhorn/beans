@@ -33,7 +33,7 @@ func (s *Server) handleAccountCreate() http.HandlerFunc {
 			return
 		}
 
-		account, err := s.accountContract.Create(r.Context(), getBudget(r).ID, req.Name)
+		account, err := s.accountContract.Create(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -52,7 +52,7 @@ func (s *Server) handleAccountsGet() http.HandlerFunc {
 		Data []responseAccount `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		accounts, err := s.accountContract.GetAll(r.Context(), getBudget(r).ID)
+		accounts, err := s.accountContract.GetAll(r.Context(), getBudgetAuth(r))
 
 		if err != nil {
 			Error(w, err)

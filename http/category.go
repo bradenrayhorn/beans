@@ -47,7 +47,7 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 			return
 		}
 
-		category, err := s.categoryContract.CreateCategory(r.Context(), getBudget(r).ID, req.GroupID, req.Name)
+		category, err := s.categoryContract.CreateCategory(r.Context(), getBudgetAuth(r), req.GroupID, req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -72,7 +72,7 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 			return
 		}
 
-		group, err := s.categoryContract.CreateGroup(r.Context(), getBudget(r).ID, req.Name)
+		group, err := s.categoryContract.CreateGroup(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -88,9 +88,7 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		budgetID := getBudget(r).ID
-
-		groups, categories, err := s.categoryContract.GetAll(r.Context(), budgetID)
+		groups, categories, err := s.categoryContract.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return

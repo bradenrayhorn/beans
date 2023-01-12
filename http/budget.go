@@ -28,7 +28,7 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 			return
 		}
 
-		budget, err := s.budgetContract.Create(r.Context(), req.Name, getUserID(r))
+		budget, err := s.budgetContract.Create(r.Context(), getAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -43,7 +43,7 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 		Data []responseBudget `json:"data"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		budgets, err := s.budgetContract.GetAll(r.Context(), getUserID(r))
+		budgets, err := s.budgetContract.GetAll(r.Context(), getAuth(r))
 
 		if err != nil {
 			Error(w, err)
@@ -74,7 +74,7 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		budget, latestMonth, err := s.budgetContract.Get(r.Context(), budgetID, getUserID(r))
+		budget, latestMonth, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -93,38 +93,34 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 
 func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		budget := s.getBudget(r.Header.Get("Budget-ID"), w, r)
-		if budget == nil {
+		budgetID, err := beans.BeansIDFromString(r.Header.Get("Budget-ID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		budget, err := s.budgetRepository.Get(r.Context(), budgetID)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		auth, err := beans.NewBudgetAuthContext(getAuth(r), budget)
+		if err != nil {
+			Error(w, err)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "budget", budget)
+		ctx = context.WithValue(ctx, "budget_auth", auth)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (s *Server) getBudget(id string, w http.ResponseWriter, r *http.Request) *beans.Budget {
-	budgetID, err := beans.BeansIDFromString(id)
-	if err != nil {
-		Error(w, beans.WrapError(err, beans.ErrorNotFound))
-		return nil
-	}
-
-	budget, err := s.budgetRepository.Get(r.Context(), budgetID)
-
-	if err != nil {
-		Error(w, err)
-		return nil
-	}
-
-	if !budget.UserHasAccess(getUserID(r)) {
-		Error(w, beans.ErrorNotFound)
-		return nil
-	}
-
-	return budget
-}
-
 func getBudget(r *http.Request) *beans.Budget {
 	return r.Context().Value("budget").(*beans.Budget)
+}
+
+func getBudgetAuth(r *http.Request) *beans.BudgetAuthContext {
+	return r.Context().Value("budget_auth").(*beans.BudgetAuthContext)
 }

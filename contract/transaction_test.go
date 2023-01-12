@@ -37,8 +37,9 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			_, err := c.Create(context.Background(), budget.ID, beans.TransactionCreateParams{})
+			_, err := c.Create(context.Background(), auth, beans.TransactionCreateParams{})
 			testutils.AssertError(t, err, "Account ID is required. Amount is required. Date is required.")
 		})
 
@@ -47,6 +48,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 
 			params := beans.TransactionCreateParams{
@@ -54,7 +56,7 @@ func TestTransaction(t *testing.T) {
 				Amount:    beans.NewAmount(10, -3),
 				Date:      beans.NewDate(time.Now()),
 			}
-			_, err := c.Create(context.Background(), budget.ID, params)
+			_, err := c.Create(context.Background(), auth, params)
 			testutils.AssertError(t, err, "Amount must have at most 2 decimal points.")
 		})
 
@@ -63,6 +65,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
@@ -76,7 +79,7 @@ func TestTransaction(t *testing.T) {
 			}
 
 			// transaction was returned
-			transaction, err := c.Create(context.Background(), budget.ID, params)
+			transaction, err := c.Create(context.Background(), auth, params)
 			require.Nil(t, err)
 			require.Equal(t, params.AccountID, transaction.AccountID)
 			require.Equal(t, params.CategoryID, transaction.CategoryID)
@@ -111,6 +114,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 
 			params := beans.TransactionCreateParams{
@@ -120,7 +124,7 @@ func TestTransaction(t *testing.T) {
 			}
 
 			// transaction was returned
-			transaction, err := c.Create(context.Background(), budget.ID, params)
+			transaction, err := c.Create(context.Background(), auth, params)
 			require.Nil(t, err)
 			require.Equal(t, params.AccountID, transaction.AccountID)
 			require.Equal(t, params.CategoryID, transaction.CategoryID)
@@ -146,6 +150,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			params := beans.TransactionCreateParams{
 				AccountID: beans.NewBeansID(),
@@ -153,7 +158,7 @@ func TestTransaction(t *testing.T) {
 				Date:      testutils.NewDate(t, "2022-06-07"),
 			}
 
-			_, err := c.Create(context.Background(), budget.ID, params)
+			_, err := c.Create(context.Background(), auth, params)
 			testutils.AssertError(t, err, "Invalid Account ID")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
@@ -163,6 +168,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			budget2 := testutils.MakeBudget(t, pool, "budget", userID)
 			account2 := testutils.MakeAccount(t, pool, "account", budget2.ID)
@@ -173,7 +179,7 @@ func TestTransaction(t *testing.T) {
 				Date:      testutils.NewDate(t, "2022-06-07"),
 			}
 
-			_, err := c.Create(context.Background(), budget.ID, params)
+			_, err := c.Create(context.Background(), auth, params)
 			testutils.AssertError(t, err, "Invalid Account ID")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
@@ -183,6 +189,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 
 			params := beans.TransactionCreateParams{
@@ -192,7 +199,7 @@ func TestTransaction(t *testing.T) {
 				CategoryID: beans.NewBeansID(),
 			}
 
-			_, err := c.Create(context.Background(), budget.ID, params)
+			_, err := c.Create(context.Background(), auth, params)
 			testutils.AssertError(t, err, "Invalid Category ID")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
@@ -204,6 +211,7 @@ func TestTransaction(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
@@ -221,7 +229,7 @@ func TestTransaction(t *testing.T) {
 			}
 			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
 
-			transactions, err := c.GetAll(context.Background(), budget.ID)
+			transactions, err := c.GetAll(context.Background(), auth)
 			require.Nil(t, err)
 			require.Len(t, transactions, 1)
 

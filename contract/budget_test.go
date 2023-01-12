@@ -37,7 +37,7 @@ func TestBudget(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.Create(context.Background(), beans.Name(""), beans.NewBeansID())
+			_, err := c.Create(context.Background(), beans.NewAuthContext(beans.NewBeansID()), beans.Name(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
@@ -46,7 +46,7 @@ func TestBudget(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 
-			budget, err := c.Create(context.Background(), beans.Name("Test"), userID)
+			budget, err := c.Create(context.Background(), beans.NewAuthContext(userID), beans.Name("Test"))
 			require.Nil(t, err)
 
 			// budget was returned
@@ -82,7 +82,7 @@ func TestBudget(t *testing.T) {
 			defer cleanup()
 			userID := testutils.MakeUser(t, pool, "user")
 
-			_, _, err := c.Get(context.Background(), beans.NewBeansID(), userID)
+			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID), beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -93,7 +93,7 @@ func TestBudget(t *testing.T) {
 
 			budget := testutils.MakeBudget(t, pool, "Budget", userID1)
 
-			_, _, err := c.Get(context.Background(), budget.ID, userID2)
+			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID2), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -103,7 +103,7 @@ func TestBudget(t *testing.T) {
 
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 
-			_, _, err := c.Get(context.Background(), budget.ID, userID)
+			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.EINTERNAL)
 		})
 
@@ -113,7 +113,7 @@ func TestBudget(t *testing.T) {
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
 
-			rBudget, rMonth, err := c.Get(context.Background(), budget.ID, userID)
+			rBudget, rMonth, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
 			require.Nil(t, err)
 			assert.True(t, reflect.DeepEqual(budget, rBudget))
 			assert.True(t, reflect.DeepEqual(month, rMonth))
@@ -129,7 +129,7 @@ func TestBudget(t *testing.T) {
 			userID2 := testutils.MakeUser(t, pool, "user")
 			_ = testutils.MakeBudget(t, pool, "Budget", userID2)
 
-			budgets, err := c.GetAll(context.Background(), userID)
+			budgets, err := c.GetAll(context.Background(), beans.NewAuthContext(userID))
 			require.Nil(t, err)
 			require.Len(t, budgets, 1)
 

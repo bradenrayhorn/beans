@@ -54,7 +54,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
-		transaction, err := s.transactionContract.Create(r.Context(), getBudget(r).ID, beans.TransactionCreateParams{
+		transaction, err := s.transactionContract.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
 			AccountID:  req.AccountID,
 			CategoryID: req.CategoryID,
 			Amount:     req.Amount,
@@ -81,7 +81,7 @@ func (s *Server) handleTransactionGetAll() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		transactions, err := s.transactionContract.GetAll(r.Context(), getBudget(r).ID)
+		transactions, err := s.transactionContract.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return

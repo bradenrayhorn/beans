@@ -18,13 +18,13 @@ type CategoryGroup struct {
 
 type CategoryContract interface {
 	// Creates a category.
-	CreateCategory(ctx context.Context, budgetID ID, groupID ID, name Name) (*Category, error)
+	CreateCategory(ctx context.Context, auth *BudgetAuthContext, groupID ID, name Name) (*Category, error)
 
 	// Creates a category group.
-	CreateGroup(ctx context.Context, budgetID ID, name Name) (*CategoryGroup, error)
+	CreateGroup(ctx context.Context, auth *BudgetAuthContext, name Name) (*CategoryGroup, error)
 
 	// Gets all categories and groups for a budget.
-	GetAll(ctx context.Context, budgetID ID) ([]*CategoryGroup, []*Category, error)
+	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*CategoryGroup, []*Category, error)
 }
 
 type CategoryRepository interface {

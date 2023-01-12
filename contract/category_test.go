@@ -30,7 +30,11 @@ func TestCategory(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.CreateCategory(context.Background(), beans.NewBeansID(), beans.NewBeansID(), beans.Name(""))
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			_, err := c.CreateCategory(context.Background(), auth, beans.NewBeansID(), beans.Name(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
@@ -39,8 +43,9 @@ func TestCategory(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			_, err := c.CreateCategory(context.Background(), budget.ID, beans.NewBeansID(), beans.Name("Category"))
+			_, err := c.CreateCategory(context.Background(), auth, beans.NewBeansID(), beans.Name("Category"))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
@@ -49,9 +54,10 @@ func TestCategory(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
 
-			category, err := c.CreateCategory(context.Background(), budget.ID, group.ID, beans.Name("Category"))
+			category, err := c.CreateCategory(context.Background(), auth, group.ID, beans.Name("Category"))
 			require.Nil(t, err)
 
 			// category was returned
@@ -73,6 +79,7 @@ func TestCategory(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
 			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
 
@@ -80,7 +87,7 @@ func TestCategory(t *testing.T) {
 			_ = testutils.MakeCategoryGroup(t, pool, "Group", budget2.ID)
 			_ = testutils.MakeCategory(t, pool, "Category", group.ID, budget2.ID)
 
-			groups, categories, err := c.GetAll(context.Background(), budget.ID)
+			groups, categories, err := c.GetAll(context.Background(), auth)
 			require.Nil(t, err)
 			require.Len(t, groups, 1)
 			require.Len(t, categories, 1)

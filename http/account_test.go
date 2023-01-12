@@ -16,7 +16,7 @@ func TestAccount(t *testing.T) {
 	sv := Server{accountContract: contract}
 
 	user := &beans.User{ID: beans.NewBeansID()}
-	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
+	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
 	account := &beans.Account{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Account1"}
 
 	t.Run("create", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestAccount(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, account.Name, params.Arg2)
 	})
 

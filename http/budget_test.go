@@ -29,8 +29,8 @@ func TestBudget(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateFunc.History()[0]
-		assert.Equal(t, user.ID, params.Arg2)
-		assert.Equal(t, budget.Name, params.Arg1)
+		assert.Equal(t, user.ID, params.Arg1.UserID())
+		assert.Equal(t, budget.Name, params.Arg2)
 	})
 
 	t.Run("get", func(t *testing.T) {

@@ -11,10 +11,10 @@ type Account struct {
 
 type AccountContract interface {
 	// Creates an account.
-	Create(ctx context.Context, budgetID ID, name Name) (*Account, error)
+	Create(ctx context.Context, auth *BudgetAuthContext, name Name) (*Account, error)
 
 	// Gets all accounts associated with the budget.
-	GetAll(ctx context.Context, budgetID ID) ([]*Account, error)
+	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Account, error)
 }
 
 type AccountRepository interface {

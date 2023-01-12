@@ -119,8 +119,6 @@ func NewServer(
 				r.Post("/", s.handleMonthCreate())
 
 				r.Route("/{monthID}", func(r chi.Router) {
-					r.Use(s.validateMonth)
-
 					r.Get("/", s.handleMonthGet())
 					r.Post("/categories", s.handleMonthCategoryUpdate())
 				})

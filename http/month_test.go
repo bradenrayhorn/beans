@@ -16,7 +16,7 @@ func TestMonth(t *testing.T) {
 	sv := Server{monthContract: contract}
 
 	user := &beans.User{ID: beans.NewBeansID()}
-	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
+	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
 	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: testutils.NewMonthDate(t, "2022-05-01")}
 
 	t.Run("create month", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestMonth(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateMonthFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, month.Date, params.Arg2)
 	})
 
@@ -39,22 +39,23 @@ func TestMonth(t *testing.T) {
 		categoryID := beans.NewBeansID()
 
 		req := fmt.Sprintf(`{"category_id":"%s","amount":34}`, categoryID)
-		options := &testutils.HTTPOptions{ContextValues: map[string]any{"month": month}}
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
 		res := testutils.HTTPWithOptions(t, sv.handleMonthCategoryUpdate(), options, user, budget, req, http.StatusOK)
 
 		assert.Empty(t, res)
 
 		params := contract.SetCategoryAmountFunc.History()[0]
-		assert.Equal(t, month.ID, params.Arg1)
-		assert.Equal(t, categoryID, params.Arg2)
-		assert.Equal(t, beans.NewAmount(34, 0), params.Arg3)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
+		assert.Equal(t, month.ID, params.Arg2)
+		assert.Equal(t, categoryID, params.Arg3)
+		assert.Equal(t, beans.NewAmount(34, 0), params.Arg4)
 	})
 
 	t.Run("get", func(t *testing.T) {
 		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Spent: beans.NewAmount(4, 0)}
 		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, nil)
 
-		options := &testutils.HTTPOptions{ContextValues: map[string]any{"month": month}}
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
 		res := testutils.HTTPWithOptions(t, sv.handleMonthGet(), options, user, budget, nil, http.StatusOK)
 
 		expected := fmt.Sprintf(`{"data": {

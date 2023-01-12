@@ -35,6 +35,15 @@ func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, use
 	req = req.WithContext(context.WithValue(req.Context(), "budget", budget))
 	req = req.WithContext(context.WithValue(req.Context(), "userID", user.ID))
 
+	auth := beans.NewAuthContext(user.ID)
+	req = req.WithContext(context.WithValue(req.Context(), "auth", beans.NewAuthContext(user.ID)))
+
+	if budget != nil {
+		budgetAuth, err := beans.NewBudgetAuthContext(auth, budget)
+		require.Nil(t, err)
+		req = req.WithContext(context.WithValue(req.Context(), "budget_auth", budgetAuth))
+	}
+
 	if options != nil {
 		rctx := chi.NewRouteContext()
 		for k, v := range options.URLParams {

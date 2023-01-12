@@ -16,7 +16,7 @@ func TestTransaction(t *testing.T) {
 	sv := Server{transactionContract: contract}
 
 	user := &beans.User{ID: beans.NewBeansID()}
-	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1"}
+	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
 	account := &beans.Account{ID: beans.NewBeansID(), Name: "Accounty", BudgetID: budget.ID}
 	category := &beans.Category{ID: beans.NewBeansID(), Name: "Cool Category", BudgetID: budget.ID, GroupID: beans.NewBeansID()}
 
@@ -42,7 +42,7 @@ func TestTransaction(t *testing.T) {
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1)
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, beans.TransactionCreateParams{
 			AccountID:  transaction.AccountID,
 			CategoryID: transaction.CategoryID,

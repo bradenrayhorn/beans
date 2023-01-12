@@ -189,7 +189,7 @@ func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.
 		ta.application.MonthRepository(),
 		ta.application.TxManager(),
 	)
-	budget, err := c.Create(context.Background(), beans.Name(name), user.ID)
+	budget, err := c.Create(context.Background(), beans.NewAuthContext(user.ID), beans.Name(name))
 	require.Nil(tb, err)
 	return budget
 }

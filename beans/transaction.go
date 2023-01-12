@@ -28,10 +28,10 @@ func NewTransactionNotes(string string) TransactionNotes {
 
 type TransactionContract interface {
 	// Creates a transaction. Attaches Account field.
-	Create(ctx context.Context, budgetID ID, params TransactionCreateParams) (*Transaction, error)
+	Create(ctx context.Context, auth *BudgetAuthContext, params TransactionCreateParams) (*Transaction, error)
 
 	// Gets all transactions for budget. Attaches Account, CategoryName fields.
-	GetAll(ctx context.Context, budgetID ID) ([]*Transaction, error)
+	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Transaction, error)
 }
 
 type TransactionRepository interface {
