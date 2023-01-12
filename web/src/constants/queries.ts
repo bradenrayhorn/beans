@@ -167,7 +167,7 @@ const buildQueries = (client: KyInstance) => {
       }: {
         accountID: string;
         categoryID?: string;
-        amount: string;
+        amount: number;
         date: string;
         notes?: string;
       }) =>

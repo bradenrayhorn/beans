@@ -25,9 +25,14 @@ export const useAddTransaction = () => {
 
   const submit = useCallback(
     (values: AddTransactionData) =>
-      mutation.mutateAsync(values).then(() => {
-        queryClient.invalidateQueries([queryKeys.transactions.getAll]);
-      }),
+      mutation
+        .mutateAsync({
+          ...values,
+          amount: +values.amount.replace(/,/g, ""),
+        })
+        .then(() => {
+          queryClient.invalidateQueries([queryKeys.transactions.getAll]);
+        }),
     [budgetID]
   );
 
