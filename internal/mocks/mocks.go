@@ -5273,6 +5273,9 @@ type MockTransactionContract struct {
 	// GetAllFunc is an instance of a mock function object controlling the
 	// behavior of the method GetAll.
 	GetAllFunc *TransactionContractGetAllFunc
+	// UpdateFunc is an instance of a mock function object controlling the
+	// behavior of the method Update.
+	UpdateFunc *TransactionContractUpdateFunc
 }
 
 // NewMockTransactionContract creates a new mock of the TransactionContract
@@ -5287,6 +5290,11 @@ func NewMockTransactionContract() *MockTransactionContract {
 		},
 		GetAllFunc: &TransactionContractGetAllFunc{
 			defaultHook: func(context.Context, *beans.BudgetAuthContext) (r0 []*beans.Transaction, r1 error) {
+				return
+			},
+		},
+		UpdateFunc: &TransactionContractUpdateFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) (r0 error) {
 				return
 			},
 		},
@@ -5308,6 +5316,11 @@ func NewStrictMockTransactionContract() *MockTransactionContract {
 				panic("unexpected invocation of MockTransactionContract.GetAll")
 			},
 		},
+		UpdateFunc: &TransactionContractUpdateFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error {
+				panic("unexpected invocation of MockTransactionContract.Update")
+			},
+		},
 	}
 }
 
@@ -5321,6 +5334,9 @@ func NewMockTransactionContractFrom(i beans.TransactionContract) *MockTransactio
 		},
 		GetAllFunc: &TransactionContractGetAllFunc{
 			defaultHook: i.GetAll,
+		},
+		UpdateFunc: &TransactionContractUpdateFunc{
+			defaultHook: i.Update,
 		},
 	}
 }
@@ -5544,6 +5560,114 @@ func (c TransactionContractGetAllFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
+// TransactionContractUpdateFunc describes the behavior when the Update
+// method of the parent MockTransactionContract instance is invoked.
+type TransactionContractUpdateFunc struct {
+	defaultHook func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error
+	hooks       []func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error
+	history     []TransactionContractUpdateFuncCall
+	mutex       sync.Mutex
+}
+
+// Update delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTransactionContract) Update(v0 context.Context, v1 *beans.BudgetAuthContext, v2 beans.TransactionUpdateParams) error {
+	r0 := m.UpdateFunc.nextHook()(v0, v1, v2)
+	m.UpdateFunc.appendCall(TransactionContractUpdateFuncCall{v0, v1, v2, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Update method of the
+// parent MockTransactionContract instance is invoked and the hook queue is
+// empty.
+func (f *TransactionContractUpdateFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Update method of the parent MockTransactionContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *TransactionContractUpdateFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TransactionContractUpdateFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TransactionContractUpdateFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error {
+		return r0
+	})
+}
+
+func (f *TransactionContractUpdateFunc) nextHook() func(context.Context, *beans.BudgetAuthContext, beans.TransactionUpdateParams) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TransactionContractUpdateFunc) appendCall(r0 TransactionContractUpdateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TransactionContractUpdateFuncCall objects
+// describing the invocations of this function.
+func (f *TransactionContractUpdateFunc) History() []TransactionContractUpdateFuncCall {
+	f.mutex.Lock()
+	history := make([]TransactionContractUpdateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TransactionContractUpdateFuncCall is an object that describes an
+// invocation of method Update on an instance of MockTransactionContract.
+type TransactionContractUpdateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.BudgetAuthContext
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.TransactionUpdateParams
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TransactionContractUpdateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TransactionContractUpdateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
 // MockTransactionRepository is a mock implementation of the
 // TransactionRepository interface (from the package
 // github.com/bradenrayhorn/beans/beans) used for unit testing.
@@ -5551,12 +5675,18 @@ type MockTransactionRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *TransactionRepositoryCreateFunc
+	// GetFunc is an instance of a mock function object controlling the
+	// behavior of the method Get.
+	GetFunc *TransactionRepositoryGetFunc
 	// GetForBudgetFunc is an instance of a mock function object controlling
 	// the behavior of the method GetForBudget.
 	GetForBudgetFunc *TransactionRepositoryGetForBudgetFunc
 	// GetIncomeBeforeOrOnDateFunc is an instance of a mock function object
 	// controlling the behavior of the method GetIncomeBeforeOrOnDate.
 	GetIncomeBeforeOrOnDateFunc *TransactionRepositoryGetIncomeBeforeOrOnDateFunc
+	// UpdateFunc is an instance of a mock function object controlling the
+	// behavior of the method Update.
+	UpdateFunc *TransactionRepositoryUpdateFunc
 }
 
 // NewMockTransactionRepository creates a new mock of the
@@ -5569,6 +5699,11 @@ func NewMockTransactionRepository() *MockTransactionRepository {
 				return
 			},
 		},
+		GetFunc: &TransactionRepositoryGetFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.Transaction, r1 error) {
+				return
+			},
+		},
 		GetForBudgetFunc: &TransactionRepositoryGetForBudgetFunc{
 			defaultHook: func(context.Context, beans.ID) (r0 []*beans.Transaction, r1 error) {
 				return
@@ -5576,6 +5711,11 @@ func NewMockTransactionRepository() *MockTransactionRepository {
 		},
 		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
 			defaultHook: func(context.Context, beans.Date) (r0 beans.Amount, r1 error) {
+				return
+			},
+		},
+		UpdateFunc: &TransactionRepositoryUpdateFunc{
+			defaultHook: func(context.Context, *beans.Transaction) (r0 error) {
 				return
 			},
 		},
@@ -5592,6 +5732,11 @@ func NewStrictMockTransactionRepository() *MockTransactionRepository {
 				panic("unexpected invocation of MockTransactionRepository.Create")
 			},
 		},
+		GetFunc: &TransactionRepositoryGetFunc{
+			defaultHook: func(context.Context, beans.ID) (*beans.Transaction, error) {
+				panic("unexpected invocation of MockTransactionRepository.Get")
+			},
+		},
 		GetForBudgetFunc: &TransactionRepositoryGetForBudgetFunc{
 			defaultHook: func(context.Context, beans.ID) ([]*beans.Transaction, error) {
 				panic("unexpected invocation of MockTransactionRepository.GetForBudget")
@@ -5600,6 +5745,11 @@ func NewStrictMockTransactionRepository() *MockTransactionRepository {
 		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
 			defaultHook: func(context.Context, beans.Date) (beans.Amount, error) {
 				panic("unexpected invocation of MockTransactionRepository.GetIncomeBeforeOrOnDate")
+			},
+		},
+		UpdateFunc: &TransactionRepositoryUpdateFunc{
+			defaultHook: func(context.Context, *beans.Transaction) error {
+				panic("unexpected invocation of MockTransactionRepository.Update")
 			},
 		},
 	}
@@ -5613,11 +5763,17 @@ func NewMockTransactionRepositoryFrom(i beans.TransactionRepository) *MockTransa
 		CreateFunc: &TransactionRepositoryCreateFunc{
 			defaultHook: i.Create,
 		},
+		GetFunc: &TransactionRepositoryGetFunc{
+			defaultHook: i.Get,
+		},
 		GetForBudgetFunc: &TransactionRepositoryGetForBudgetFunc{
 			defaultHook: i.GetForBudget,
 		},
 		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
 			defaultHook: i.GetIncomeBeforeOrOnDate,
+		},
+		UpdateFunc: &TransactionRepositoryUpdateFunc{
+			defaultHook: i.Update,
 		},
 	}
 }
@@ -5725,6 +5881,114 @@ func (c TransactionRepositoryCreateFuncCall) Args() []interface{} {
 // invocation.
 func (c TransactionRepositoryCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
+}
+
+// TransactionRepositoryGetFunc describes the behavior when the Get method
+// of the parent MockTransactionRepository instance is invoked.
+type TransactionRepositoryGetFunc struct {
+	defaultHook func(context.Context, beans.ID) (*beans.Transaction, error)
+	hooks       []func(context.Context, beans.ID) (*beans.Transaction, error)
+	history     []TransactionRepositoryGetFuncCall
+	mutex       sync.Mutex
+}
+
+// Get delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTransactionRepository) Get(v0 context.Context, v1 beans.ID) (*beans.Transaction, error) {
+	r0, r1 := m.GetFunc.nextHook()(v0, v1)
+	m.GetFunc.appendCall(TransactionRepositoryGetFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the Get method of the
+// parent MockTransactionRepository instance is invoked and the hook queue
+// is empty.
+func (f *TransactionRepositoryGetFunc) SetDefaultHook(hook func(context.Context, beans.ID) (*beans.Transaction, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Get method of the parent MockTransactionRepository instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *TransactionRepositoryGetFunc) PushHook(hook func(context.Context, beans.ID) (*beans.Transaction, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TransactionRepositoryGetFunc) SetDefaultReturn(r0 *beans.Transaction, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) (*beans.Transaction, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TransactionRepositoryGetFunc) PushReturn(r0 *beans.Transaction, r1 error) {
+	f.PushHook(func(context.Context, beans.ID) (*beans.Transaction, error) {
+		return r0, r1
+	})
+}
+
+func (f *TransactionRepositoryGetFunc) nextHook() func(context.Context, beans.ID) (*beans.Transaction, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TransactionRepositoryGetFunc) appendCall(r0 TransactionRepositoryGetFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TransactionRepositoryGetFuncCall objects
+// describing the invocations of this function.
+func (f *TransactionRepositoryGetFunc) History() []TransactionRepositoryGetFuncCall {
+	f.mutex.Lock()
+	history := make([]TransactionRepositoryGetFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TransactionRepositoryGetFuncCall is an object that describes an
+// invocation of method Get on an instance of MockTransactionRepository.
+type TransactionRepositoryGetFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Transaction
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TransactionRepositoryGetFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TransactionRepositoryGetFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
 }
 
 // TransactionRepositoryGetForBudgetFunc describes the behavior when the
@@ -5948,6 +6212,111 @@ func (c TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall) Args() []interface
 // invocation.
 func (c TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
+}
+
+// TransactionRepositoryUpdateFunc describes the behavior when the Update
+// method of the parent MockTransactionRepository instance is invoked.
+type TransactionRepositoryUpdateFunc struct {
+	defaultHook func(context.Context, *beans.Transaction) error
+	hooks       []func(context.Context, *beans.Transaction) error
+	history     []TransactionRepositoryUpdateFuncCall
+	mutex       sync.Mutex
+}
+
+// Update delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTransactionRepository) Update(v0 context.Context, v1 *beans.Transaction) error {
+	r0 := m.UpdateFunc.nextHook()(v0, v1)
+	m.UpdateFunc.appendCall(TransactionRepositoryUpdateFuncCall{v0, v1, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Update method of the
+// parent MockTransactionRepository instance is invoked and the hook queue
+// is empty.
+func (f *TransactionRepositoryUpdateFunc) SetDefaultHook(hook func(context.Context, *beans.Transaction) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Update method of the parent MockTransactionRepository instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *TransactionRepositoryUpdateFunc) PushHook(hook func(context.Context, *beans.Transaction) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TransactionRepositoryUpdateFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, *beans.Transaction) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TransactionRepositoryUpdateFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, *beans.Transaction) error {
+		return r0
+	})
+}
+
+func (f *TransactionRepositoryUpdateFunc) nextHook() func(context.Context, *beans.Transaction) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TransactionRepositoryUpdateFunc) appendCall(r0 TransactionRepositoryUpdateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TransactionRepositoryUpdateFuncCall objects
+// describing the invocations of this function.
+func (f *TransactionRepositoryUpdateFunc) History() []TransactionRepositoryUpdateFuncCall {
+	f.mutex.Lock()
+	history := make([]TransactionRepositoryUpdateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TransactionRepositoryUpdateFuncCall is an object that describes an
+// invocation of method Update on an instance of MockTransactionRepository.
+type TransactionRepositoryUpdateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.Transaction
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TransactionRepositoryUpdateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TransactionRepositoryUpdateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
 }
 
 // MockTx is a mock implementation of the Tx interface (from the package

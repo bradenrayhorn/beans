@@ -79,6 +79,69 @@ func (c *TransactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 	return transaction, nil
 }
 
+func (c *TransactionContract) Update(ctx context.Context, auth *beans.BudgetAuthContext, data beans.TransactionUpdateParams) error {
+	if err := data.ValidateAll(); err != nil {
+		return err
+	}
+
+	transaction, err := c.transactionRepository.Get(ctx, data.ID)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return beans.NewError(beans.EINVALID, "Invalid Transaction ID")
+		}
+
+		return err
+	}
+
+	if transaction.Account.BudgetID != auth.BudgetID() {
+		return beans.NewError(beans.EINVALID, "Invalid Transaction ID")
+	}
+
+	account, err := c.accountRepository.Get(ctx, data.AccountID)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return beans.NewError(beans.EINVALID, "Invalid Account ID")
+		}
+
+		return err
+	}
+	if account.BudgetID != auth.BudgetID() {
+		return beans.NewError(beans.EINVALID, "Invalid Account ID")
+	}
+
+	if !data.CategoryID.Empty() {
+		if _, err = c.categoryRepository.GetSingleForBudget(ctx, data.CategoryID, auth.BudgetID()); err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Category ID")
+			} else {
+				return err
+			}
+		}
+
+		month, err := c.monthRepository.GetOrCreate(ctx, auth.BudgetID(), beans.NewMonthDate(data.Date))
+		if err != nil {
+			return err
+		}
+
+		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
+			return err
+		}
+	}
+
+	transaction.AccountID = data.AccountID
+	transaction.CategoryID = data.CategoryID
+	transaction.Amount = data.Amount
+	transaction.Date = data.Date
+	transaction.Notes = data.Notes
+
+	err = c.transactionRepository.Update(ctx, transaction)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *TransactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.Transaction, error) {
 	return c.transactionRepository.GetForBudget(ctx, auth.BudgetID())
 }

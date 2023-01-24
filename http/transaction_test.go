@@ -44,11 +44,34 @@ func TestTransaction(t *testing.T) {
 		params := contract.CreateFunc.History()[0]
 		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, beans.TransactionCreateParams{
-			AccountID:  transaction.AccountID,
-			CategoryID: transaction.CategoryID,
-			Amount:     transaction.Amount,
-			Date:       transaction.Date,
-			Notes:      transaction.Notes,
+			TransactionParams: beans.TransactionParams{
+				AccountID:  transaction.AccountID,
+				CategoryID: transaction.CategoryID,
+				Amount:     transaction.Amount,
+				Date:       transaction.Date,
+				Notes:      transaction.Notes,
+			},
+		}, params.Arg2)
+	})
+
+	t.Run("update", func(t *testing.T) {
+		contract.UpdateFunc.PushReturn(nil)
+
+		req := fmt.Sprintf(`{"account_id":"%s","category_id":"%s","amount":5,"date":"2022-01-09","notes":"hi there"}`, account.ID, category.ID)
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"transactionID": transaction.ID.String()}}
+		_ = testutils.HTTPWithOptions(t, sv.handleTransactionUpdate(), options, user, budget, req, http.StatusOK)
+
+		params := contract.UpdateFunc.History()[0]
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
+		assert.Equal(t, beans.TransactionUpdateParams{
+			ID: transaction.ID,
+			TransactionParams: beans.TransactionParams{
+				AccountID:  transaction.AccountID,
+				CategoryID: transaction.CategoryID,
+				Amount:     transaction.Amount,
+				Date:       transaction.Date,
+				Notes:      transaction.Notes,
+			},
 		}, params.Arg2)
 	})
 

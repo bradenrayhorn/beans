@@ -27,6 +27,55 @@ func (r *TransactionRepository) Create(ctx context.Context, transaction *beans.T
 	})
 }
 
+func (r *TransactionRepository) Update(ctx context.Context, transaction *beans.Transaction) error {
+	return r.db.UpdateTransaction(ctx, db.UpdateTransactionParams{
+		ID:         transaction.ID.String(),
+		AccountID:  transaction.AccountID.String(),
+		CategoryID: idToNullString(transaction.CategoryID),
+		Date:       transaction.Date.Time,
+		Amount:     amountToNumeric(transaction.Amount),
+		Notes:      transaction.Notes.SQLNullString(),
+	})
+}
+
+func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Transaction, error) {
+	t, err := r.db.GetTransaction(ctx, id.String())
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	budgetID, err := beans.BeansIDFromString(t.BudgetID)
+	if err != nil {
+		return nil, err
+	}
+	accountID, err := beans.BeansIDFromString(t.AccountID)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := numericToAmount(t.Amount)
+	if err != nil {
+		return nil, err
+	}
+	categoryID, err := nullStringToID(t.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &beans.Transaction{
+		ID:         id,
+		AccountID:  accountID,
+		CategoryID: categoryID,
+		Amount:     amount,
+		Date:       beans.NewDate(t.Date),
+		Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
+		Account: &beans.Account{
+			ID:       accountID,
+			Name:     beans.Name(t.AccountName),
+			BudgetID: budgetID,
+		},
+	}, nil
+}
+
 func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Transaction, error) {
 	transactions := []*beans.Transaction{}
 	dbTransactions, err := r.db.GetTransactionsForBudget(ctx, budgetID.String())

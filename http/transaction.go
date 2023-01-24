@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/go-chi/chi/v5"
 )
 
 type transactionResponse struct {
@@ -55,11 +56,13 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 		}
 
 		transaction, err := s.transactionContract.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
-			AccountID:  req.AccountID,
-			CategoryID: req.CategoryID,
-			Amount:     req.Amount,
-			Date:       req.Date,
-			Notes:      req.Notes,
+			TransactionParams: beans.TransactionParams{
+				AccountID:  req.AccountID,
+				CategoryID: req.CategoryID,
+				Amount:     req.Amount,
+				Date:       req.Date,
+				Notes:      req.Notes,
+			},
 		})
 
 		if err != nil {
@@ -72,6 +75,46 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 		}{
 			Data: response{ID: transaction.ID},
 		}, http.StatusOK)
+	}
+}
+
+func (s *Server) handleTransactionUpdate() http.HandlerFunc {
+	type request struct {
+		AccountID  beans.ID               `json:"account_id"`
+		CategoryID beans.ID               `json:"category_id"`
+		Amount     beans.Amount           `json:"amount"`
+		Date       beans.Date             `json:"date"`
+		Notes      beans.TransactionNotes `json:"notes"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := decodeRequest(r, &req); err != nil {
+			Error(w, err)
+			return
+		}
+
+		transactionID, err := beans.BeansIDFromString(chi.URLParam(r, "transactionID"))
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		err = s.transactionContract.Update(r.Context(), getBudgetAuth(r), beans.TransactionUpdateParams{
+			ID: transactionID,
+			TransactionParams: beans.TransactionParams{
+				AccountID:  req.AccountID,
+				CategoryID: req.CategoryID,
+				Amount:     req.Amount,
+				Date:       req.Date,
+				Notes:      req.Notes,
+			},
+		})
+
+		if err != nil {
+			Error(w, err)
+			return
+		}
 	}
 }
 
