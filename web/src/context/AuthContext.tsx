@@ -2,8 +2,8 @@ import { queries, queryKeys } from "@/constants/queries";
 import { useQuery } from "@tanstack/react-query";
 import { HTTPError } from "ky";
 import { PropsWithChildren, useCallback } from "react";
-import create from "zustand";
-import shallow from "zustand/shallow";
+import { create } from "zustand";
+import { shallow } from "zustand/shallow";
 
 interface User {
   id: string;

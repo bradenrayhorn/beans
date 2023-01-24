@@ -24,9 +24,6 @@ test("can add transaction", async ({ budget: { id }, page }) => {
 
   // open modal and add transaction
   await page.getByRole("button", { name: "Add" }).click();
-  await expect(
-    page.getByRole("dialog", { name: "Add Transaction" })
-  ).toBeVisible();
 
   await page.getByLabel("Date").fill("2022-10-14");
   await page.getByLabel("Account").click();
@@ -35,11 +32,9 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await page.getByRole("option").filter({ hasText: "Electric" }).click();
   await page.getByLabel("Amount").fill("10.78");
   await page.getByLabel("Notes").fill("Test notes");
-  await page.getByRole("button", { name: "Add" }).click();
+  await page.getByRole("button", { name: "Save" }).click();
 
-  await expect(
-    page.getByRole("dialog", { name: "Add Transaction" })
-  ).toBeHidden();
+  await expect(page.getByRole("button", { name: "Save" })).toBeHidden();
 
   // transaction should be added (1 header row and 1 data row)
   expect(await page.getByRole("row").count()).toBe(2);

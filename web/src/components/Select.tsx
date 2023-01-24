@@ -6,6 +6,7 @@ import {
   IconButton,
   Input,
   InputGroup,
+  InputProps,
   InputRightElement,
   Popover,
   PopoverAnchor,
@@ -19,7 +20,7 @@ import { useCombobox } from "downshift";
 import { useEffect, useState } from "react";
 import { useController } from "react-hook-form";
 
-interface Props<ItemType> {
+export interface SelectProps<ItemType> {
   name: string;
   itemToString: (item: ItemType | undefined | null) => string;
   itemToID: (item: ItemType | undefined) => string;
@@ -28,6 +29,7 @@ interface Props<ItemType> {
   isClearable?: boolean;
   setIsOpen?: (isOpen: boolean) => void;
   items: Array<ItemType>;
+  inputProps?: InputProps;
 }
 
 export const useAsyncSelect = () => {
@@ -44,7 +46,8 @@ const Select = <T extends unknown>({
   isOpen: parentIsOpen,
   setIsOpen: parentSetIsOpen,
   isClearable = false,
-}: Props<T>) => {
+  inputProps: parentInputProps = {},
+}: SelectProps<T>) => {
   const {
     field: { onChange, onBlur, value, ref },
   } = useController({ name });
@@ -53,11 +56,6 @@ const Select = <T extends unknown>({
   const [isLoading, setIsLoading] = useState(parentIsLoading);
   const [items, setItems] = useState(providedItems);
   const field = useFormControlContext();
-
-  useEffect(() => {
-    setItems(providedItems);
-    setIsLoading(parentIsLoading);
-  }, [providedItems, isLoading]);
 
   const hasNoneItem = isClearable && items.length > 0 && !!selectedItem;
 
@@ -103,6 +101,11 @@ const Select = <T extends unknown>({
     },
   });
 
+  useEffect(() => {
+    setItems(providedItems);
+    setIsLoading(parentIsLoading);
+  }, [providedItems, isLoading]);
+
   const styles = useMultiStyleConfig("ComponentSelect");
   const { "aria-labelledby": _, ...inputProps } = getInputProps({
     onClick: () => openMenu(),
@@ -123,8 +126,8 @@ const Select = <T extends unknown>({
       >
         <Box w="full">
           <PopoverAnchor>
-            <InputGroup>
-              <Input {...inputProps} />
+            <InputGroup size="sm">
+              <Input {...inputProps} {...parentInputProps} />
               <InputRightElement>
                 {hasNoneItem ? (
                   <IconButton
