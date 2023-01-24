@@ -8,3 +8,5 @@ export const formatBudgetMonth = (date: string): string =>
 
 export const parseDate = (date: string): dayjs.Dayjs =>
   dayjs(date, "YYYY-MM-DD", true);
+
+export const currentDate = () => dayjs().format("YYYY-MM-DD");

@@ -6,19 +6,23 @@ const maxInput = 9999999999;
 const minInput = -maxInput;
 
 type Props = {
+  name: string;
   allowNegative?: boolean;
+  "aria-labelledby"?: string;
 };
 
 const CurrencyInput = ({
+  name,
   allowNegative,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: UseControllerProps & Props) => {
   const {
     field: { onChange, onBlur, value: formValue, ref },
-  } = useController(props);
+  } = useController({ ...props, name });
 
   return (
-    <InputGroup>
+    <InputGroup size="sm">
       <InputLeftElement pointerEvents="none">$</InputLeftElement>
       <NumericFormat
         decimalScale={2}
@@ -30,8 +34,9 @@ const CurrencyInput = ({
         onBlur={onBlur}
         getInputRef={ref}
         customInput={Input}
-        name={props.name}
-        pl={10}
+        name={name}
+        pl={6}
+        aria-labelledby={ariaLabelledBy}
       />
     </InputGroup>
   );

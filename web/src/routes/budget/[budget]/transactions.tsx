@@ -1,6 +1,6 @@
 import { Box, Flex, Heading } from "@chakra-ui/react";
-import AddTransaction from "@/components/transactions/AddTransaction";
 import TransactionList from "@/components/transactions/TransactionList";
+import AddTransactionButton from "@/components/transactions/AddTransactionButton";
 
 export default function TransactionsPage() {
   return (
@@ -9,7 +9,7 @@ export default function TransactionsPage() {
         <Flex align="center">
           <Heading size="lg">Transactions</Heading>
         </Flex>
-        <AddTransaction />
+        <AddTransactionButton />
       </Flex>
       <TransactionList />
     </Box>
