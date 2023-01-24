@@ -3,6 +3,18 @@ INSERT INTO transactions (
   id, account_id, category_id, date, amount, notes
 ) VALUES ($1, $2, $3, $4, $5, $6);
 
+-- name: UpdateTransaction :exec
+UPDATE transactions
+  SET account_id=$1, category_id=$2, date=$3, amount=$4, notes=$5
+  WHERE id=$6;
+
+-- name: GetTransaction :one
+SELECT transactions.*, accounts.name as account_name, accounts.budget_id as budget_id
+  FROM transactions
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+  WHERE transactions.id = $1;
+
 -- name: GetTransactionsForBudget :many
 SELECT transactions.*, accounts.name as account_name, categories.name as category_name from transactions
 JOIN accounts

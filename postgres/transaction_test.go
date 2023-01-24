@@ -23,12 +23,14 @@ func TestTransactions(t *testing.T) {
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 	account := testutils.MakeAccount(t, pool, "account", budgetID)
+	account2 := testutils.MakeAccount(t, pool, "account2", budgetID)
 	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
 	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
+	categoryID2 := testutils.MakeCategory(t, pool, "category2", categoryGroupID, budgetID).ID
 	incomeCategory := testutils.MakeIncomeCategory(t, pool, "category", categoryGroupID, budgetID)
 
 	cleanup := func() {
-		pool.Exec(context.Background(), "truncate transactions;")
+		testutils.MustExec(t, pool, "truncate transactions;")
 	}
 
 	t.Run("can create", func(t *testing.T) {
@@ -45,6 +47,59 @@ func TestTransactions(t *testing.T) {
 			},
 		)
 		require.Nil(t, err)
+	})
+
+	t.Run("cannot get nonexistant", func(t *testing.T) {
+		defer cleanup()
+		_, err := transactionRepository.Get(context.Background(), beans.NewBeansID())
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("can get", func(t *testing.T) {
+		defer cleanup()
+		transaction := &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			CategoryID: categoryID,
+			Amount:     beans.NewAmount(5, 0),
+			Date:       testutils.NewDate(t, "2022-08-28"),
+			Notes:      beans.NewTransactionNotes("notes"),
+			Account:    account,
+		}
+		require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+		dbTransaction, err := transactionRepository.Get(context.Background(), transaction.ID)
+		require.Nil(t, err)
+
+		assert.True(t, reflect.DeepEqual(transaction, dbTransaction))
+	})
+
+	t.Run("can update", func(t *testing.T) {
+		defer cleanup()
+		transaction := &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			CategoryID: categoryID,
+			Amount:     beans.NewAmount(5, 0),
+			Date:       testutils.NewDate(t, "2022-08-28"),
+			Notes:      beans.NewTransactionNotes("notes"),
+			Account:    account,
+		}
+		require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+		transaction.AccountID = account2.ID
+		transaction.CategoryID = categoryID2
+		transaction.Amount = beans.NewAmount(6, 0)
+		transaction.Date = testutils.NewDate(t, "2022-08-30")
+		transaction.Notes = beans.NewTransactionNotes("notes 5")
+		transaction.Account = account2
+
+		require.Nil(t, transactionRepository.Update(context.Background(), transaction))
+
+		dbTransaction, err := transactionRepository.Get(context.Background(), transaction.ID)
+		require.Nil(t, err)
+
+		assert.True(t, reflect.DeepEqual(transaction, dbTransaction))
 	})
 
 	t.Run("can get all", func(t *testing.T) {

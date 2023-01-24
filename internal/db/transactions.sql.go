@@ -56,6 +56,45 @@ func (q *Queries) GetIncomeBeforeOrOnDate(ctx context.Context, date time.Time) (
 	return column_1, err
 }
 
+const getTransaction = `-- name: GetTransaction :one
+SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, accounts.budget_id as budget_id
+  FROM transactions
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+  WHERE transactions.id = $1
+`
+
+type GetTransactionRow struct {
+	ID          string
+	AccountID   string
+	PayeeID     sql.NullString
+	CategoryID  sql.NullString
+	Date        time.Time
+	Amount      pgtype.Numeric
+	Notes       sql.NullString
+	CreatedAt   time.Time
+	AccountName string
+	BudgetID    string
+}
+
+func (q *Queries) GetTransaction(ctx context.Context, id string) (GetTransactionRow, error) {
+	row := q.db.QueryRow(ctx, getTransaction, id)
+	var i GetTransactionRow
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.PayeeID,
+		&i.CategoryID,
+		&i.Date,
+		&i.Amount,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.AccountName,
+		&i.BudgetID,
+	)
+	return i, err
+}
+
 const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
 SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, categories.name as category_name from transactions
 JOIN accounts
@@ -107,4 +146,31 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateTransaction = `-- name: UpdateTransaction :exec
+UPDATE transactions
+  SET account_id=$1, category_id=$2, date=$3, amount=$4, notes=$5
+  WHERE id=$6
+`
+
+type UpdateTransactionParams struct {
+	AccountID  string
+	CategoryID sql.NullString
+	Date       time.Time
+	Amount     pgtype.Numeric
+	Notes      sql.NullString
+	ID         string
+}
+
+func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
+	_, err := q.db.Exec(ctx, updateTransaction,
+		arg.AccountID,
+		arg.CategoryID,
+		arg.Date,
+		arg.Amount,
+		arg.Notes,
+		arg.ID,
+	)
+	return err
 }

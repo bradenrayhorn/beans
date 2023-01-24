@@ -32,18 +32,27 @@ type TransactionContract interface {
 
 	// Gets all transactions for budget. Attaches Account, CategoryName fields.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Transaction, error)
+
+	// Edits a transaction.
+	Update(ctx context.Context, auth *BudgetAuthContext, params TransactionUpdateParams) error
 }
 
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) error
+
+	Update(ctx context.Context, transaction *Transaction) error
+
 	// Attaches Account, CategoryName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
+
+	// Attaches Account field to Transaction.
+	Get(ctx context.Context, id ID) (*Transaction, error)
 
 	// Gets sum of all income transactions before or on the date.
 	GetIncomeBeforeOrOnDate(ctx context.Context, date Date) (Amount, error)
 }
 
-type TransactionCreateParams struct {
+type TransactionParams struct {
 	AccountID  ID
 	CategoryID ID
 	Amount     Amount
@@ -51,7 +60,24 @@ type TransactionCreateParams struct {
 	Notes      TransactionNotes
 }
 
-func (t TransactionCreateParams) ValidateAll() error {
+type TransactionCreateParams struct {
+	TransactionParams
+}
+
+type TransactionUpdateParams struct {
+	ID ID
+	TransactionParams
+}
+
+func (t TransactionUpdateParams) ValidateAll() error {
+	if err := t.TransactionParams.ValidateAll(); err != nil {
+		return err
+	}
+
+	return ValidateFields(Field("Transaction ID", Required(t.ID)))
+}
+
+func (t TransactionParams) ValidateAll() error {
 	return ValidateFields(
 		Field("Account ID", Required(t.AccountID)),
 		Field("Amount", Required(&t.Amount), MaxPrecision(t.Amount)),

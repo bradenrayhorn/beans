@@ -104,6 +104,7 @@ func NewServer(
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", s.handleTransactionGetAll())
 				r.Post("/", s.handleTransactionCreate())
+				r.Put("/{transactionID}", s.handleTransactionUpdate())
 			})
 
 			r.Route("/categories", func(r chi.Router) {
