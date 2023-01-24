@@ -21,7 +21,8 @@ JOIN accounts
   ON accounts.id = transactions.account_id
   AND accounts.budget_id = $1
 LEFT JOIN categories
-  ON categories.id = transactions.category_id;
+  ON categories.id = transactions.category_id
+ORDER BY date desc;
 
 -- name: GetIncomeBeforeOrOnDate :one
 SELECT sum(transactions.amount)::numeric
