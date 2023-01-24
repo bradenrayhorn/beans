@@ -7,7 +7,7 @@ import {
 import { useCallback } from "react";
 import { useBudgetID } from "./budget";
 
-interface AddTransactionData {
+interface TransactionData {
   accountID: string;
   categoryID?: string;
   amount: string;
@@ -24,7 +24,7 @@ export const useAddTransaction = () => {
   const errorMessage = getHTTPErrorResponseMessage(mutation.error);
 
   const submit = useCallback(
-    (values: AddTransactionData) =>
+    (values: TransactionData) =>
       mutation
         .mutateAsync({
           ...values,
@@ -37,6 +37,30 @@ export const useAddTransaction = () => {
   );
 
   return { ...mutation, errorMessage, submit };
+};
+
+export const useEditTransaction = ({ id }: { id: string }) => {
+  const budgetID = useBudgetID();
+  const queries = useQueries({ budgetID });
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation(queries.transactions.update);
+
+  const submit = useCallback(
+    (values: TransactionData) =>
+      mutation
+        .mutateAsync({
+          ...values,
+          amount: +values.amount.replace(/,/g, ""),
+          id,
+        })
+        .then(() => {
+          queryClient.invalidateQueries([queryKeys.transactions.getAll]);
+        }),
+    [budgetID, id]
+  );
+
+  return { ...mutation, submit };
 };
 
 export const useTransactions = () => {
