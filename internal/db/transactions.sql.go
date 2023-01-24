@@ -102,6 +102,7 @@ JOIN accounts
   AND accounts.budget_id = $1
 LEFT JOIN categories
   ON categories.id = transactions.category_id
+ORDER BY date desc
 `
 
 type GetTransactionsForBudgetRow struct {

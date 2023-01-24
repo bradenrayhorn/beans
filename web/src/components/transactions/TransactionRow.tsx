@@ -26,7 +26,7 @@ export default function TransactionRow({
             key={column.id}
             column={column}
             isEditing={isEditing}
-            onClick={() => onEditBegin()}
+            onClick={column.input ? () => onEditBegin() : undefined}
             role="cell"
           >
             {isEditing && !!column.input && column.input()}

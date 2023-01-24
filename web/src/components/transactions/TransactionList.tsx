@@ -11,33 +11,56 @@ import TransactionRow from "./TransactionRow";
 interface TransactionTableState {
   editID: string | null;
   isAdding: boolean;
+  selectedRows: { [key: string]: boolean };
   setEditID: (id: string | null) => void;
   setIsAdding: (is: boolean) => void;
+  isRowSelected: (id: string) => boolean;
+  setRowSelection: (id: string, selected: boolean) => void;
+  getSelectedRows: () => string[];
 }
 
 export const useTransactionTableState = create<TransactionTableState>(
-  (set) => ({
+  (set, get) => ({
     editID: null,
     isAdding: false,
+    selectedRows: {},
     setEditID: (id: string | null) => set({ editID: id, isAdding: false }),
     setIsAdding: (is: boolean) => set({ editID: null, isAdding: is }),
+    isRowSelected: (id: string) => !!get().selectedRows[id],
+    setRowSelection: (id: string, selected: boolean) => {
+      const current = get().selectedRows;
+      current[id] = selected;
+      set({ selectedRows: current });
+    },
+    getSelectedRows: () =>
+      Object.entries(get().selectedRows)
+        .filter(([, v]) => v)
+        .map(([k]) => k),
   })
 );
 
 export default function TransactionList() {
   const { transactions } = useTransactions();
 
-  const {
-    isAdding,
-    setIsAdding,
-    editID,
-    setEditID,
-  } = useTransactionTableState();
+  const isAdding = useTransactionTableState((state) => state.isAdding);
+  const setIsAdding = useTransactionTableState((state) => state.setIsAdding);
+  const editID = useTransactionTableState((state) => state.editID);
+  const setEditID = useTransactionTableState((state) => state.setEditID);
+  const getSelectedRows = useTransactionTableState(
+    (state) => state.getSelectedRows
+  );
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.code === "Escape") {
         setEditID(null);
+      }
+
+      if (e.key.toLowerCase() === "e") {
+        const selectedRows = getSelectedRows();
+        if (selectedRows.length === 1) {
+          setEditID(selectedRows[0]);
+        }
       }
     }
 

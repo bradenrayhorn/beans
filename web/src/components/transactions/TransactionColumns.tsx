@@ -8,13 +8,14 @@ import AccountSelect from "../AccountSelect";
 import CategorySelect from "../CategorySelect";
 import CurrencyInput from "../CurrencyInput";
 import DateInput from "../DateInput";
+import TransactionRowCheckbox from "./TransactionRowCheckbox";
 
 export type Column<Data> = {
   id: string;
   headerID: string;
   header: string;
   width?: string | number;
-  cell: (data: Data) => string;
+  cell: (data: Data) => string | ReactNode;
   isNumeric?: boolean;
   input?: () => ReactNode;
 };
@@ -26,6 +27,13 @@ const FormInput = ({ name, ...props }: InputProps & { name: string }) => {
 };
 
 export const columns: Column<Transaction>[] = [
+  {
+    id: "checkbox",
+    headerID: "header-checkbox",
+    header: "",
+    width: 6,
+    cell: ({ id }) => <TransactionRowCheckbox id={id} />,
+  },
   {
     id: "date",
     headerID: "header-date",

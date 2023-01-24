@@ -180,6 +180,30 @@ const buildQueries = (client: KyInstance) => {
             notes,
           },
         }),
+      update: ({
+        id,
+        accountID,
+        categoryID,
+        amount,
+        date,
+        notes,
+      }: {
+        id: string;
+        accountID: string;
+        categoryID?: string;
+        amount: number;
+        date: string;
+        notes?: string;
+      }) =>
+        client.put(`api/v1/transactions/${id}`, {
+          json: {
+            account_id: accountID,
+            category_id: categoryID,
+            amount,
+            date,
+            notes,
+          },
+        }),
 
       getAll: () =>
         client.get(`api/v1/transactions`).json<GetTransactionsResponse>(),
