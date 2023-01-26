@@ -8,10 +8,6 @@ github.com/cockroachdb/apd/v3
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/derision-test/go-mockgen v1.3.7
-## explicit; go 1.18
-github.com/derision-test/go-mockgen/internal/testutil
-github.com/derision-test/go-mockgen/testutil/assert
 # github.com/docker/distribution v2.8.1+incompatible
 ## explicit
 github.com/docker/distribution/digestset
@@ -137,7 +133,7 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rs/zerolog v1.28.0
+# github.com/rs/zerolog v1.29.0
 ## explicit; go 1.15
 github.com/rs/zerolog
 github.com/rs/zerolog/internal/cbor
