@@ -8,14 +8,13 @@ require github.com/go-chi/chi/v5 v5.0.8
 
 require (
 	github.com/cockroachdb/apd/v3 v3.1.2
-	github.com/derision-test/go-mockgen v1.3.7
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgtype v1.13.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/orlangure/gnomock v0.24.0
-	github.com/rs/zerolog v1.28.0
+	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.5.0
 	golang.org/x/net v0.5.0
