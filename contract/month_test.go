@@ -90,7 +90,7 @@ func TestMonth(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(month, dbMonth))
 			require.Len(t, dbCategories, 1)
 
-			monthCategory.Spent = beans.NewAmount(0, 0)
+			monthCategory.Activity = beans.NewAmount(0, 0)
 			assert.True(t, reflect.DeepEqual(monthCategory, dbCategories[0]))
 
 			assert.Equal(t, beans.NewAmount(26, -1), available)

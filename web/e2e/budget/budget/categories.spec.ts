@@ -16,7 +16,7 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
     id,
     categoryID,
     accountID,
-    "20",
+    "-20",
     currentDate,
     request
   );
@@ -43,9 +43,9 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
       name: "Assigned",
     })
     .getByRole("definition");
-  const spent = electricCategory
+  const activity = electricCategory
     .getByRole("group", {
-      name: "Spent",
+      name: "Activity",
     })
     .getByRole("definition");
   const available = electricCategory
@@ -54,7 +54,7 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
     })
     .getByRole("definition");
   await expect(assigned).toHaveText("$0.00");
-  await expect(spent).toHaveText("$20.00");
+  await expect(activity).toHaveText("-$20.00");
   await expect(available).toHaveText("-$20.00");
 
   const drawer = page.getByRole("dialog", { name: "Edit Electric" });
@@ -66,6 +66,6 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await expect(drawer).toBeHidden();
 
   await expect(assigned).toHaveText("$60.31");
-  await expect(spent).toHaveText("$20.00");
+  await expect(activity).toHaveText("-$20.00");
   await expect(available).toHaveText("$40.31");
 });

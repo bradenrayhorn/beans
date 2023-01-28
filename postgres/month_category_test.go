@@ -40,7 +40,7 @@ func TestMonthCategory(t *testing.T) {
 
 	t.Run("can create", func(t *testing.T) {
 		defer cleanup()
-		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
+		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Activity: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory))
 
 		res, err := monthCategoryRepository.GetForMonth(context.Background(), month)
@@ -70,7 +70,7 @@ func TestMonthCategory(t *testing.T) {
 
 	t.Run("can update amount", func(t *testing.T) {
 		defer cleanup()
-		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
+		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Activity: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory))
 
 		require.Nil(t, monthCategoryRepository.UpdateAmount(context.Background(), monthCategory.ID, beans.NewAmount(5, -1)))
@@ -84,8 +84,8 @@ func TestMonthCategory(t *testing.T) {
 
 	t.Run("get filters by month", func(t *testing.T) {
 		defer cleanup()
-		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
-		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month2.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Spent: beans.NewAmount(0, 0)}
+		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Activity: beans.NewAmount(0, 0)}
+		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month2.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0), Activity: beans.NewAmount(0, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory1))
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory2))
 
@@ -95,7 +95,7 @@ func TestMonthCategory(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(monthCategory1, res[0]))
 	})
 
-	t.Run("sums spent multiple transactions", func(t *testing.T) {
+	t.Run("sums multiple transactions in activity", func(t *testing.T) {
 		defer cleanup()
 		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: month.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), monthCategory))
@@ -134,7 +134,7 @@ func TestMonthCategory(t *testing.T) {
 		res, err := monthCategoryRepository.GetForMonth(context.Background(), month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Equal(t, beans.NewAmount(-1182, -2), res[0].Spent)
+		require.Equal(t, beans.NewAmount(-1182, -2), res[0].Activity)
 	})
 
 	t.Run("sums spent no transactions to zero", func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestMonthCategory(t *testing.T) {
 		res, err := monthCategoryRepository.GetForMonth(context.Background(), month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Equal(t, beans.NewAmount(0, 0), res[0].Spent)
+		require.Equal(t, beans.NewAmount(0, 0), res[0].Activity)
 	})
 
 	t.Run("get or create respects month and category", func(t *testing.T) {
