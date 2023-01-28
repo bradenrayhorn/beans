@@ -52,7 +52,7 @@ func TestMonth(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Spent: beans.NewAmount(4, 0)}
+		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Activity: beans.NewAmount(4, 0)}
 		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, beans.NewAmount(55, 0), nil)
 
 		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
@@ -73,7 +73,7 @@ func TestMonth(t *testing.T) {
 						"coefficient": 5,
 						"exponent": 0
 					},
-					"spent": {
+					"activity": {
 						"coefficient": 4,
 						"exponent": 0
 					}

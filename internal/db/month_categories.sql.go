@@ -50,7 +50,7 @@ func (q *Queries) GetAmountInBudget(ctx context.Context, budgetID string) (pgtyp
 }
 
 const getMonthCategoriesForMonth = `-- name: GetMonthCategoriesForMonth :many
-SELECT month_categories.id, month_categories.month_id, month_categories.category_id, month_categories.amount, month_categories.created_at, sum(t.amount)::numeric as spent
+SELECT month_categories.id, month_categories.month_id, month_categories.category_id, month_categories.amount, month_categories.created_at, sum(t.amount)::numeric as activity
   FROM month_categories
   LEFT JOIN transactions t on t.category_id = month_categories.category_id
     AND t.date >= $1 AND t.date <= $2
@@ -75,7 +75,7 @@ type GetMonthCategoriesForMonthRow struct {
 	CategoryID string
 	Amount     pgtype.Numeric
 	CreatedAt  time.Time
-	Spent      pgtype.Numeric
+	Activity   pgtype.Numeric
 }
 
 func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, arg GetMonthCategoriesForMonthParams) ([]GetMonthCategoriesForMonthRow, error) {
@@ -93,7 +93,7 @@ func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, arg GetMonthCa
 			&i.CategoryID,
 			&i.Amount,
 			&i.CreatedAt,
-			&i.Spent,
+			&i.Activity,
 		); err != nil {
 			return nil, err
 		}

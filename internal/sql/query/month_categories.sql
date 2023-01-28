@@ -4,7 +4,7 @@ INSERT INTO month_categories (
 ) VALUES ($1, $2, $3, $4);
 
 -- name: GetMonthCategoriesForMonth :many
-SELECT month_categories.*, sum(t.amount)::numeric as spent
+SELECT month_categories.*, sum(t.amount)::numeric as activity
   FROM month_categories
   LEFT JOIN transactions t on t.category_id = month_categories.category_id
     AND t.date >= @from_date AND t.date <= @to_date

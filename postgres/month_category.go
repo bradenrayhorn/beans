@@ -58,12 +58,12 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 		if err != nil {
 			return monthCategories, err
 		}
-		spent, err := numericToAmount(v.Spent)
+		activity, err := numericToAmount(v.Activity)
 		if err != nil {
 			return monthCategories, err
 		}
-		if spent.Empty() {
-			spent = beans.NewAmount(0, 0)
+		if activity.Empty() {
+			activity = beans.NewAmount(0, 0)
 		}
 
 		monthCategories = append(monthCategories, &beans.MonthCategory{
@@ -71,7 +71,7 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 			MonthID:    month.ID,
 			CategoryID: categoryID,
 			Amount:     amount,
-			Spent:      spent,
+			Activity:   activity,
 		})
 	}
 

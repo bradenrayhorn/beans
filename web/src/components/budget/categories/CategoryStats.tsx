@@ -14,12 +14,12 @@ export default function CategoryStats({
   category?: MonthCategory;
 }) {
   const assignedID = useId();
-  const spentID = useId();
+  const activityID = useId();
   const availableID = useId();
 
   const assigned = category?.assigned ?? zeroAmount;
-  const spent = category?.spent ?? zeroAmount;
-  const available = amountToFraction(assigned).sub(amountToFraction(spent));
+  const activity = category?.activity ?? zeroAmount;
+  const available = amountToFraction(assigned).add(amountToFraction(activity));
 
   return (
     <SimpleGrid columns={3}>
@@ -44,10 +44,10 @@ export default function CategoryStats({
         display="flex"
         alignItems="flex-end"
         size="sm"
-        aria-labelledby={spentID}
+        aria-labelledby={activityID}
       >
-        <StatNumber>{formatAmount(spent)}</StatNumber>
-        <StatLabel id={spentID}>Spent</StatLabel>
+        <StatNumber>{formatAmount(activity)}</StatNumber>
+        <StatLabel id={activityID}>Activity</StatLabel>
       </Stat>
     </SimpleGrid>
   );

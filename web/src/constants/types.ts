@@ -41,7 +41,7 @@ export interface Category {
 export interface MonthCategory {
   id: string;
   assigned: Amount;
-  spent: Amount;
+  activity: Amount;
   category_id: string;
 }
 
