@@ -36,7 +36,7 @@ test("can edit transaction", async ({ budget: { id }, page }) => {
   await expect(page.getByRole("button", { name: "Save" })).toBeHidden();
 
   // transaction should be added (1 header row and 1 data row)
-  expect(await page.getByRole("row").count()).toBe(2);
+  await expect(page.getByRole("row")).toHaveCount(2);
   const cells = page.getByRole("row").nth(1).getByRole("cell");
   await expect(cells.nth(1)).toHaveText("10/14/2022");
   await expect(cells.nth(2)).toHaveText("");

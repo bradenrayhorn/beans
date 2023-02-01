@@ -27,7 +27,7 @@ test("can navigate between months", async ({
     .getByRole("definition");
 
   const formatMonth = (date: Date) =>
-    `${date.getFullYear()}.${date.toISOString().substring(5, 7)}`;
+    `${date.getFullYear()}.${`${date.getMonth() + 1}`.padStart(2, "0")}`;
 
   // month header is correct
   await expect(
@@ -45,7 +45,7 @@ test("can navigate between months", async ({
 
   // month header should change
   const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
   await expect(
     page.getByRole("heading", { name: formatMonth(nextMonth) })
   ).toBeVisible();
