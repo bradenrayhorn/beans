@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgconn v1.14.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgtype v1.14.0
-	github.com/jackc/pgx/v4 v4.17.2
+	github.com/jackc/pgx/v4 v4.18.0
 	github.com/orlangure/gnomock v0.24.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
