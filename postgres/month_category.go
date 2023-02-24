@@ -6,19 +6,20 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
+	"github.com/bradenrayhorn/beans/postgres/mapper"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type monthCategoryRepository struct {
-	db *db.Queries
+	repository
 }
 
 func NewMonthCategoryRepository(pool *pgxpool.Pool) *monthCategoryRepository {
-	return &monthCategoryRepository{db: db.New(pool)}
+	return &monthCategoryRepository{repository: repository{pool}}
 }
 
-func (r *monthCategoryRepository) Create(ctx context.Context, monthCategory *beans.MonthCategory) error {
-	return r.db.CreateMonthCategory(ctx, db.CreateMonthCategoryParams{
+func (r *monthCategoryRepository) Create(ctx context.Context, tx beans.Tx, monthCategory *beans.MonthCategory) error {
+	return r.DB(tx).CreateMonthCategory(ctx, db.CreateMonthCategoryParams{
 		ID:         monthCategory.ID.String(),
 		MonthID:    monthCategory.MonthID.String(),
 		CategoryID: monthCategory.CategoryID.String(),
@@ -27,7 +28,7 @@ func (r *monthCategoryRepository) Create(ctx context.Context, monthCategory *bea
 }
 
 func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategoryID beans.ID, amount beans.Amount) error {
-	return r.db.UpdateMonthCategoryAmount(ctx, db.UpdateMonthCategoryAmountParams{
+	return r.DB(nil).UpdateMonthCategoryAmount(ctx, db.UpdateMonthCategoryAmountParams{
 		ID:     monthCategoryID.String(),
 		Amount: amountToNumeric(amount),
 	})
@@ -36,50 +37,76 @@ func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategor
 func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.Month) ([]*beans.MonthCategory, error) {
 	monthCategories := []*beans.MonthCategory{}
 
-	res, err := r.db.GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
+	res, err := r.DB(nil).GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
 		FromDate: month.Date.Time(),
 		ToDate:   month.Date.LastDay().Time,
 		MonthID:  month.ID.String(),
 	})
 	if err != nil {
-		return monthCategories, err
+		return monthCategories, mapPostgresError(err)
+	}
+
+	previousAssigned, err := r.DB(nil).GetPastMonthCategoriesAvailable(ctx, db.GetPastMonthCategoriesAvailableParams{
+		BudgetID:   month.BudgetID.String(),
+		BeforeDate: month.Date.Time(),
+	})
+	if err != nil {
+		return monthCategories, mapPostgresError(err)
+	}
+
+	previousAssignedByCategory := make(map[string]beans.Amount)
+	for _, v := range previousAssigned {
+		amount, err := numericToAmount(v.Assigned)
+		if err != nil {
+			return monthCategories, err
+		}
+		previousAssignedByCategory[v.ID] = amount
+	}
+
+	previousActivity, err := r.DB(nil).GetActivityBeforeDateByCategory(ctx, db.GetActivityBeforeDateByCategoryParams{
+		BudgetID: month.BudgetID.String(),
+		Date:     month.Date.Time(),
+	})
+
+	previousActivityByCategory := make(map[string]beans.Amount)
+	for _, v := range previousActivity {
+		amount, err := numericToAmount(v.Activity)
+		if err != nil {
+			return monthCategories, err
+		}
+		previousActivityByCategory[v.ID] = amount
 	}
 
 	for _, v := range res {
-		id, err := beans.BeansIDFromString(v.ID)
+		monthCategory, err := mapper.GetMonthCategoriesForMonthRow(v)
 		if err != nil {
 			return monthCategories, err
-		}
-		categoryID, err := beans.BeansIDFromString(v.CategoryID)
-		if err != nil {
-			return monthCategories, err
-		}
-		amount, err := numericToAmount(v.Amount)
-		if err != nil {
-			return monthCategories, err
-		}
-		activity, err := numericToAmount(v.Activity)
-		if err != nil {
-			return monthCategories, err
-		}
-		if activity.Empty() {
-			activity = beans.NewAmount(0, 0)
 		}
 
-		monthCategories = append(monthCategories, &beans.MonthCategory{
-			ID:         id,
-			MonthID:    month.ID,
-			CategoryID: categoryID,
-			Amount:     amount,
-			Activity:   activity,
-		})
+		pastAssigned := previousAssignedByCategory[v.CategoryID]
+		if pastAssigned.Empty() {
+			pastAssigned = beans.NewAmount(0, 0)
+		}
+		pastActivity := previousActivityByCategory[v.CategoryID]
+		if pastActivity.Empty() {
+			pastActivity = beans.NewAmount(0, 0)
+		}
+
+		available, err := beans.Add(pastAssigned, pastActivity, monthCategory.Amount, monthCategory.Activity)
+		if err != nil {
+			return monthCategories, err
+		}
+
+		monthCategory.Available = available
+
+		monthCategories = append(monthCategories, monthCategory)
 	}
 
 	return monthCategories, nil
 }
 
-func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
-	res, err := r.db.GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
+func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
+	res, err := r.DB(tx).GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
 		MonthID:    monthID.String(),
 		CategoryID: categoryID.String(),
 	})
@@ -95,7 +122,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, monthID beans
 				Amount:     beans.NewAmount(0, 0),
 			}
 
-			return monthCategory, r.Create(ctx, monthCategory)
+			return monthCategory, r.Create(ctx, tx, monthCategory)
 		}
 	}
 
@@ -117,7 +144,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, monthID beans
 }
 
 func (r *monthCategoryRepository) GetAmountInBudget(ctx context.Context, budgetID beans.ID) (beans.Amount, error) {
-	res, err := r.db.GetAmountInBudget(ctx, budgetID.String())
+	res, err := r.DB(nil).GetAmountInBudget(ctx, budgetID.String())
 	if err != nil {
 		return beans.NewEmptyAmount(), err
 	}

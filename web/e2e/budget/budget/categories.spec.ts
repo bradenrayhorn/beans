@@ -68,4 +68,10 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await expect(assigned).toHaveText("$60.31");
   await expect(activity).toHaveText("-$20.00");
   await expect(available).toHaveText("$40.31");
+
+  // navigate to next month
+  await page.getByRole("button", { name: "Next month" }).click();
+
+  // available should have carried over
+  await expect(available).toHaveText("$40.31");
 });

@@ -127,6 +127,50 @@ func (q *Queries) GetMonthCategoryByMonthAndCategory(ctx context.Context, arg Ge
 	return i, err
 }
 
+const getPastMonthCategoriesAvailable = `-- name: GetPastMonthCategoriesAvailable :many
+SELECT
+    categories.id,
+    sum(mc.amount)::numeric as assigned
+  FROM categories
+  JOIN month_categories mc on mc.category_id = categories.id
+  JOIN months m on m.id = mc.month_id
+    AND m.budget_id = $1
+    AND m.date < $2
+  GROUP BY (
+    categories.id
+  )
+`
+
+type GetPastMonthCategoriesAvailableParams struct {
+	BudgetID   string
+	BeforeDate time.Time
+}
+
+type GetPastMonthCategoriesAvailableRow struct {
+	ID       string
+	Assigned pgtype.Numeric
+}
+
+func (q *Queries) GetPastMonthCategoriesAvailable(ctx context.Context, arg GetPastMonthCategoriesAvailableParams) ([]GetPastMonthCategoriesAvailableRow, error) {
+	rows, err := q.db.Query(ctx, getPastMonthCategoriesAvailable, arg.BudgetID, arg.BeforeDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPastMonthCategoriesAvailableRow
+	for rows.Next() {
+		var i GetPastMonthCategoriesAvailableRow
+		if err := rows.Scan(&i.ID, &i.Assigned); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateMonthCategoryAmount = `-- name: UpdateMonthCategoryAmount :exec
 UPDATE month_categories SET amount = $1 WHERE id = $2
 `

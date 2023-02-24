@@ -7,17 +7,27 @@ import (
 )
 
 type monthContract struct {
+	categoryRepository      beans.CategoryRepository
 	monthRepository         beans.MonthRepository
 	monthCategoryRepository beans.MonthCategoryRepository
 	transactionRepository   beans.TransactionRepository
+	txManager               beans.TxManager
 }
 
 func NewMonthContract(
+	categoryRepository beans.CategoryRepository,
 	monthRepository beans.MonthRepository,
 	monthCategoryRepository beans.MonthCategoryRepository,
 	transactionRepository beans.TransactionRepository,
+	txManager beans.TxManager,
 ) *monthContract {
-	return &monthContract{monthRepository, monthCategoryRepository, transactionRepository}
+	return &monthContract{
+		categoryRepository,
+		monthRepository,
+		monthCategoryRepository,
+		transactionRepository,
+		txManager,
+	}
 }
 
 func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID) (*beans.Month, []*beans.MonthCategory, beans.Amount, error) {
@@ -50,7 +60,33 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 }
 
 func (c *monthContract) CreateMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {
-	return c.monthRepository.GetOrCreate(ctx, auth.BudgetID(), date)
+	tx, err := c.txManager.Create(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	month, err := c.monthRepository.GetOrCreate(ctx, tx, auth.BudgetID(), date)
+	if err != nil {
+		return nil, err
+	}
+
+	categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, category := range categories {
+		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, tx, month.ID, category.ID); err != nil {
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return month, nil
 }
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {
@@ -65,7 +101,7 @@ func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.Budge
 		return err
 	}
 
-	monthCategory, err := c.monthCategoryRepository.GetOrCreate(ctx, monthID, categoryID)
+	monthCategory, err := c.monthCategoryRepository.GetOrCreate(ctx, nil, monthID, categoryID)
 	if err != nil {
 		return err
 	}

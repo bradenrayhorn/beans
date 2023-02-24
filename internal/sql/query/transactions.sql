@@ -32,3 +32,16 @@ JOIN categories
   AND categories.is_income = true
 WHERE transactions.date <= $1;
 
+-- name: GetActivityBeforeDateByCategory :many
+SELECT categories.id, sum(transactions.amount)::numeric as activity
+  FROM transactions
+  JOIN categories
+    ON transactions.category_id = categories.id
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+    AND accounts.budget_id = $1
+  WHERE transactions.date < $2
+  GROUP BY (
+    categories.id
+  );
+

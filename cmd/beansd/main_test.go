@@ -221,7 +221,7 @@ func (ta *TestApplication) CreateCategoryGroup(tb testing.TB, budget *beans.Budg
 func (ta *TestApplication) CreateMonthCategory(tb testing.TB, month *beans.Month, category *beans.Category, amount beans.Amount) *beans.MonthCategory {
 	id := beans.NewBeansID()
 	monthCategory := &beans.MonthCategory{ID: id, MonthID: month.ID, CategoryID: category.ID, Amount: amount}
-	err := ta.application.MonthCategoryRepository().Create(context.Background(), monthCategory)
+	err := ta.application.MonthCategoryRepository().Create(context.Background(), nil, monthCategory)
 	require.Nil(tb, err)
 	return monthCategory
 }

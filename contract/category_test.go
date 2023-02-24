@@ -24,7 +24,15 @@ func TestCategory(t *testing.T) {
 	}
 
 	categoryRepository := postgres.NewCategoryRepository(pool)
-	c := contract.NewCategoryContract(categoryRepository)
+	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
+	monthRepository := postgres.NewMonthRepository(pool)
+	txManager := postgres.NewTxManager(pool)
+	c := contract.NewCategoryContract(
+		categoryRepository,
+		monthCategoryRepository,
+		monthRepository,
+		txManager,
+	)
 
 	t.Run("create category", func(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
@@ -70,6 +78,24 @@ func TestCategory(t *testing.T) {
 			dbCategory, err := categoryRepository.GetSingleForBudget(context.Background(), category.ID, budget.ID)
 			require.Nil(t, err)
 			assert.True(t, reflect.DeepEqual(category, dbCategory))
+		})
+
+		t.Run("creates category for existing months", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
+			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+
+			category, err := c.CreateCategory(context.Background(), auth, group.ID, beans.Name("Category"))
+			require.Nil(t, err)
+
+			res, err := monthCategoryRepository.GetForMonth(context.Background(), month)
+			require.Nil(t, err)
+			require.Len(t, res, 1)
+			assert.Equal(t, category.ID, res[0].CategoryID)
 		})
 	})
 

@@ -28,6 +28,7 @@ func (d MonthDate) LastDay() Date {
 	return NewDate(d.Time().AddDate(0, 1, -d.Time().Day()))
 }
 
+// Creates a new MonthDate and normalizes the date.
 func NewMonthDate(date Date) MonthDate {
 	return MonthDate{date: NewDate(normalizeMonth(date.Time))}
 }
@@ -56,6 +57,7 @@ type MonthContract interface {
 type MonthRepository interface {
 	Create(ctx context.Context, tx Tx, month *Month) error
 	Get(ctx context.Context, id ID) (*Month, error)
-	GetOrCreate(ctx context.Context, budgetID ID, date MonthDate) (*Month, error)
+	GetOrCreate(ctx context.Context, tx Tx, budgetID ID, date MonthDate) (*Month, error)
 	GetLatest(ctx context.Context, budgetID ID) (*Month, error)
+	GetForBudget(ctx context.Context, budgetID ID) ([]*Month, error)
 }

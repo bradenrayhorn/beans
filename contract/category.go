@@ -7,23 +7,39 @@ import (
 )
 
 type categoryContract struct {
-	categoryRepository beans.CategoryRepository
+	categoryRepository      beans.CategoryRepository
+	monthCategoryRepository beans.MonthCategoryRepository
+	monthRepository         beans.MonthRepository
+	txManager               beans.TxManager
 }
 
 func NewCategoryContract(
 	categoryRepository beans.CategoryRepository,
+	monthCategoryRepository beans.MonthCategoryRepository,
+	monthRepository beans.MonthRepository,
+	txManager beans.TxManager,
 ) *categoryContract {
-	return &categoryContract{categoryRepository}
+	return &categoryContract{
+		categoryRepository,
+		monthCategoryRepository,
+		monthRepository,
+		txManager,
+	}
 }
 
 func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.BudgetAuthContext, groupID beans.ID, name beans.Name) (*beans.Category, error) {
 	if err := beans.ValidateFields(
-		beans.Field("Budget ID", beans.Required(auth.BudgetID())),
 		beans.Field("Group ID", beans.Required(groupID)),
 		beans.Field("Name", name),
 	); err != nil {
 		return nil, err
 	}
+
+	tx, err := c.txManager.Create(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
 
 	groupExists, err := c.categoryRepository.GroupExists(ctx, auth.BudgetID(), groupID)
 	if err != nil {
@@ -44,12 +60,34 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 		return nil, err
 	}
 
+	// create month categories for existing months
+	months, err := c.monthRepository.GetForBudget(ctx, auth.BudgetID())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, month := range months {
+		err = c.monthCategoryRepository.Create(ctx, tx, &beans.MonthCategory{
+			ID:         beans.NewBeansID(),
+			MonthID:    month.ID,
+			CategoryID: category.ID,
+			Amount:     beans.NewAmount(0, 0),
+		})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	return category, nil
 }
 
 func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (*beans.CategoryGroup, error) {
 	if err := beans.ValidateFields(
-		beans.Field("Budget ID", beans.Required(auth.BudgetID())),
 		beans.Field("Name", name),
 	); err != nil {
 		return nil, err
