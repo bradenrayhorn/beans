@@ -12,3 +12,6 @@ SELECT * FROM months WHERE budget_id = $1 AND date = $2;
 -- name: GetNewestMonth :one
 SELECT * FROM months WHERE budget_id = $1 ORDER BY date desc LIMIT 1;
 
+-- name: GetMonthsByBudget :many
+SELECT * FROM months WHERE budget_id = $1;
+

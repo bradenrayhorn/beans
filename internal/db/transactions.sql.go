@@ -40,6 +40,50 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
+const getActivityBeforeDateByCategory = `-- name: GetActivityBeforeDateByCategory :many
+SELECT categories.id, sum(transactions.amount)::numeric as activity
+  FROM transactions
+  JOIN categories
+    ON transactions.category_id = categories.id
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+    AND accounts.budget_id = $1
+  WHERE transactions.date < $2
+  GROUP BY (
+    categories.id
+  )
+`
+
+type GetActivityBeforeDateByCategoryParams struct {
+	BudgetID string
+	Date     time.Time
+}
+
+type GetActivityBeforeDateByCategoryRow struct {
+	ID       string
+	Activity pgtype.Numeric
+}
+
+func (q *Queries) GetActivityBeforeDateByCategory(ctx context.Context, arg GetActivityBeforeDateByCategoryParams) ([]GetActivityBeforeDateByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, getActivityBeforeDateByCategory, arg.BudgetID, arg.Date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActivityBeforeDateByCategoryRow
+	for rows.Next() {
+		var i GetActivityBeforeDateByCategoryRow
+		if err := rows.Scan(&i.ID, &i.Activity); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIncomeBeforeOrOnDate = `-- name: GetIncomeBeforeOrOnDate :one
 SELECT sum(transactions.amount)::numeric
 FROM transactions

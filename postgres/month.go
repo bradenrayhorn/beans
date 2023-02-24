@@ -6,6 +6,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/db"
+	"github.com/bradenrayhorn/beans/postgres/mapper"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -31,39 +32,21 @@ func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, e
 		return nil, mapPostgresError(err)
 	}
 
-	budgetID, err := beans.BeansIDFromString(res.BudgetID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &beans.Month{
-		ID:       id,
-		BudgetID: budgetID,
-		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
-	}, nil
+	return mapper.Month(res)
 }
 
-func (r *monthRepository) GetOrCreate(ctx context.Context, budgetID beans.ID, date beans.MonthDate) (*beans.Month, error) {
-	res, err := r.DB(nil).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date.Time()})
+func (r *monthRepository) GetOrCreate(ctx context.Context, tx beans.Tx, budgetID beans.ID, date beans.MonthDate) (*beans.Month, error) {
+	res, err := r.DB(tx).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date.Time()})
 	if err != nil {
 		err = mapPostgresError(err)
 
 		if errors.Is(err, beans.ErrorNotFound) {
 			month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: date}
-			return month, r.Create(ctx, nil, month)
+			return month, r.Create(ctx, tx, month)
 		}
 	}
 
-	id, err := beans.BeansIDFromString(res.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &beans.Month{
-		ID:       id,
-		BudgetID: budgetID,
-		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
-	}, nil
+	return mapper.Month(res)
 }
 
 func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*beans.Month, error) {
@@ -72,14 +55,14 @@ func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*be
 		return nil, mapPostgresError(err)
 	}
 
-	id, err := beans.BeansIDFromString(res.ID)
+	return mapper.Month(res)
+}
+
+func (r *monthRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Month, error) {
+	res, err := r.DB(nil).GetMonthsByBudget(ctx, budgetID.String())
 	if err != nil {
-		return nil, err
+		return nil, mapPostgresError(err)
 	}
 
-	return &beans.Month{
-		ID:       id,
-		BudgetID: budgetID,
-		Date:     beans.NewMonthDate(beans.NewDate(res.Date)),
-	}, nil
+	return mapper.MapSlice(res, mapper.Month)
 }

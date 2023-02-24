@@ -51,12 +51,12 @@ func (c *TransactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 			}
 		}
 
-		month, err := c.monthRepository.GetOrCreate(ctx, auth.BudgetID(), beans.NewMonthDate(data.Date))
+		month, err := c.monthRepository.GetOrCreate(ctx, nil, auth.BudgetID(), beans.NewMonthDate(data.Date))
 		if err != nil {
 			return nil, err
 		}
 
-		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
+		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, nil, month.ID, data.CategoryID); err != nil {
 			return nil, err
 		}
 	}
@@ -118,12 +118,12 @@ func (c *TransactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 			}
 		}
 
-		month, err := c.monthRepository.GetOrCreate(ctx, auth.BudgetID(), beans.NewMonthDate(data.Date))
+		month, err := c.monthRepository.GetOrCreate(ctx, nil, auth.BudgetID(), beans.NewMonthDate(data.Date))
 		if err != nil {
 			return err
 		}
 
-		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, month.ID, data.CategoryID); err != nil {
+		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, nil, month.ID, data.CategoryID); err != nil {
 			return err
 		}
 	}

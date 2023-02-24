@@ -64,6 +64,35 @@ func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
 	return i, err
 }
 
+const getMonthsByBudget = `-- name: GetMonthsByBudget :many
+SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1
+`
+
+func (q *Queries) GetMonthsByBudget(ctx context.Context, budgetID string) ([]Month, error) {
+	rows, err := q.db.Query(ctx, getMonthsByBudget, budgetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Month
+	for rows.Next() {
+		var i Month
+		if err := rows.Scan(
+			&i.ID,
+			&i.BudgetID,
+			&i.Date,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNewestMonth = `-- name: GetNewestMonth :one
 SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1 ORDER BY date desc LIMIT 1
 `

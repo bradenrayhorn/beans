@@ -23,10 +23,12 @@ func TestMonth(t *testing.T) {
 		require.Nil(t, err)
 	}
 
+	categoryRepository := postgres.NewCategoryRepository(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
 	transactionRepository := postgres.NewTransactionRepository(pool)
-	c := contract.NewMonthContract(monthRepository, monthCategoryRepository, transactionRepository)
+	txManager := postgres.NewTxManager(pool)
+	c := contract.NewMonthContract(categoryRepository, monthRepository, monthCategoryRepository, transactionRepository, txManager)
 
 	t.Run("get", func(t *testing.T) {
 		t.Run("cannot get non existant month", func(t *testing.T) {
@@ -91,6 +93,7 @@ func TestMonth(t *testing.T) {
 			require.Len(t, dbCategories, 1)
 
 			monthCategory.Activity = beans.NewAmount(0, 0)
+			monthCategory.Available = beans.NewAmount(34, -1)
 			assert.True(t, reflect.DeepEqual(monthCategory, dbCategories[0]))
 
 			assert.Equal(t, beans.NewAmount(26, -1), available)
@@ -134,6 +137,26 @@ func TestMonth(t *testing.T) {
 
 			// month was returned
 			assert.True(t, reflect.DeepEqual(month, returnedMonth))
+		})
+
+		t.Run("creates existing month categories when creating month", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
+			category := testutils.MakeCategory(t, pool, "Electric", group.ID, budget.ID)
+
+			date := testutils.NewMonthDate(t, "2022-05-01")
+
+			month, err := c.CreateMonth(context.Background(), auth, date)
+			require.Nil(t, err)
+
+			monthCategories, err := monthCategoryRepository.GetForMonth(context.Background(), month)
+			require.Nil(t, err)
+			require.Len(t, monthCategories, 1)
+			require.Equal(t, category.ID, monthCategories[0].CategoryID)
 		})
 	})
 
@@ -194,7 +217,7 @@ func TestMonth(t *testing.T) {
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
 
-			monthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), month.ID, category.ID)
+			monthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
 			require.Nil(t, err)
 
 			assert.True(t, reflect.DeepEqual(
@@ -224,7 +247,7 @@ func TestMonth(t *testing.T) {
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
 
-			dbMonthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), month.ID, category.ID)
+			dbMonthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
 			require.Nil(t, err)
 
 			assert.True(t, reflect.DeepEqual(

@@ -56,6 +56,25 @@ func (a *Amount) Subtract(b Amount) (Amount, error) {
 	return NewAmountWithBigInt(bigInt, res.Exponent), nil
 }
 
+func Add(amounts ...Amount) (Amount, error) {
+	accumulator := apd.New(0, 0)
+
+	for _, b := range amounts {
+		_, err := apd.BaseContext.Add(accumulator, accumulator, &b.decimal)
+		if err != nil {
+			return NewEmptyAmount(), err
+		}
+
+	}
+
+	bigInt := accumulator.Coeff.MathBigInt()
+	if accumulator.Negative {
+		bigInt.Neg(bigInt)
+	}
+
+	return NewAmountWithBigInt(bigInt, accumulator.Exponent), nil
+}
+
 func (a *Amount) String() string {
 	if !a.set {
 		return ""

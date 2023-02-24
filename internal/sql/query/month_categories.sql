@@ -16,6 +16,19 @@ SELECT month_categories.*, sum(t.amount)::numeric as activity
     month_categories.amount
   );
 
+-- name: GetPastMonthCategoriesAvailable :many
+SELECT
+    categories.id,
+    sum(mc.amount)::numeric as assigned
+  FROM categories
+  JOIN month_categories mc on mc.category_id = categories.id
+  JOIN months m on m.id = mc.month_id
+    AND m.budget_id = @budget_id
+    AND m.date < @before_date
+  GROUP BY (
+    categories.id
+  );
+
 -- name: GetMonthCategoryByMonthAndCategory :one
 SELECT * FROM month_categories WHERE month_id = $1 and category_id = $2;
 

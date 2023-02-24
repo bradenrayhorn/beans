@@ -82,7 +82,7 @@ func TestMonth(t *testing.T) {
 		monthBudget2 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID2}
 		require.Nil(t, monthRepository.Create(context.Background(), nil, monthBudget2))
 
-		month, err := monthRepository.GetOrCreate(context.Background(), budgetID, date)
+		month, err := monthRepository.GetOrCreate(context.Background(), nil, budgetID, date)
 		require.Nil(t, err)
 
 		assert.NotEqual(t, month.ID, monthBudget2.ID)
@@ -95,7 +95,7 @@ func TestMonth(t *testing.T) {
 		existingMonth := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
 		require.Nil(t, monthRepository.Create(context.Background(), nil, existingMonth))
 
-		month, err := monthRepository.GetOrCreate(context.Background(), budgetID, date)
+		month, err := monthRepository.GetOrCreate(context.Background(), nil, budgetID, date)
 		require.Nil(t, err)
 
 		assert.True(t, reflect.DeepEqual(month, existingMonth))
@@ -109,7 +109,7 @@ func TestMonth(t *testing.T) {
 		existingMonth := &beans.Month{ID: beans.NewBeansID(), Date: date1, BudgetID: budgetID}
 		require.Nil(t, monthRepository.Create(context.Background(), nil, existingMonth))
 
-		month, err := monthRepository.GetOrCreate(context.Background(), budgetID, date2)
+		month, err := monthRepository.GetOrCreate(context.Background(), nil, budgetID, date2)
 		require.Nil(t, err)
 
 		assert.NotEqual(t, existingMonth.ID, month.ID)
@@ -121,6 +121,31 @@ func TestMonth(t *testing.T) {
 			},
 			month,
 		))
+	})
+
+	t.Run("get or create respects tx", func(t *testing.T) {
+		defer cleanup()
+		date := testutils.NewMonthDate(t, "2022-05-01")
+
+		// make transaction
+		tx, err := txManager.Create(context.Background())
+		require.Nil(t, err)
+		defer tx.Rollback(context.Background())
+
+		// get or create but do not commit
+		month1, err := monthRepository.GetOrCreate(context.Background(), tx, budgetID, date)
+		require.Nil(t, err)
+
+		// try to find month, should fail
+		_, err = monthRepository.Get(context.Background(), month1.ID)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		// commit
+		require.Nil(t, tx.Commit(context.Background()))
+
+		// try to find month, should succeed
+		_, err = monthRepository.Get(context.Background(), month1.ID)
+		require.Nil(t, err)
 	})
 
 	t.Run("cannot get fictitious month by id", func(t *testing.T) {
@@ -147,5 +172,18 @@ func TestMonth(t *testing.T) {
 		defer cleanup()
 		_, err := monthRepository.GetLatest(context.Background(), budgetID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("can get months in budget", func(t *testing.T) {
+		defer cleanup()
+		month1 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-05-01"), BudgetID: budgetID}
+		month2 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-07-01"), BudgetID: budgetID2}
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month1))
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month2))
+
+		res, err := monthRepository.GetForBudget(context.Background(), budgetID)
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		assert.Equal(t, month1.ID, res[0].ID)
 	})
 }

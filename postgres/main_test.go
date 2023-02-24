@@ -23,3 +23,12 @@ func makeTransaction(tb testing.TB, pool *pgxpool.Pool, transaction *beans.Trans
 	require.Nil(tb, err)
 	return transaction
 }
+
+func findResult[K comparable](s []*K, compare func(*K) bool) *K {
+	for _, v := range s {
+		if compare(v) {
+			return v
+		}
+	}
+	return nil
+}
