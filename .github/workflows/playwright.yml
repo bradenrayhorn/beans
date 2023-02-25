@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: E2E
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Test E2E
+    name: Test
     timeout-minutes: 60
     runs-on: ubuntu-latest
     strategy:
@@ -52,15 +52,3 @@ jobs:
           name: playwright-report
           path: web/playwright-report/
           retention-days: 30
-
-  test-status:
-    runs-on: ubuntu-20.04
-    needs: [test]
-    if: always()
-    steps:
-      - name: Tests successful
-        if: ${{ !(contains(needs.*.result, 'failure')) }}
-        run: exit 0
-      - name: Tests failed
-        if: ${{ contains(needs.*.result, 'failure') }}
-        run: exit 1
