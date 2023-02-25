@@ -69,7 +69,7 @@ export default function TransactionList() {
     return function cleanup() {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [setEditID, getSelectedRows]);
 
   const headerStyles = useStyleConfig("TableHeader");
 

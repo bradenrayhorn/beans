@@ -41,7 +41,7 @@ export const useAddAccount = () => {
       mutation.mutateAsync(values).then(() => {
         queryClient.invalidateQueries([queryKeys.accounts.get]);
       }),
-    [budgetID]
+    [mutation, queryClient]
   );
 
   return { ...mutation, errorMessage, submit };

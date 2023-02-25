@@ -31,7 +31,7 @@ export const useAddCategoryGroup = () => {
       mutation.mutateAsync(values).then(() => {
         queryClient.invalidateQueries([queryKeys.categories.get]);
       }),
-    []
+    [mutation, queryClient]
   );
 
   return { ...mutation, submit };
@@ -53,7 +53,7 @@ export const useAddCategory = ({ groupID }: { groupID: string }) => {
       mutation.mutateAsync({ ...values, groupID }).then(() => {
         queryClient.invalidateQueries([queryKeys.categories.get]);
       }),
-    [groupID]
+    [groupID, mutation, queryClient]
   );
 
   return { ...mutation, submit };

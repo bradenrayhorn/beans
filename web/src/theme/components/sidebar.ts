@@ -1,6 +1,6 @@
 import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
 
-export default {
+const Sidebar = {
   baseStyle: (props: StyleFunctionProps) => ({
     bg: mode("gray.50", "gray.700")(props),
     display: "flex",
@@ -8,3 +8,5 @@ export default {
     justifyContent: "space-between",
   }),
 };
+
+export default Sidebar;

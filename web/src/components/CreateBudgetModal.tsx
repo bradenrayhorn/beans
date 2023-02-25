@@ -1,3 +1,4 @@
+import { queries, queryKeys } from "@/constants/queries";
 import {
   Button,
   FormControl,
@@ -13,7 +14,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { queries, queryKeys } from "@/constants/queries";
 import { HTTPError } from "ky";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -47,9 +47,11 @@ const CreateBudgetModal = ({ isOpen, onClose }: Props) => {
     reset,
   } = useForm<FormData>();
 
-  const { mutateAsync, error, reset: resetQuery } = useMutation(
-    queries.budget.create
-  );
+  const {
+    mutateAsync,
+    error,
+    reset: resetQuery,
+  } = useMutation(queries.budget.create);
   const errorMessage = getHTTPErrorResponseMessage(error);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ const CreateBudgetModal = ({ isOpen, onClose }: Props) => {
       reset();
       resetQuery();
     }
-  }, [reset, resetQuery, isOpen]);
+  }, [resetQuery, isOpen, reset]);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) =>
     handleSubmit((v) => mutateAsync(v))(event)

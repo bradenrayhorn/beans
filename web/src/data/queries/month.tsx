@@ -32,7 +32,7 @@ export const useCreateMonth = ({
 
   const submit = useCallback(
     ({ date }: { date: string }) => mutation.mutateAsync({ date }),
-    []
+    [mutation]
   );
 
   return { ...mutation, submit };
@@ -62,7 +62,7 @@ export const useUpdateMonthCategory = ({
         .then(() => {
           queryClient.invalidateQueries([queryKeys.months.get]);
         }),
-    [monthID, categoryID]
+    [mutation, monthID, categoryID, queryClient]
   );
 
   return { ...mutation, submit };

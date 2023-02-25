@@ -2,7 +2,7 @@ import CategoryStats from "@/components/budget/categories/CategoryStats";
 import EditButton from "@/components/budget/categories/EditButton";
 import MonthHeader from "@/components/budget/MonthHeader";
 import PageCard from "@/components/PageCard";
-import { Amount, MonthCategory } from "@/constants/types";
+import { MonthCategory } from "@/constants/types";
 import { useMonthID } from "@/context/MonthProvider";
 import { zeroAmount } from "@/data/format/amount";
 import { useCategories } from "@/data/queries/category";

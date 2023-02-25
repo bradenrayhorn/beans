@@ -104,7 +104,7 @@ const Select = <T extends unknown>({
   useEffect(() => {
     setItems(providedItems);
     setIsLoading(parentIsLoading);
-  }, [providedItems, isLoading]);
+  }, [providedItems, parentIsLoading]);
 
   const styles = useMultiStyleConfig("ComponentSelect");
   const { "aria-labelledby": _, ...inputProps } = getInputProps({

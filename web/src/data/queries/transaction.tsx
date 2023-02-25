@@ -33,7 +33,7 @@ export const useAddTransaction = () => {
         .then(() => {
           queryClient.invalidateQueries([queryKeys.transactions.getAll]);
         }),
-    [budgetID]
+    [mutation, queryClient]
   );
 
   return { ...mutation, errorMessage, submit };
@@ -57,7 +57,7 @@ export const useEditTransaction = ({ id }: { id: string }) => {
         .then(() => {
           queryClient.invalidateQueries([queryKeys.transactions.getAll]);
         }),
-    [budgetID, id]
+    [id, mutation, queryClient]
   );
 
   return { ...mutation, submit };

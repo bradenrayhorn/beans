@@ -1,0 +1,41 @@
+name: Lint Frontend
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  eslint:
+    name: ESLint
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./web
+
+      - name: Run lint
+        run: npm run lint
+        working-directory: ./web
+
+  prettier:
+    name: Prettier
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./web
+
+      - name: Run lint
+        run: npm run format:lint
+        working-directory: ./web
