@@ -1,6 +1,6 @@
 import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
 
-export default {
+const TableHeader = {
   baseStyle: (props: StyleFunctionProps) => ({
     display: "flex",
     borderBottom: "1px",
@@ -8,3 +8,5 @@ export default {
     color: mode("gray.600", "gray.400")(props),
   }),
 };
+
+export default TableHeader;

@@ -1,7 +1,7 @@
 import { ComponentMultiStyleConfig } from "@chakra-ui/theme";
 import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
 
-export default {
+const ComponentSelect = {
   parts: ["wrapper", "item"],
   baseStyle: (props: StyleFunctionProps) => ({
     wrapper: {
@@ -26,3 +26,5 @@ export default {
     },
   }),
 } as ComponentMultiStyleConfig;
+
+export default ComponentSelect;

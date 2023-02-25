@@ -1,3 +1,6 @@
+import AddAccountModal from "@/components/AddAccountModal";
+import PageCard from "@/components/PageCard";
+import { useAccounts } from "@/data/queries/account";
 import { AddIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -14,11 +17,7 @@ import {
   StatNumber,
   Text,
   useDisclosure,
-  VStack,
 } from "@chakra-ui/react";
-import AddAccountModal from "@/components/AddAccountModal";
-import PageCard from "@/components/PageCard";
-import { useAccounts } from "@/data/queries/account";
 
 export default function AccountsPage() {
   const {
