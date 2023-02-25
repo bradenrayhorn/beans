@@ -93,11 +93,16 @@ const buildQueries = (client: KyInstance) => {
     login: ({
       username,
       password,
+      signal,
     }: {
       username: string;
       password: string;
-    }): Promise<User> =>
-      client.post("api/v1/user/login", { json: { username, password } }).json(),
+      signal?: AbortSignal;
+    }): Promise<User> => {
+      return client
+        .post("api/v1/user/login", { json: { username, password }, signal })
+        .json();
+    },
 
     me: ({ cookie }: { cookie?: string } = {}): Promise<User> =>
       client.get("api/v1/user/me", { headers: { cookie } }).json(),
@@ -216,7 +221,8 @@ type Props = {
 };
 const getQueries = ({ budgetID }: Props) => {
   const client = ky.extend({
-    prefixUrl: "/",
+    prefixUrl: import.meta.env.VITE_BACKEND_BASE_URL,
+    credentials: "include",
     hooks: {
       beforeRequest: [
         (request) => {
@@ -240,7 +246,12 @@ export const useQueries = ({ budgetID }: Props) => {
   return queries;
 };
 
-export const queries = buildQueries(ky.extend({ prefixUrl: "/" }));
+export const queries = buildQueries(
+  ky.extend({
+    prefixUrl: import.meta.env.VITE_BACKEND_BASE_URL,
+    credentials: "include",
+  })
+);
 
 export function getHTTPErrorResponseMessage(error: unknown) {
   if (!error) {
@@ -250,7 +261,7 @@ export function getHTTPErrorResponseMessage(error: unknown) {
     return error.message;
   }
 
-  return "Unknown error.";
+  return "An unknown error has occurred.";
 }
 
 export { buildQueries, queryKeys };

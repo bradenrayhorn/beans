@@ -15,7 +15,7 @@ import (
 
 func StartPool(tb testing.TB) (*pgxpool.Pool, func()) {
 	p := pg.Preset(
-		pg.WithVersion("15.1"),
+		pg.WithVersion("15.2"),
 		pg.WithDatabase("beans"),
 		pg.WithQueries(getMigrationQueries(tb)),
 	)

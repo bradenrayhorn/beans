@@ -14,7 +14,7 @@ import AccountsPage from "./routes/budget/[budget]/accounts";
 import BudgetPage from "./routes/budget/[budget]/budget";
 import SettingsPage from "./routes/budget/[budget]/settings";
 import TransactionsPage from "./routes/budget/[budget]/transactions";
-import LoginPage from "./routes/login";
+import LoginPage from "./routes/login/login";
 import MustBeNotAuthed from "./routes/not-authed";
 import Root from "./routes/root";
 

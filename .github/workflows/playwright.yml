@@ -14,54 +14,53 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18
-    - uses: actions/setup-go@v3
-      with:
-        go-version: '>=1.19.0'
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.19.0"
 
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./web
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-      working-directory: ./web
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./web
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./web
 
-    - name: Build frontend
-      run: npm run build 
-      working-directory: ./web
+      - name: Build frontend
+        run: npm run build:e2e
+        working-directory: ./web
 
-    - name: Docker compose up
-      run: docker compose up -d
-     
-    - name: Run migrations
-      run: go run ./cmd/beans migrate
+      - name: Docker compose up
+        run: docker compose up -d
 
-    - name: Run Playwright tests
-      run: npm run e2e:ci 'playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}'
-      working-directory: ./web
+      - name: Run migrations
+        run: go run ./cmd/beans migrate
 
-    - name: Docker compose down 
-      run: docker compose down -v
+      - name: Run Playwright tests
+        run: npm run e2e:ci 'playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}'
+        working-directory: ./web
 
-    - uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: playwright-report
-        path: web/playwright-report/
-        retention-days: 30
+      - name: Docker compose down
+        run: docker compose down -v
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 30
 
   test-status:
     runs-on: ubuntu-20.04
     needs: [test]
     if: always()
     steps:
-      - name: Tests successful 
+      - name: Tests successful
         if: ${{ !(contains(needs.*.result, 'failure')) }}
         run: exit 0
       - name: Tests failed
         if: ${{ contains(needs.*.result, 'failure') }}
         run: exit 1
-
