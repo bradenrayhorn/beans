@@ -24,7 +24,7 @@ test("cannot login with invalid password", async ({
   await page.getByRole("button", { name: "Log in" }).click();
 
   await expect(
-    page.getByRole("status").filter({ hasText: "Error" })
+    page.getByRole("alert").filter({ hasText: "Invalid username or password" })
   ).toBeVisible();
 
   await expect(page).toHaveURL(/.*\/login$/);

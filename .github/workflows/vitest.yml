@@ -1,0 +1,25 @@
+name: Vitest Tests
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test Frontend
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./web
+
+      - name: Run Playwright tests
+        run: npm run test:ci
+        working-directory: ./web
