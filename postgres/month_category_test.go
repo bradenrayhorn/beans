@@ -81,6 +81,14 @@ func TestMonthCategory(t *testing.T) {
 		assertPgError(t, pgerrcode.UniqueViolation, monthCategoryRepository.Create(context.Background(), nil, monthCategory))
 	})
 
+	t.Run("cannot create with duplicate month and category", func(t *testing.T) {
+		defer cleanup()
+		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthMay.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), nil, monthCategory))
+		monthCategory.ID = beans.NewBeansID()
+		assertPgError(t, pgerrcode.UniqueViolation, monthCategoryRepository.Create(context.Background(), nil, monthCategory))
+	})
+
 	t.Run("create respects tx", func(t *testing.T) {
 		defer cleanup()
 		monthCategory := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthMay.ID, CategoryID: categoryID, Amount: beans.NewAmount(1, 0)}

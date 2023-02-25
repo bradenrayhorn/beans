@@ -6,3 +6,5 @@ CREATE TABLE month_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+CREATE UNIQUE INDEX month_category_idx on month_categories (month_id, category_id);
+
