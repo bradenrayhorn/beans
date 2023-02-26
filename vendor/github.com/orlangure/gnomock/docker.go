@@ -2,6 +2,7 @@ package gnomock
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"github.com/orlangure/gnomock/internal/cleaner"
 	"github.com/orlangure/gnomock/internal/health"
@@ -25,7 +27,7 @@ import (
 
 const (
 	localhostAddr             = "127.0.0.1"
-	defaultStopTimeout        = time.Second * 1
+	defaultStopTimeoutSec     = 1
 	duplicateContainerPattern = `Conflict. The container name "(?:.+?)" is already in use by container "(\w+)". You have to remove \(or rename\) that container to be able to reuse that name.` // nolint:lll
 	dockerSockAddr            = "/var/run/docker.sock"
 )
@@ -53,7 +55,7 @@ func (g *g) dockerConnect() (*docker, error) {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrEnvClient, err)
+		return nil, errors.Join(ErrEnvClient, err)
 	}
 
 	g.log.Info("connected to docker engine")
@@ -69,6 +71,10 @@ func (d *docker) isExistingLocalImage(ctx context.Context, image string) (bool, 
 
 	for _, img := range images {
 		for _, repoTag := range img.RepoTags {
+			if image == repoTag {
+				return true, nil
+			}
+
 			if !strings.Contains(repoTag, "/") {
 				repoTag = "library/" + repoTag
 			}
@@ -191,7 +197,7 @@ func (d *docker) prepareContainer(
 	image string,
 	ports NamedPorts,
 	cfg *Options,
-) (*container.ContainerCreateCreatedBody, error) {
+) (*container.CreateResponse, error) {
 	pullImage := true
 
 	if cfg.UseLocalImagesFirst {
@@ -294,7 +300,12 @@ func (d *docker) portBindings(exposedPorts nat.PortSet, ports NamedPorts) nat.Po
 	return portBindings
 }
 
-func (d *docker) createContainer(ctx context.Context, image string, ports NamedPorts, cfg *Options) (*container.ContainerCreateCreatedBody, error) { // nolint:lll
+func (d *docker) createContainer(
+	ctx context.Context,
+	image string,
+	ports NamedPorts,
+	cfg *Options,
+) (*container.CreateResponse, error) {
 	exposedPorts := d.exposedPorts(ports)
 	containerConfig := &container.Config{
 		Image:        image,
@@ -322,9 +333,10 @@ func (d *docker) createContainer(ctx context.Context, image string, ports NamedP
 	portBindings := d.portBindings(exposedPorts, ports)
 	hostConfig := &container.HostConfig{
 		PortBindings: portBindings,
-		AutoRemove:   true,
+		AutoRemove:   !cfg.Debug,
 		Privileged:   cfg.Privileged,
 		Mounts:       mounts,
+		ExtraHosts:   cfg.ExtraHosts,
 	}
 
 	resp, err := d.client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, cfg.ContainerName)
@@ -428,11 +440,25 @@ func (d *docker) stopContainer(ctx context.Context, id string) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	stopTimeout := defaultStopTimeout
+	stopTimeout := defaultStopTimeoutSec
 
-	err := d.client.ContainerStop(ctx, id, &stopTimeout)
-	if err != nil {
+	err := d.client.ContainerStop(ctx, id, container.StopOptions{
+		Timeout: &stopTimeout,
+	})
+	if err != nil && !client.IsErrNotFound(err) {
 		return fmt.Errorf("can't stop container %s: %w", id, err)
+	}
+
+	return nil
+}
+
+func (d *docker) removeContainer(ctx context.Context, id string) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	err := d.client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{Force: true})
+	if err != nil && !client.IsErrNotFound(err) && !isDeletionAlreadyInProgessError(err, id) {
+		return fmt.Errorf("can't remove container %s: %w", id, err)
 	}
 
 	return nil
@@ -452,4 +478,15 @@ func (d *docker) hostAddr() string {
 	}
 
 	return localhostAddr
+}
+
+func isDeletionAlreadyInProgessError(err error, id string) bool {
+	var e errdefs.ErrConflict
+	if errors.As(err, &e) {
+		if err.Error() == fmt.Sprintf("Error response from daemon: removal of container %s is already in progress", id) {
+			return true
+		}
+	}
+
+	return false
 }
