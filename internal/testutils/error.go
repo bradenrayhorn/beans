@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -10,13 +11,17 @@ import (
 
 func AssertError(t testing.TB, err error, expected string) {
 	require.NotNil(t, err)
-	_, msg := err.(beans.Error).BeansError()
+	var beansError beans.Error
+	require.True(t, errors.As(err, &beansError))
+	_, msg := beansError.BeansError()
 	assert.Equal(t, expected, msg)
 }
 
 func AssertErrorCode(t testing.TB, err error, expected string) {
 	require.NotNil(t, err)
-	code, _ := err.(beans.Error).BeansError()
+	var beansError beans.Error
+	require.True(t, errors.As(err, &beansError))
+	code, _ := beansError.BeansError()
 	assert.Equal(t, expected, code)
 }
 

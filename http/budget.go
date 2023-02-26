@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/http/httpcontext"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -111,16 +112,12 @@ func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "budget", budget)
-		ctx = context.WithValue(ctx, "budget_auth", auth)
+		ctx := context.WithValue(r.Context(), httpcontext.Budget, budget)
+		ctx = context.WithValue(ctx, httpcontext.BudgetAuth, auth)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func getBudget(r *http.Request) *beans.Budget {
-	return r.Context().Value("budget").(*beans.Budget)
-}
-
 func getBudgetAuth(r *http.Request) *beans.BudgetAuthContext {
-	return r.Context().Value("budget_auth").(*beans.BudgetAuthContext)
+	return r.Context().Value(httpcontext.BudgetAuth).(*beans.BudgetAuthContext)
 }

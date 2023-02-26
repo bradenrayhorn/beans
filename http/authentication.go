@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/http/httpcontext"
 )
 
 func (s *Server) authenticate(next http.Handler) http.Handler {
@@ -21,16 +22,16 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userID", session.UserID)
-		ctx = context.WithValue(ctx, "auth", beans.NewAuthContext(session.UserID))
+		ctx := context.WithValue(r.Context(), httpcontext.UserID, session.UserID)
+		ctx = context.WithValue(ctx, httpcontext.Auth, beans.NewAuthContext(session.UserID))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func getUserID(r *http.Request) beans.ID {
-	return r.Context().Value("userID").(beans.ID)
+	return r.Context().Value(httpcontext.UserID).(beans.ID)
 }
 
 func getAuth(r *http.Request) *beans.AuthContext {
-	return r.Context().Value("auth").(*beans.AuthContext)
+	return r.Context().Value(httpcontext.Auth).(*beans.AuthContext)
 }

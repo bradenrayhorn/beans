@@ -38,7 +38,7 @@ func TestCategory(t *testing.T) {
 	t.Run("create group", func(t *testing.T) {
 		contract.CreateGroupFunc.PushReturn(group, nil)
 
-		req := fmt.Sprintf(`{"name":"Group1"}`)
+		req := `{"name":"Group1"}`
 		res := testutils.HTTP(t, sv.handleCategoryGroupCreate(), user, budget, req, http.StatusOK)
 
 		expected := fmt.Sprintf(`{"data":{"name":"Group1","id":"%s","categories":[]}}`, group.ID)

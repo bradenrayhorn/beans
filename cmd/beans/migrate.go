@@ -28,6 +28,10 @@ func runMigrations(ctx context.Context) error {
 	}
 
 	driver, err := migratePostgres.WithInstance(db, &migratePostgres.Config{})
+	if err != nil {
+		return err
+	}
+
 	m, err := migrate.NewWithInstance("iosfs", fs, "postgres", driver)
 	if err != nil {
 		return err

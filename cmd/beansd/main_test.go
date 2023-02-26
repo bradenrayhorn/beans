@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
-	"github.com/bradenrayhorn/beans/cmd/beansd"
+	main "github.com/bradenrayhorn/beans/cmd/beansd"
 	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/orlangure/gnomock"
@@ -59,7 +59,10 @@ func (ta *TestApplication) Stop(tb testing.TB) {
 		tb.Fatal(err)
 	}
 
-	gnomock.Stop(ta.postgresContainer)
+	err := gnomock.Stop(ta.postgresContainer)
+	if err != nil {
+		tb.Error("failed to stop container", err)
+	}
 }
 
 func getMigrationQueries(tb testing.TB) string {
@@ -98,14 +101,6 @@ type RequestOptions struct {
 	Body      any
 }
 
-func newOptions(session *beans.Session, budget *beans.Budget) *RequestOptions {
-	return &RequestOptions{SessionID: string(session.ID), BudgetID: budget.ID.String()}
-}
-
-func newOptionsWithBody(session *beans.Session, budget *beans.Budget, body any) *RequestOptions {
-	return &RequestOptions{SessionID: string(session.ID), BudgetID: budget.ID.String(), Body: body}
-}
-
 type TestResponse struct {
 	resp                *http.Response
 	StatusCode          int
@@ -121,7 +116,7 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 		options = &RequestOptions{}
 	}
 
-	var body io.Reader = nil
+	var body io.Reader
 	switch options.Body.(type) {
 	case string:
 		body = bytes.NewReader([]byte(options.Body.(string)))

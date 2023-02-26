@@ -39,7 +39,7 @@ func TestMonthCategory(t *testing.T) {
 	budget2Account := testutils.MakeAccount(t, pool, "account", budgetID2)
 
 	cleanup := func() {
-		pool.Exec(context.Background(), "truncate month_categories cascade; truncate transactions cascade;")
+		testutils.MustExec(t, pool, "truncate month_categories cascade; truncate transactions cascade;")
 	}
 
 	t.Run("can create", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestMonthCategory(t *testing.T) {
 		// make transaction
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		// create but do not commit
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), tx, monthCategory))
@@ -319,10 +319,11 @@ func TestMonthCategory(t *testing.T) {
 		// make transaction
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		// get or create but do not commit
 		_, err = monthCategoryRepository.GetOrCreate(context.Background(), tx, monthMay.ID, categoryID)
+		require.Nil(t, err)
 
 		// try to find category, should fail
 		categories, err := monthCategoryRepository.GetForMonth(context.Background(), monthMay)

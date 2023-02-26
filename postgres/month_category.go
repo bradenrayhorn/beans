@@ -67,6 +67,9 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 		BudgetID: month.BudgetID.String(),
 		Date:     month.Date.Time(),
 	})
+	if err != nil {
+		return monthCategories, mapPostgresError(err)
+	}
 
 	previousActivityByCategory := make(map[string]beans.Amount)
 	for _, v := range previousActivity {

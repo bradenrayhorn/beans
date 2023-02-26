@@ -130,6 +130,7 @@ func TestTransactions(t *testing.T) {
 		require.Nil(t, err)
 
 		transactions, err := transactionRepository.GetForBudget(context.Background(), budgetID)
+		require.Nil(t, err)
 		assert.Len(t, transactions, 2)
 		assert.True(t, reflect.DeepEqual(transactions[0], transaction1))
 		assert.True(t, reflect.DeepEqual(transactions[1], transaction2))

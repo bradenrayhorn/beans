@@ -60,33 +60,25 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 }
 
 func (c *monthContract) CreateMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {
-	tx, err := c.txManager.Create(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
-
-	month, err := c.monthRepository.GetOrCreate(ctx, tx, auth.BudgetID(), date)
-	if err != nil {
-		return nil, err
-	}
-
-	categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
-	if err != nil {
-		return nil, err
-	}
-
-	for _, category := range categories {
-		if _, err := c.monthCategoryRepository.GetOrCreate(ctx, tx, month.ID, category.ID); err != nil {
+	return beans.ExecTx(ctx, c.txManager, func(tx beans.Tx) (*beans.Month, error) {
+		month, err := c.monthRepository.GetOrCreate(ctx, tx, auth.BudgetID(), date)
+		if err != nil {
 			return nil, err
 		}
-	}
 
-	if err = tx.Commit(ctx); err != nil {
-		return nil, err
-	}
+		categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
+		if err != nil {
+			return nil, err
+		}
 
-	return month, nil
+		for _, category := range categories {
+			if _, err := c.monthCategoryRepository.GetOrCreate(ctx, tx, month.ID, category.ID); err != nil {
+				return nil, err
+			}
+		}
+
+		return month, nil
+	})
 }
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {

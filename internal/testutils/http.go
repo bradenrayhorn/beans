@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
+	"github.com/bradenrayhorn/beans/http/httpcontext"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
@@ -19,29 +19,28 @@ func HTTP(t testing.TB, f http.HandlerFunc, user *beans.User, budget *beans.Budg
 }
 
 type HTTPOptions struct {
-	URLParams     map[string]string
-	ContextValues map[string]any
+	URLParams map[string]string
 }
 
 func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, user *beans.User, budget *beans.Budget, body any, status int) string {
 	var reqBody io.Reader
-	switch body.(type) {
+	switch body := body.(type) {
 	case string:
-		reqBody = bytes.NewReader([]byte(body.(string)))
+		reqBody = bytes.NewReader([]byte(body))
 	default:
 		reqBody = nil
 	}
 	req := httptest.NewRequest("", "/", reqBody)
-	req = req.WithContext(context.WithValue(req.Context(), "budget", budget))
-	req = req.WithContext(context.WithValue(req.Context(), "userID", user.ID))
+	req = req.WithContext(context.WithValue(req.Context(), httpcontext.Budget, budget))
+	req = req.WithContext(context.WithValue(req.Context(), httpcontext.UserID, user.ID))
 
 	auth := beans.NewAuthContext(user.ID)
-	req = req.WithContext(context.WithValue(req.Context(), "auth", beans.NewAuthContext(user.ID)))
+	req = req.WithContext(context.WithValue(req.Context(), httpcontext.Auth, beans.NewAuthContext(user.ID)))
 
 	if budget != nil {
 		budgetAuth, err := beans.NewBudgetAuthContext(auth, budget)
 		require.Nil(t, err)
-		req = req.WithContext(context.WithValue(req.Context(), "budget_auth", budgetAuth))
+		req = req.WithContext(context.WithValue(req.Context(), httpcontext.BudgetAuth, budgetAuth))
 	}
 
 	if options != nil {
@@ -50,17 +49,13 @@ func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, use
 			rctx.URLParams.Add(k, v)
 		}
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-
-		for k, v := range options.ContextValues {
-			req = req.WithContext(context.WithValue(req.Context(), k, v))
-		}
 	}
 
 	w := httptest.NewRecorder()
 	f.ServeHTTP(w, req)
 	res := w.Result()
 	require.Equal(t, status, res.StatusCode)
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	require.Nil(t, err)
 	return string(data)
 }

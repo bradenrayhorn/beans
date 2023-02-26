@@ -35,20 +35,6 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 		return nil, err
 	}
 
-	tx, err := c.txManager.Create(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
-
-	groupExists, err := c.categoryRepository.GroupExists(ctx, auth.BudgetID(), groupID)
-	if err != nil {
-		return nil, err
-	}
-	if !groupExists {
-		return nil, beans.NewError(beans.EINVALID, "Invalid Group ID.")
-	}
-
 	category := &beans.Category{
 		ID:       beans.NewBeansID(),
 		BudgetID: auth.BudgetID(),
@@ -56,30 +42,42 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 		Name:     name,
 	}
 
-	if err := c.categoryRepository.Create(ctx, nil, category); err != nil {
-		return nil, err
-	}
-
-	// create month categories for existing months
-	months, err := c.monthRepository.GetForBudget(ctx, auth.BudgetID())
-	if err != nil {
-		return nil, err
-	}
-
-	for _, month := range months {
-		err = c.monthCategoryRepository.Create(ctx, tx, &beans.MonthCategory{
-			ID:         beans.NewBeansID(),
-			MonthID:    month.ID,
-			CategoryID: category.ID,
-			Amount:     beans.NewAmount(0, 0),
-		})
-
+	err := beans.ExecTxNil(ctx, c.txManager, func(tx beans.Tx) error {
+		groupExists, err := c.categoryRepository.GroupExists(ctx, auth.BudgetID(), groupID)
 		if err != nil {
-			return nil, err
+			return err
 		}
-	}
+		if !groupExists {
+			return beans.NewError(beans.EINVALID, "Invalid Group ID.")
+		}
 
-	if err := tx.Commit(ctx); err != nil {
+		if err := c.categoryRepository.Create(ctx, nil, category); err != nil {
+			return err
+		}
+
+		// create month categories for existing months
+		months, err := c.monthRepository.GetForBudget(ctx, auth.BudgetID())
+		if err != nil {
+			return err
+		}
+
+		for _, month := range months {
+			err = c.monthCategoryRepository.Create(ctx, tx, &beans.MonthCategory{
+				ID:         beans.NewBeansID(),
+				MonthID:    month.ID,
+				CategoryID: category.ID,
+				Amount:     beans.NewAmount(0, 0),
+			})
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 

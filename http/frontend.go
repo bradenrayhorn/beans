@@ -25,11 +25,11 @@ func (s *Server) handleServeFrontend() http.HandlerFunc {
 		file, err := web.FrontendFS.ReadFile(path.Join("dist", r.URL.Path))
 		if err == nil {
 			w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(r.URL.Path)))
-			w.Write(file)
+			_, _ = w.Write(file)
 			return
 		}
 
 		w.Header().Set("Content-Type", mime.TypeByExtension(".html"))
-		w.Write(index)
+		_, _ = w.Write(index)
 	}
 }
