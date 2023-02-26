@@ -27,7 +27,7 @@ func TestMonth(t *testing.T) {
 	budgetID2 := testutils.MakeBudget(t, pool, "budget2", userID).ID
 
 	cleanup := func() {
-		pool.Exec(context.Background(), "truncate months cascade;")
+		testutils.MustExec(t, pool, "truncate months cascade;")
 	}
 
 	t.Run("can create and get", func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestMonth(t *testing.T) {
 
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		require.Nil(t, monthRepository.Create(context.Background(), tx, month))
 
@@ -130,7 +130,7 @@ func TestMonth(t *testing.T) {
 		// make transaction
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		// get or create but do not commit
 		month1, err := monthRepository.GetOrCreate(context.Background(), tx, budgetID, date)

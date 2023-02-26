@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
@@ -153,7 +155,12 @@ func (s *Server) Open(address string) error {
 
 	s.boundAddr = ln.Addr().String()
 
-	go s.sv.Serve(ln)
+	go func() {
+		err := s.sv.Serve(ln)
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Err(err).Msg("http server error")
+		}
+	}()
 
 	return nil
 }

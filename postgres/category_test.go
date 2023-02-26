@@ -61,7 +61,7 @@ func TestCategories(t *testing.T) {
 
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		require.Nil(t, categoryRepository.CreateGroup(context.Background(), tx, group))
 		require.Nil(t, categoryRepository.Create(context.Background(), tx, category))

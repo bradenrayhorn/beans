@@ -30,56 +30,47 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 
 	budgetID := beans.NewBeansID()
 
-	tx, err := c.txManager.Create(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
+	return beans.ExecTx(ctx, c.txManager, func(tx beans.Tx) (*beans.Budget, error) {
+		// create budget
+		if err := c.budgetRepository.Create(ctx, tx, budgetID, name, auth.UserID()); err != nil {
+			return nil, err
+		}
 
-	// create budget
-	if err := c.budgetRepository.Create(ctx, tx, budgetID, name, auth.UserID()); err != nil {
-		return nil, err
-	}
+		// create month
+		if err := c.monthRepository.Create(ctx, tx, &beans.Month{
+			ID:       beans.NewBeansID(),
+			BudgetID: budgetID,
+			Date:     beans.NewMonthDate(beans.NewDate(time.Now())),
+		}); err != nil {
+			return nil, err
+		}
 
-	// create month
-	if err := c.monthRepository.Create(ctx, tx, &beans.Month{
-		ID:       beans.NewBeansID(),
-		BudgetID: budgetID,
-		Date:     beans.NewMonthDate(beans.NewDate(time.Now())),
-	}); err != nil {
-		return nil, err
-	}
+		// create income group and category
+		categoryGroup := &beans.CategoryGroup{
+			ID:       beans.NewBeansID(),
+			BudgetID: budgetID,
+			Name:     "Income",
+		}
+		if err := c.categoryRepository.CreateGroup(ctx, tx, categoryGroup); err != nil {
+			return nil, err
+		}
 
-	// create income category
-	categoryGroup := &beans.CategoryGroup{
-		ID:       beans.NewBeansID(),
-		BudgetID: budgetID,
-		Name:     "Income",
-	}
-	if err := c.categoryRepository.CreateGroup(ctx, tx, categoryGroup); err != nil {
-		return nil, err
-	}
+		category := &beans.Category{
+			ID:       beans.NewBeansID(),
+			GroupID:  categoryGroup.ID,
+			BudgetID: budgetID,
+			Name:     "Income",
+			IsIncome: true,
+		}
+		if err := c.categoryRepository.Create(ctx, tx, category); err != nil {
+			return nil, err
+		}
 
-	category := &beans.Category{
-		ID:       beans.NewBeansID(),
-		GroupID:  categoryGroup.ID,
-		BudgetID: budgetID,
-		Name:     "Income",
-		IsIncome: true,
-	}
-	if err := c.categoryRepository.Create(ctx, tx, category); err != nil {
-		return nil, err
-	}
-
-	// commit
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return &beans.Budget{
-		ID:   budgetID,
-		Name: name,
-	}, nil
+		return &beans.Budget{
+			ID:   budgetID,
+			Name: name,
+		}, nil
+	})
 }
 
 func (c *budgetContract) Get(ctx context.Context, auth *beans.AuthContext, id beans.ID) (*beans.Budget, *beans.Month, error) {

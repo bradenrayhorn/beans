@@ -22,8 +22,12 @@ func TestAccounts(t *testing.T) {
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 
+	cleanup := func() {
+		testutils.MustExec(t, pool, "truncate accounts cascade;")
+	}
+
 	t.Run("can create and get account", func(t *testing.T) {
-		defer pool.Exec(context.Background(), "truncate accounts;")
+		defer cleanup()
 		accountID := beans.NewBeansID()
 		err := accountRepository.Create(context.Background(), accountID, "Account1", budgetID)
 		require.Nil(t, err)
@@ -36,7 +40,7 @@ func TestAccounts(t *testing.T) {
 	})
 
 	t.Run("cannot create duplicate account", func(t *testing.T) {
-		defer pool.Exec(context.Background(), "truncate accounts;")
+		defer cleanup()
 		accountID := beans.NewBeansID()
 		err := accountRepository.Create(context.Background(), accountID, "Account1", budgetID)
 		require.Nil(t, err)
@@ -46,7 +50,7 @@ func TestAccounts(t *testing.T) {
 	})
 
 	t.Run("cannot get fictitious account", func(t *testing.T) {
-		defer pool.Exec(context.Background(), "truncate accounts;")
+		defer cleanup()
 		accountID := beans.NewBeansID()
 		_, err := accountRepository.Get(context.Background(), accountID)
 		require.NotNil(t, err)

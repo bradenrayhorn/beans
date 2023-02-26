@@ -21,8 +21,12 @@ func TestBudgets(t *testing.T) {
 
 	userID := testutils.MakeUser(t, pool, "user")
 
+	cleanup := func() {
+		testutils.MustExec(t, pool, "truncate budgets cascade")
+	}
+
 	t.Run("can create and get budget", func(t *testing.T) {
-		defer pool.Exec(context.Background(), "truncate budgets;")
+		defer cleanup()
 		budgetID := beans.NewBeansID()
 		err := budgetRepository.Create(context.Background(), nil, budgetID, "Budget1", userID)
 		require.Nil(t, err)
@@ -35,12 +39,12 @@ func TestBudgets(t *testing.T) {
 	})
 
 	t.Run("create respects transaction", func(t *testing.T) {
-		defer pool.Exec(context.Background(), "truncate budgets;")
+		defer cleanup()
 		budgetID1 := beans.NewBeansID()
 
 		tx, err := txManager.Create(context.Background())
 		require.Nil(t, err)
-		defer tx.Rollback(context.Background())
+		defer testutils.MustRollback(t, tx)
 
 		err = budgetRepository.Create(context.Background(), tx, budgetID1, "Budget1", userID)
 		require.Nil(t, err)

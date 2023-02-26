@@ -95,7 +95,7 @@ type valitableCountable struct {
 
 func (c valitableCountable) Validate() error {
 	if c.Length() > c.max {
-		return errors.New(fmt.Sprintf(":field must be at most %d %s", c.max, c.object))
+		return fmt.Errorf(":field must be at most %d %s", c.max, c.object)
 	}
 	return nil
 }
