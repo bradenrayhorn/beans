@@ -17,7 +17,7 @@ func TestAccount(t *testing.T) {
 
 	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
-	account := &beans.Account{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Account1"}
+	account := &beans.Account{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Account1", Balance: beans.NewAmount(4, 0)}
 
 	t.Run("create", func(t *testing.T) {
 		contract.CreateFunc.PushReturn(account, nil)
@@ -37,7 +37,7 @@ func TestAccount(t *testing.T) {
 		contract.GetAllFunc.PushReturn([]*beans.Account{account}, nil)
 
 		res := testutils.HTTP(t, sv.handleAccountsGet(), user, budget, nil, http.StatusOK)
-		expected := fmt.Sprintf(`{"data":[{"name":"Account1","id":"%s"}]}`, account.ID)
+		expected := fmt.Sprintf(`{"data":[{"name":"Account1","id":"%s","balance":{"coefficient":4,"exponent":0}}]}`, account.ID)
 
 		assert.JSONEq(t, expected, res)
 	})

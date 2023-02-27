@@ -54,7 +54,15 @@ func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 			return accounts, err
 		}
 
-		accounts = append(accounts, &beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID})
+		balance, err := numericToAmount(a.Balance)
+		if err != nil {
+			return accounts, err
+		}
+		if balance.Empty() {
+			balance = beans.NewAmount(0, 0)
+		}
+
+		accounts = append(accounts, &beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID, Balance: balance})
 	}
 
 	return accounts, nil

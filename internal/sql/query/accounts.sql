@@ -7,5 +7,14 @@ INSERT INTO accounts (
 SELECT * from accounts WHERE id = $1;
 
 -- name: GetAccountsForBudget :many
-SELECT * from accounts WHERE budget_id = $1;
+SELECT accounts.*, sum(transactions.amount)::numeric as balance
+  FROM accounts
+  LEFT JOIN transactions ON
+    accounts.id = transactions.account_id
+  WHERE budget_id = $1
+  GROUP BY (
+    accounts.id,
+    accounts.name,
+    accounts.budget_id
+  );
 

@@ -7,6 +7,9 @@ package db
 
 import (
 	"context"
+	"time"
+
+	"github.com/jackc/pgtype"
 )
 
 const createAccount = `-- name: CreateAccount :exec
@@ -43,23 +46,41 @@ func (q *Queries) GetAccount(ctx context.Context, id string) (Account, error) {
 }
 
 const getAccountsForBudget = `-- name: GetAccountsForBudget :many
-SELECT id, name, budget_id, created_at from accounts WHERE budget_id = $1
+SELECT accounts.id, accounts.name, accounts.budget_id, accounts.created_at, sum(transactions.amount)::numeric as balance
+  FROM accounts
+  LEFT JOIN transactions ON
+    accounts.id = transactions.account_id
+  WHERE budget_id = $1
+  GROUP BY (
+    accounts.id,
+    accounts.name,
+    accounts.budget_id
+  )
 `
 
-func (q *Queries) GetAccountsForBudget(ctx context.Context, budgetID string) ([]Account, error) {
+type GetAccountsForBudgetRow struct {
+	ID        string
+	Name      string
+	BudgetID  string
+	CreatedAt time.Time
+	Balance   pgtype.Numeric
+}
+
+func (q *Queries) GetAccountsForBudget(ctx context.Context, budgetID string) ([]GetAccountsForBudgetRow, error) {
 	rows, err := q.db.Query(ctx, getAccountsForBudget, budgetID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Account
+	var items []GetAccountsForBudgetRow
 	for rows.Next() {
-		var i Account
+		var i GetAccountsForBudgetRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.BudgetID,
 			&i.CreatedAt,
+			&i.Balance,
 		); err != nil {
 			return nil, err
 		}

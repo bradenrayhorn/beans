@@ -24,6 +24,7 @@ func TestAccount(t *testing.T) {
 	}
 
 	accountRepository := postgres.NewAccountRepository(pool)
+	transactionRepository := postgres.NewTransactionRepository(pool)
 	c := contract.NewAccountContract(accountRepository)
 
 	t.Run("create", func(t *testing.T) {
@@ -65,6 +66,17 @@ func TestAccount(t *testing.T) {
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 			account := testutils.MakeAccount(t, pool, "Account", budget.ID)
 
+			categoryGroup := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
+			category := testutils.MakeCategory(t, pool, "cat1", categoryGroup.ID, budget.ID)
+
+			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+				ID:         beans.NewBeansID(),
+				AccountID:  account.ID,
+				Amount:     beans.NewAmount(6, 0),
+				Date:       testutils.NewDate(t, "2022-03-01"),
+				CategoryID: category.ID,
+			}))
+
 			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
 			_ = testutils.MakeAccount(t, pool, "Account", budget2.ID)
 
@@ -72,6 +84,7 @@ func TestAccount(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, accounts, 1)
 
+			account.Balance = beans.NewAmount(6, 0)
 			assert.True(t, reflect.DeepEqual(account, accounts[0]))
 		})
 	})

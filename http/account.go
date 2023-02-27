@@ -49,7 +49,9 @@ func (s *Server) handleAccountCreate() http.HandlerFunc {
 
 func (s *Server) handleAccountsGet() http.HandlerFunc {
 	type response struct {
-		Data []responseAccount `json:"data"`
+		ID      beans.ID     `json:"id"`
+		Name    string       `json:"name"`
+		Balance beans.Amount `json:"balance"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		accounts, err := s.accountContract.GetAll(r.Context(), getBudgetAuth(r))
@@ -59,11 +61,15 @@ func (s *Server) handleAccountsGet() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: make([]responseAccount, 0, len(accounts))}
+		res := make([]response, 0, len(accounts))
 		for _, a := range accounts {
-			res.Data = append(res.Data, responseFromAccount(a))
+			res = append(res, response{ID: a.ID, Name: string(a.Name), Balance: a.Balance})
 		}
 
-		jsonResponse(w, res, http.StatusOK)
+		jsonResponse(w, struct {
+			Data []response `json:"data"`
+		}{
+			Data: res,
+		}, http.StatusOK)
 	}
 }

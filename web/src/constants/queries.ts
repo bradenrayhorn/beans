@@ -1,7 +1,7 @@
 import {
-  Account,
   Budget,
   CategoryGroup,
+  FullAccount,
   Month,
   Transaction,
   User,
@@ -42,7 +42,7 @@ const queryKeys = {
 };
 
 interface GetAccountsResponse {
-  data: Account[];
+  data: FullAccount[];
 }
 interface GetAllBudgetsResponse {
   data: Budget[];
