@@ -1,5 +1,4 @@
 import AddAccountModal from "@/components/AddAccountModal";
-import PageCard from "@/components/PageCard";
 import { useAccounts } from "@/data/queries/account";
 import { AddIcon } from "@chakra-ui/icons";
 import {
@@ -10,14 +9,11 @@ import {
   Flex,
   Heading,
   List,
-  ListItem,
   Spinner,
-  Stat,
-  StatLabel,
-  StatNumber,
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
+import AccountCard from "./AccountCard";
 
 export default function AccountsPage() {
   const {
@@ -49,13 +45,7 @@ export default function AccountsPage() {
 
             <List spacing={8}>
               {accounts.map((account) => (
-                <PageCard w="full" p={6} key={account.id} as={ListItem}>
-                  <Heading size="sm">{account.name}</Heading>
-                  <Stat mt={2}>
-                    <StatLabel>Balance</StatLabel>
-                    <StatNumber>$0.00</StatNumber>
-                  </Stat>
-                </PageCard>
+                <AccountCard key={account.id} account={account} />
               ))}
             </List>
           </>

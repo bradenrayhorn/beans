@@ -8,6 +8,12 @@ export interface Budget {
   name: string;
 }
 
+export interface FullAccount {
+  id: string;
+  name: string;
+  balance: Amount;
+}
+
 export interface Account {
   id: string;
   name: string;
