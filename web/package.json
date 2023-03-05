@@ -26,7 +26,7 @@
     "@emotion/styled": "11.10.6",
     "@tanstack/react-query": "4.24.10",
     "dayjs": "1.11.7",
-    "downshift": "7.2.1",
+    "downshift": "7.2.2",
     "fraction.js": "4.2.0",
     "framer-motion": "10.0.1",
     "ky": "0.33.2",
