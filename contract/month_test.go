@@ -61,7 +61,8 @@ func TestMonth(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			monthApril := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-04-01"))
+			monthMay := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -69,7 +70,8 @@ func TestMonth(t *testing.T) {
 			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
 			incomeCategory := testutils.MakeIncomeCategory(t, pool, "Income", group.ID, budget.ID)
-			monthCategory := testutils.MakeMonthCategory(t, pool, month.ID, category.ID, beans.NewAmount(34, -1))
+			monthCategory := testutils.MakeMonthCategory(t, pool, monthMay.ID, category.ID, beans.NewAmount(34, -1))
+			testutils.MakeMonthCategory(t, pool, monthApril.ID, category.ID, beans.NewAmount(34, -1))
 
 			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
 				ID:         beans.NewBeansID(),
@@ -81,22 +83,29 @@ func TestMonth(t *testing.T) {
 			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
+				Amount:     beans.NewAmount(9, 0),
+				Date:       testutils.NewDate(t, "2022-05-01"),
+				CategoryID: incomeCategory.ID,
+			}))
+			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+				ID:         beans.NewBeansID(),
+				AccountID:  account.ID,
 				Amount:     beans.NewAmount(3, 0),
 				Date:       testutils.NewDate(t, "2022-06-01"),
 				CategoryID: incomeCategory.ID,
 			}))
 
-			dbMonth, dbCategories, available, err := c.Get(context.Background(), auth, month.ID)
+			dbMonth, dbCategories, available, err := c.Get(context.Background(), auth, monthMay.ID)
 			require.Nil(t, err)
 
-			assert.True(t, reflect.DeepEqual(month, dbMonth))
+			assert.True(t, reflect.DeepEqual(monthMay, dbMonth))
 			require.Len(t, dbCategories, 1)
 
 			monthCategory.Activity = beans.NewAmount(0, 0)
-			monthCategory.Available = beans.NewAmount(34, -1)
+			monthCategory.Available = beans.NewAmount(68, -1)
 			assert.True(t, reflect.DeepEqual(monthCategory, dbCategories[0]))
 
-			assert.Equal(t, beans.NewAmount(26, -1), available)
+			assert.Equal(t, beans.NewAmount(56, -1), available)
 		})
 	})
 

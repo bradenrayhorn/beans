@@ -24,6 +24,10 @@ func (d MonthDate) Time() time.Time {
 	return d.date.Time
 }
 
+func (d MonthDate) FirstDay() Date {
+	return d.date
+}
+
 func (d MonthDate) LastDay() Date {
 	return NewDate(d.Time().AddDate(0, 1, -d.Time().Day()))
 }

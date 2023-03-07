@@ -181,7 +181,14 @@ func TestTransactions(t *testing.T) {
 			ID:         beans.NewBeansID(),
 			AccountID:  account.ID,
 			Amount:     beans.NewAmount(3, 0),
-			Date:       testutils.NewDate(t, "2022-03-01"),
+			Date:       testutils.NewDate(t, "2022-08-01"),
+			CategoryID: incomeCategory.ID,
+		}))
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  account.ID,
+			Amount:     beans.NewAmount(3, 0),
+			Date:       testutils.NewDate(t, "2022-07-31"),
 			CategoryID: incomeCategory.ID,
 		}))
 
@@ -200,7 +207,7 @@ func TestTransactions(t *testing.T) {
 			CategoryID: categoryID,
 		}))
 
-		amount, err := transactionRepository.GetIncomeBeforeOrOnDate(context.Background(), testutils.NewDate(t, "2022-08-31"))
+		amount, err := transactionRepository.GetIncomeBetween(context.Background(), testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
 		require.Nil(t, err)
 
 		require.Equal(t, beans.NewAmount(5, 0), amount)

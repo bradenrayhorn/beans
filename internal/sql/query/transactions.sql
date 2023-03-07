@@ -24,13 +24,15 @@ LEFT JOIN categories
   ON categories.id = transactions.category_id
 ORDER BY date desc;
 
--- name: GetIncomeBeforeOrOnDate :one
+-- name: GetIncomeBetween :one
 SELECT sum(transactions.amount)::numeric
 FROM transactions
 JOIN categories
   ON categories.id = transactions.category_id
   AND categories.is_income = true
-WHERE transactions.date <= $1;
+WHERE
+  transactions.date <= @end_date
+  AND transactions.date >= @begin_date;
 
 -- name: GetActivityBeforeDateByCategory :many
 SELECT categories.id, sum(transactions.amount)::numeric as activity

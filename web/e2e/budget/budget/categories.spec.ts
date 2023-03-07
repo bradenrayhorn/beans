@@ -25,6 +25,9 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await page.goto(`/budget/${id}`);
   await page.getByRole("link", { name: /^budget$/ }).click();
 
+  const toBudget = page.getByLabel("To Budget:");
+  await expect(toBudget).toHaveText("$0.00");
+
   const billsCategoryGroup = page
     .getByRole("list", { name: "Categories" })
     .filter({ hasText: "Bills" });
@@ -68,6 +71,8 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await expect(assigned).toHaveText("$60.31");
   await expect(activity).toHaveText("-$20.00");
   await expect(available).toHaveText("$40.31");
+
+  await expect(toBudget).toHaveText("-$60.31");
 
   // navigate to next month
   await page.getByRole("button", { name: "Next month" }).click();

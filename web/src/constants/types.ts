@@ -55,5 +55,6 @@ export interface MonthCategory {
 export interface Month {
   id: string;
   date: string;
+  budgetable: Amount;
   categories: MonthCategory[];
 }

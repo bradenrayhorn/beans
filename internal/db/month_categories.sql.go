@@ -35,15 +35,15 @@ func (q *Queries) CreateMonthCategory(ctx context.Context, arg CreateMonthCatego
 	return err
 }
 
-const getAmountInBudget = `-- name: GetAmountInBudget :one
+const getAssignedInMonth = `-- name: GetAssignedInMonth :one
 SELECT sum(month_categories.amount)::numeric as amount
   FROM month_categories
   JOIN months m on m.id = month_categories.month_id
-    AND m.budget_id = $1
+    AND m.id = $1
 `
 
-func (q *Queries) GetAmountInBudget(ctx context.Context, budgetID string) (pgtype.Numeric, error) {
-	row := q.db.QueryRow(ctx, getAmountInBudget, budgetID)
+func (q *Queries) GetAssignedInMonth(ctx context.Context, id string) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, getAssignedInMonth, id)
 	var amount pgtype.Numeric
 	err := row.Scan(&amount)
 	return amount, err
