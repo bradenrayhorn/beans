@@ -1,6 +1,5 @@
 import CategoryStats from "@/components/budget/categories/CategoryStats";
 import EditButton from "@/components/budget/categories/EditButton";
-import MonthHeader from "@/components/budget/MonthHeader";
 import PageCard from "@/components/PageCard";
 import { MonthCategory } from "@/constants/types";
 import { useMonthID } from "@/context/MonthProvider";
@@ -16,6 +15,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
+import MonthHeader from "./components/MonthHeader";
+import ToBudget from "./components/ToBudget";
 
 export default function BudgetPage() {
   const monthID = useMonthID();
@@ -41,8 +42,9 @@ export default function BudgetPage() {
 
   return (
     <Flex as="main" w="full" flexDir="column">
-      <Flex mb={8} alignItems="center" gap={2}>
+      <Flex mb={8} alignItems="center" justifyContent="space-between">
         <MonthHeader month={month} />
+        <ToBudget month={month} />
       </Flex>
       <VStack
         as={List}

@@ -84,17 +84,24 @@ func (q *Queries) GetActivityBeforeDateByCategory(ctx context.Context, arg GetAc
 	return items, nil
 }
 
-const getIncomeBeforeOrOnDate = `-- name: GetIncomeBeforeOrOnDate :one
+const getIncomeBetween = `-- name: GetIncomeBetween :one
 SELECT sum(transactions.amount)::numeric
 FROM transactions
 JOIN categories
   ON categories.id = transactions.category_id
   AND categories.is_income = true
-WHERE transactions.date <= $1
+WHERE
+  transactions.date <= $1
+  AND transactions.date >= $2
 `
 
-func (q *Queries) GetIncomeBeforeOrOnDate(ctx context.Context, date time.Time) (pgtype.Numeric, error) {
-	row := q.db.QueryRow(ctx, getIncomeBeforeOrOnDate, date)
+type GetIncomeBetweenParams struct {
+	EndDate   time.Time
+	BeginDate time.Time
+}
+
+func (q *Queries) GetIncomeBetween(ctx context.Context, arg GetIncomeBetweenParams) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, getIncomeBetween, arg.EndDate, arg.BeginDate)
 	var column_1 pgtype.Numeric
 	err := row.Scan(&column_1)
 	return column_1, err

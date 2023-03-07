@@ -3,7 +3,7 @@ import { useSetMonthID } from "@/context/MonthProvider";
 import { formatBudgetMonth, parseDate } from "@/data/format/date";
 import { useCreateMonth } from "@/data/queries/month";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Heading, IconButton, useToast } from "@chakra-ui/react";
+import { Flex, Heading, IconButton, useToast } from "@chakra-ui/react";
 
 const MonthHeader = ({ month }: { month: Month }) => {
   const toast = useToast();
@@ -22,7 +22,7 @@ const MonthHeader = ({ month }: { month: Month }) => {
   });
 
   return (
-    <>
+    <Flex alignItems="center" shrink="0" gap={2}>
       <IconButton
         aria-label="Previous month"
         icon={<ChevronLeftIcon />}
@@ -50,7 +50,7 @@ const MonthHeader = ({ month }: { month: Month }) => {
           });
         }}
       />
-    </>
+    </Flex>
   );
 };
 

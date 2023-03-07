@@ -3269,9 +3269,9 @@ type MockMonthCategoryRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *MonthCategoryRepositoryCreateFunc
-	// GetAmountInBudgetFunc is an instance of a mock function object
-	// controlling the behavior of the method GetAmountInBudget.
-	GetAmountInBudgetFunc *MonthCategoryRepositoryGetAmountInBudgetFunc
+	// GetAssignedInMonthFunc is an instance of a mock function object
+	// controlling the behavior of the method GetAssignedInMonth.
+	GetAssignedInMonthFunc *MonthCategoryRepositoryGetAssignedInMonthFunc
 	// GetForMonthFunc is an instance of a mock function object controlling
 	// the behavior of the method GetForMonth.
 	GetForMonthFunc *MonthCategoryRepositoryGetForMonthFunc
@@ -3293,7 +3293,7 @@ func NewMockMonthCategoryRepository() *MockMonthCategoryRepository {
 				return
 			},
 		},
-		GetAmountInBudgetFunc: &MonthCategoryRepositoryGetAmountInBudgetFunc{
+		GetAssignedInMonthFunc: &MonthCategoryRepositoryGetAssignedInMonthFunc{
 			defaultHook: func(context.Context, beans.ID) (r0 beans.Amount, r1 error) {
 				return
 			},
@@ -3326,9 +3326,9 @@ func NewStrictMockMonthCategoryRepository() *MockMonthCategoryRepository {
 				panic("unexpected invocation of MockMonthCategoryRepository.Create")
 			},
 		},
-		GetAmountInBudgetFunc: &MonthCategoryRepositoryGetAmountInBudgetFunc{
+		GetAssignedInMonthFunc: &MonthCategoryRepositoryGetAssignedInMonthFunc{
 			defaultHook: func(context.Context, beans.ID) (beans.Amount, error) {
-				panic("unexpected invocation of MockMonthCategoryRepository.GetAmountInBudget")
+				panic("unexpected invocation of MockMonthCategoryRepository.GetAssignedInMonth")
 			},
 		},
 		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
@@ -3357,8 +3357,8 @@ func NewMockMonthCategoryRepositoryFrom(i beans.MonthCategoryRepository) *MockMo
 		CreateFunc: &MonthCategoryRepositoryCreateFunc{
 			defaultHook: i.Create,
 		},
-		GetAmountInBudgetFunc: &MonthCategoryRepositoryGetAmountInBudgetFunc{
-			defaultHook: i.GetAmountInBudget,
+		GetAssignedInMonthFunc: &MonthCategoryRepositoryGetAssignedInMonthFunc{
+			defaultHook: i.GetAssignedInMonth,
 		},
 		GetForMonthFunc: &MonthCategoryRepositoryGetForMonthFunc{
 			defaultHook: i.GetForMonth,
@@ -3481,37 +3481,37 @@ func (c MonthCategoryRepositoryCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
-// MonthCategoryRepositoryGetAmountInBudgetFunc describes the behavior when
-// the GetAmountInBudget method of the parent MockMonthCategoryRepository
+// MonthCategoryRepositoryGetAssignedInMonthFunc describes the behavior when
+// the GetAssignedInMonth method of the parent MockMonthCategoryRepository
 // instance is invoked.
-type MonthCategoryRepositoryGetAmountInBudgetFunc struct {
+type MonthCategoryRepositoryGetAssignedInMonthFunc struct {
 	defaultHook func(context.Context, beans.ID) (beans.Amount, error)
 	hooks       []func(context.Context, beans.ID) (beans.Amount, error)
-	history     []MonthCategoryRepositoryGetAmountInBudgetFuncCall
+	history     []MonthCategoryRepositoryGetAssignedInMonthFuncCall
 	mutex       sync.Mutex
 }
 
-// GetAmountInBudget delegates to the next hook function in the queue and
+// GetAssignedInMonth delegates to the next hook function in the queue and
 // stores the parameter and result values of this invocation.
-func (m *MockMonthCategoryRepository) GetAmountInBudget(v0 context.Context, v1 beans.ID) (beans.Amount, error) {
-	r0, r1 := m.GetAmountInBudgetFunc.nextHook()(v0, v1)
-	m.GetAmountInBudgetFunc.appendCall(MonthCategoryRepositoryGetAmountInBudgetFuncCall{v0, v1, r0, r1})
+func (m *MockMonthCategoryRepository) GetAssignedInMonth(v0 context.Context, v1 beans.ID) (beans.Amount, error) {
+	r0, r1 := m.GetAssignedInMonthFunc.nextHook()(v0, v1)
+	m.GetAssignedInMonthFunc.appendCall(MonthCategoryRepositoryGetAssignedInMonthFuncCall{v0, v1, r0, r1})
 	return r0, r1
 }
 
-// SetDefaultHook sets function that is called when the GetAmountInBudget
+// SetDefaultHook sets function that is called when the GetAssignedInMonth
 // method of the parent MockMonthCategoryRepository instance is invoked and
 // the hook queue is empty.
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) SetDefaultHook(hook func(context.Context, beans.ID) (beans.Amount, error)) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) SetDefaultHook(hook func(context.Context, beans.ID) (beans.Amount, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// GetAmountInBudget method of the parent MockMonthCategoryRepository
+// GetAssignedInMonth method of the parent MockMonthCategoryRepository
 // instance invokes the hook at the front of the queue and discards it.
 // After the queue is empty, the default hook function is invoked for any
 // future action.
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) PushHook(hook func(context.Context, beans.ID) (beans.Amount, error)) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) PushHook(hook func(context.Context, beans.ID) (beans.Amount, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -3519,20 +3519,20 @@ func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) PushHook(hook func(contex
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) SetDefaultReturn(r0 beans.Amount, r1 error) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) SetDefaultReturn(r0 beans.Amount, r1 error) {
 	f.SetDefaultHook(func(context.Context, beans.ID) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) PushReturn(r0 beans.Amount, r1 error) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) PushReturn(r0 beans.Amount, r1 error) {
 	f.PushHook(func(context.Context, beans.ID) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) nextHook() func(context.Context, beans.ID) (beans.Amount, error) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) nextHook() func(context.Context, beans.ID) (beans.Amount, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -3545,28 +3545,28 @@ func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) nextHook() func(context.C
 	return hook
 }
 
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) appendCall(r0 MonthCategoryRepositoryGetAmountInBudgetFuncCall) {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) appendCall(r0 MonthCategoryRepositoryGetAssignedInMonthFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
 // History returns a sequence of
-// MonthCategoryRepositoryGetAmountInBudgetFuncCall objects describing the
+// MonthCategoryRepositoryGetAssignedInMonthFuncCall objects describing the
 // invocations of this function.
-func (f *MonthCategoryRepositoryGetAmountInBudgetFunc) History() []MonthCategoryRepositoryGetAmountInBudgetFuncCall {
+func (f *MonthCategoryRepositoryGetAssignedInMonthFunc) History() []MonthCategoryRepositoryGetAssignedInMonthFuncCall {
 	f.mutex.Lock()
-	history := make([]MonthCategoryRepositoryGetAmountInBudgetFuncCall, len(f.history))
+	history := make([]MonthCategoryRepositoryGetAssignedInMonthFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// MonthCategoryRepositoryGetAmountInBudgetFuncCall is an object that
-// describes an invocation of method GetAmountInBudget on an instance of
+// MonthCategoryRepositoryGetAssignedInMonthFuncCall is an object that
+// describes an invocation of method GetAssignedInMonth on an instance of
 // MockMonthCategoryRepository.
-type MonthCategoryRepositoryGetAmountInBudgetFuncCall struct {
+type MonthCategoryRepositoryGetAssignedInMonthFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
@@ -3583,13 +3583,13 @@ type MonthCategoryRepositoryGetAmountInBudgetFuncCall struct {
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c MonthCategoryRepositoryGetAmountInBudgetFuncCall) Args() []interface{} {
+func (c MonthCategoryRepositoryGetAssignedInMonthFuncCall) Args() []interface{} {
 	return []interface{}{c.Arg0, c.Arg1}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c MonthCategoryRepositoryGetAmountInBudgetFuncCall) Results() []interface{} {
+func (c MonthCategoryRepositoryGetAssignedInMonthFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
@@ -5815,9 +5815,9 @@ type MockTransactionRepository struct {
 	// GetForBudgetFunc is an instance of a mock function object controlling
 	// the behavior of the method GetForBudget.
 	GetForBudgetFunc *TransactionRepositoryGetForBudgetFunc
-	// GetIncomeBeforeOrOnDateFunc is an instance of a mock function object
-	// controlling the behavior of the method GetIncomeBeforeOrOnDate.
-	GetIncomeBeforeOrOnDateFunc *TransactionRepositoryGetIncomeBeforeOrOnDateFunc
+	// GetIncomeBetweenFunc is an instance of a mock function object
+	// controlling the behavior of the method GetIncomeBetween.
+	GetIncomeBetweenFunc *TransactionRepositoryGetIncomeBetweenFunc
 	// UpdateFunc is an instance of a mock function object controlling the
 	// behavior of the method Update.
 	UpdateFunc *TransactionRepositoryUpdateFunc
@@ -5843,8 +5843,8 @@ func NewMockTransactionRepository() *MockTransactionRepository {
 				return
 			},
 		},
-		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
-			defaultHook: func(context.Context, beans.Date) (r0 beans.Amount, r1 error) {
+		GetIncomeBetweenFunc: &TransactionRepositoryGetIncomeBetweenFunc{
+			defaultHook: func(context.Context, beans.Date, beans.Date) (r0 beans.Amount, r1 error) {
 				return
 			},
 		},
@@ -5876,9 +5876,9 @@ func NewStrictMockTransactionRepository() *MockTransactionRepository {
 				panic("unexpected invocation of MockTransactionRepository.GetForBudget")
 			},
 		},
-		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
-			defaultHook: func(context.Context, beans.Date) (beans.Amount, error) {
-				panic("unexpected invocation of MockTransactionRepository.GetIncomeBeforeOrOnDate")
+		GetIncomeBetweenFunc: &TransactionRepositoryGetIncomeBetweenFunc{
+			defaultHook: func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
+				panic("unexpected invocation of MockTransactionRepository.GetIncomeBetween")
 			},
 		},
 		UpdateFunc: &TransactionRepositoryUpdateFunc{
@@ -5903,8 +5903,8 @@ func NewMockTransactionRepositoryFrom(i beans.TransactionRepository) *MockTransa
 		GetForBudgetFunc: &TransactionRepositoryGetForBudgetFunc{
 			defaultHook: i.GetForBudget,
 		},
-		GetIncomeBeforeOrOnDateFunc: &TransactionRepositoryGetIncomeBeforeOrOnDateFunc{
-			defaultHook: i.GetIncomeBeforeOrOnDate,
+		GetIncomeBetweenFunc: &TransactionRepositoryGetIncomeBetweenFunc{
+			defaultHook: i.GetIncomeBetween,
 		},
 		UpdateFunc: &TransactionRepositoryUpdateFunc{
 			defaultHook: i.Update,
@@ -6236,37 +6236,37 @@ func (c TransactionRepositoryGetForBudgetFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
-// TransactionRepositoryGetIncomeBeforeOrOnDateFunc describes the behavior
-// when the GetIncomeBeforeOrOnDate method of the parent
-// MockTransactionRepository instance is invoked.
-type TransactionRepositoryGetIncomeBeforeOrOnDateFunc struct {
-	defaultHook func(context.Context, beans.Date) (beans.Amount, error)
-	hooks       []func(context.Context, beans.Date) (beans.Amount, error)
-	history     []TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall
+// TransactionRepositoryGetIncomeBetweenFunc describes the behavior when the
+// GetIncomeBetween method of the parent MockTransactionRepository instance
+// is invoked.
+type TransactionRepositoryGetIncomeBetweenFunc struct {
+	defaultHook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)
+	hooks       []func(context.Context, beans.Date, beans.Date) (beans.Amount, error)
+	history     []TransactionRepositoryGetIncomeBetweenFuncCall
 	mutex       sync.Mutex
 }
 
-// GetIncomeBeforeOrOnDate delegates to the next hook function in the queue
-// and stores the parameter and result values of this invocation.
-func (m *MockTransactionRepository) GetIncomeBeforeOrOnDate(v0 context.Context, v1 beans.Date) (beans.Amount, error) {
-	r0, r1 := m.GetIncomeBeforeOrOnDateFunc.nextHook()(v0, v1)
-	m.GetIncomeBeforeOrOnDateFunc.appendCall(TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall{v0, v1, r0, r1})
+// GetIncomeBetween delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockTransactionRepository) GetIncomeBetween(v0 context.Context, v1 beans.Date, v2 beans.Date) (beans.Amount, error) {
+	r0, r1 := m.GetIncomeBetweenFunc.nextHook()(v0, v1, v2)
+	m.GetIncomeBetweenFunc.appendCall(TransactionRepositoryGetIncomeBetweenFuncCall{v0, v1, v2, r0, r1})
 	return r0, r1
 }
 
-// SetDefaultHook sets function that is called when the
-// GetIncomeBeforeOrOnDate method of the parent MockTransactionRepository
-// instance is invoked and the hook queue is empty.
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) SetDefaultHook(hook func(context.Context, beans.Date) (beans.Amount, error)) {
+// SetDefaultHook sets function that is called when the GetIncomeBetween
+// method of the parent MockTransactionRepository instance is invoked and
+// the hook queue is empty.
+func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultHook(hook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// GetIncomeBeforeOrOnDate method of the parent MockTransactionRepository
-// instance invokes the hook at the front of the queue and discards it.
-// After the queue is empty, the default hook function is invoked for any
-// future action.
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) PushHook(hook func(context.Context, beans.Date) (beans.Amount, error)) {
+// GetIncomeBetween method of the parent MockTransactionRepository instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *TransactionRepositoryGetIncomeBetweenFunc) PushHook(hook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -6274,20 +6274,20 @@ func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) PushHook(hook func(co
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) SetDefaultReturn(r0 beans.Amount, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Date) (beans.Amount, error) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultReturn(r0 beans.Amount, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) PushReturn(r0 beans.Amount, r1 error) {
-	f.PushHook(func(context.Context, beans.Date) (beans.Amount, error) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) PushReturn(r0 beans.Amount, r1 error) {
+	f.PushHook(func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) nextHook() func(context.Context, beans.Date) (beans.Amount, error) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) nextHook() func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -6300,34 +6300,37 @@ func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) nextHook() func(conte
 	return hook
 }
 
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) appendCall(r0 TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) appendCall(r0 TransactionRepositoryGetIncomeBetweenFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
 // History returns a sequence of
-// TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall objects describing
-// the invocations of this function.
-func (f *TransactionRepositoryGetIncomeBeforeOrOnDateFunc) History() []TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall {
+// TransactionRepositoryGetIncomeBetweenFuncCall objects describing the
+// invocations of this function.
+func (f *TransactionRepositoryGetIncomeBetweenFunc) History() []TransactionRepositoryGetIncomeBetweenFuncCall {
 	f.mutex.Lock()
-	history := make([]TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall, len(f.history))
+	history := make([]TransactionRepositoryGetIncomeBetweenFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall is an object that
-// describes an invocation of method GetIncomeBeforeOrOnDate on an instance
-// of MockTransactionRepository.
-type TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall struct {
+// TransactionRepositoryGetIncomeBetweenFuncCall is an object that describes
+// an invocation of method GetIncomeBetween on an instance of
+// MockTransactionRepository.
+type TransactionRepositoryGetIncomeBetweenFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
 	Arg1 beans.Date
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Date
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 beans.Amount
@@ -6338,13 +6341,13 @@ type TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall struct {
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1}
+func (c TransactionRepositoryGetIncomeBetweenFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c TransactionRepositoryGetIncomeBeforeOrOnDateFuncCall) Results() []interface{} {
+func (c TransactionRepositoryGetIncomeBetweenFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

@@ -21,6 +21,7 @@ type MonthCategoryRepository interface {
 	GetForMonth(ctx context.Context, month *Month) ([]*MonthCategory, error)
 	// Gets the month category, or creates it if it does not exist.
 	GetOrCreate(ctx context.Context, tx Tx, monthID ID, categoryID ID) (*MonthCategory, error)
-	// Gets the amount assigned in the budget.
-	GetAmountInBudget(ctx context.Context, budgetID ID) (Amount, error)
+
+	// Gets the amount assigned in a month.
+	GetAssignedInMonth(ctx context.Context, monthID ID) (Amount, error)
 }

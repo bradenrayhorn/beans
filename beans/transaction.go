@@ -48,8 +48,8 @@ type TransactionRepository interface {
 	// Attaches Account field to Transaction.
 	Get(ctx context.Context, id ID) (*Transaction, error)
 
-	// Gets sum of all income transactions before or on the date.
-	GetIncomeBeforeOrOnDate(ctx context.Context, date Date) (Amount, error)
+	// Gets sum of all income transactions between the dates.
+	GetIncomeBetween(ctx context.Context, begin Date, end Date) (Amount, error)
 }
 
 type TransactionParams struct {

@@ -41,17 +41,17 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	income, err := c.transactionRepository.GetIncomeBeforeOrOnDate(ctx, month.Date.LastDay())
+	income, err := c.transactionRepository.GetIncomeBetween(ctx, month.Date.FirstDay(), month.Date.LastDay())
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	amountInBudget, err := c.monthCategoryRepository.GetAmountInBudget(ctx, auth.BudgetID())
+	assignedInMonth, err := c.monthCategoryRepository.GetAssignedInMonth(ctx, month.ID)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	available, err := income.Subtract(amountInBudget)
+	available, err := income.Subtract(assignedInMonth)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}

@@ -146,8 +146,8 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 	}, nil
 }
 
-func (r *monthCategoryRepository) GetAmountInBudget(ctx context.Context, budgetID beans.ID) (beans.Amount, error) {
-	res, err := r.DB(nil).GetAmountInBudget(ctx, budgetID.String())
+func (r *monthCategoryRepository) GetAssignedInMonth(ctx context.Context, monthID beans.ID) (beans.Amount, error) {
+	res, err := r.DB(nil).GetAssignedInMonth(ctx, monthID.String())
 	if err != nil {
 		return beans.NewEmptyAmount(), err
 	}

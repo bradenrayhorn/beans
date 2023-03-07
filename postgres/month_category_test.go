@@ -339,20 +339,21 @@ func TestMonthCategory(t *testing.T) {
 		require.Len(t, categories, 1)
 	})
 
-	t.Run("can get amount in budget", func(t *testing.T) {
+	t.Run("can get assigned in month", func(t *testing.T) {
 		defer cleanup()
 		monthCategory1 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthMay.ID, CategoryID: categoryID, Amount: beans.NewAmount(7, 0)}
 		monthCategory2 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthJune.ID, CategoryID: categoryID2, Amount: beans.NewAmount(8, 0)}
+		monthCategory3 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthJune.ID, CategoryID: categoryID, Amount: beans.NewAmount(3, 0)}
 
-		monthCategory3 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: budget2Month.ID, CategoryID: budget2CategoryID, Amount: beans.NewAmount(9, 0)}
+		monthCategory4 := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: budget2Month.ID, CategoryID: budget2CategoryID, Amount: beans.NewAmount(9, 0)}
 
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), nil, monthCategory1))
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), nil, monthCategory2))
 		require.Nil(t, monthCategoryRepository.Create(context.Background(), nil, monthCategory3))
+		require.Nil(t, monthCategoryRepository.Create(context.Background(), nil, monthCategory4))
 
-		amount, err := monthCategoryRepository.GetAmountInBudget(context.Background(), budgetID)
+		amount, err := monthCategoryRepository.GetAssignedInMonth(context.Background(), monthJune.ID)
 		require.Nil(t, err)
-
-		assert.Equal(t, beans.NewAmount(15, 0), amount)
+		assert.Equal(t, beans.NewAmount(11, 0), amount)
 	})
 }
