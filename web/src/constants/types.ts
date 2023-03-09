@@ -36,6 +36,7 @@ export interface Transaction {
 export interface CategoryGroup {
   id: string;
   name: string;
+  is_income: boolean;
   categories: Array<Category>;
 }
 
