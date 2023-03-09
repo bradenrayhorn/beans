@@ -7,7 +7,7 @@ run:
 	@go run ./cmd/beansd
 
 migrate:
-	@migrate -database "postgres://postgres:password@127.0.0.1:5432/beans?sslmode=disable" -path internal/sql/migrations up
+	@go run ./cmd/beans migrate
 
 migration:
 	@migrate create -dir internal/sql/migrations -ext sql ${NAME}

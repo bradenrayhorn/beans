@@ -45,11 +45,11 @@ type TransactionRepository interface {
 	// Attaches Account, CategoryName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
 
-	// Attaches Account field to Transaction.
+	// Get transaction. Attaches Account field to Transaction.
 	Get(ctx context.Context, id ID) (*Transaction, error)
 
 	// Gets sum of all income transactions between the dates.
-	GetIncomeBetween(ctx context.Context, begin Date, end Date) (Amount, error)
+	GetIncomeBetween(ctx context.Context, budgetID ID, begin Date, end Date) (Amount, error)
 }
 
 type TransactionParams struct {

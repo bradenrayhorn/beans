@@ -53,35 +53,37 @@ export default function BudgetPage() {
         align="flex-start"
         gap={6}
       >
-        {categoryGroups.map((group) => (
-          <ListItem w="full" key={group.id}>
-            <Heading textTransform="uppercase" mb={4} size="lg">
-              {group.name}
-            </Heading>
-            <VStack as={List} gap={4} w="full" align="flex-start">
-              {group.categories.map((category) => (
-                <PageCard
-                  key={category.id}
-                  as={ListItem}
-                  w="full"
-                  p={4}
-                  display="flex"
-                  flexDir="column"
-                >
-                  <Flex justify="space-between" align="center" mb={2}>
-                    <Heading size="md">{category.name}</Heading>
-                    <EditButton
-                      category={category}
-                      monthID={monthID}
-                      amount={categories[category.id]?.assigned ?? zeroAmount}
-                    />
-                  </Flex>
-                  <CategoryStats category={categories[category.id]} />
-                </PageCard>
-              ))}
-            </VStack>
-          </ListItem>
-        ))}
+        {categoryGroups
+          .filter((group) => !group.is_income)
+          .map((group) => (
+            <ListItem w="full" key={group.id}>
+              <Heading textTransform="uppercase" mb={4} size="lg">
+                {group.name}
+              </Heading>
+              <VStack as={List} gap={4} w="full" align="flex-start">
+                {group.categories.map((category) => (
+                  <PageCard
+                    key={category.id}
+                    as={ListItem}
+                    w="full"
+                    p={4}
+                    display="flex"
+                    flexDir="column"
+                  >
+                    <Flex justify="space-between" align="center" mb={2}>
+                      <Heading size="md">{category.name}</Heading>
+                      <EditButton
+                        category={category}
+                        monthID={monthID}
+                        amount={categories[category.id]?.assigned ?? zeroAmount}
+                      />
+                    </Flex>
+                    <CategoryStats category={categories[category.id]} />
+                  </PageCard>
+                ))}
+              </VStack>
+            </ListItem>
+          ))}
       </VStack>
     </Flex>
   );

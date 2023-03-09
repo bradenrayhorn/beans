@@ -120,8 +120,9 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 	return transactions, nil
 }
 
-func (r *TransactionRepository) GetIncomeBetween(ctx context.Context, begin beans.Date, end beans.Date) (beans.Amount, error) {
+func (r *TransactionRepository) GetIncomeBetween(ctx context.Context, budgetID beans.ID, begin beans.Date, end beans.Date) (beans.Amount, error) {
 	res, err := r.db.GetIncomeBetween(ctx, db.GetIncomeBetweenParams{
+		BudgetID:  budgetID.String(),
 		BeginDate: begin.Time,
 		EndDate:   end.Time,
 	})

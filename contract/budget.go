@@ -50,6 +50,7 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 			ID:       beans.NewBeansID(),
 			BudgetID: budgetID,
 			Name:     "Income",
+			IsIncome: true,
 		}
 		if err := c.categoryRepository.CreateGroup(ctx, tx, categoryGroup); err != nil {
 			return nil, err
@@ -60,7 +61,6 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 			GroupID:  categoryGroup.ID,
 			BudgetID: budgetID,
 			Name:     "Income",
-			IsIncome: true,
 		}
 		if err := c.categoryRepository.Create(ctx, tx, category); err != nil {
 			return nil, err

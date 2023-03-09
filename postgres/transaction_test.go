@@ -22,12 +22,17 @@ func TestTransactions(t *testing.T) {
 
 	userID := testutils.MakeUser(t, pool, "user")
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
+	budgetID2 := testutils.MakeBudget(t, pool, "budget", userID).ID
 	account := testutils.MakeAccount(t, pool, "account", budgetID)
 	account2 := testutils.MakeAccount(t, pool, "account2", budgetID)
+	budget2Account1 := testutils.MakeAccount(t, pool, "account2", budgetID2)
 	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
+	incomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID)
+	budget2IncomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID2)
 	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
 	categoryID2 := testutils.MakeCategory(t, pool, "category2", categoryGroupID, budgetID).ID
-	incomeCategory := testutils.MakeIncomeCategory(t, pool, "category", categoryGroupID, budgetID)
+	incomeCategory := testutils.MakeCategory(t, pool, "category", incomeGroup.ID, budgetID)
+	budget2IncomeCategory := testutils.MakeCategory(t, pool, "category", budget2IncomeGroup.ID, budgetID2)
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate transactions;")
@@ -207,7 +212,15 @@ func TestTransactions(t *testing.T) {
 			CategoryID: categoryID,
 		}))
 
-		amount, err := transactionRepository.GetIncomeBetween(context.Background(), testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
+		require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			ID:         beans.NewBeansID(),
+			AccountID:  budget2Account1.ID,
+			Amount:     beans.NewAmount(99, 0),
+			Date:       testutils.NewDate(t, "2022-08-15"),
+			CategoryID: budget2IncomeCategory.ID,
+		}))
+
+		amount, err := transactionRepository.GetIncomeBetween(context.Background(), budgetID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
 		require.Nil(t, err)
 
 		require.Equal(t, beans.NewAmount(5, 0), amount)
