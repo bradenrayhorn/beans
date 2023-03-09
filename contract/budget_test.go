@@ -68,12 +68,12 @@ func TestBudget(t *testing.T) {
 			require.Nil(t, err)
 			assert.Len(t, groups, 1)
 			assert.Equal(t, "Income", string(groups[0].Name))
+			assert.Equal(t, true, groups[0].IsIncome)
 
 			categories, err := categoryRepository.GetForBudget(context.Background(), budget.ID)
 			require.Nil(t, err)
 			assert.Len(t, categories, 1)
 			assert.Equal(t, "Income", string(categories[0].Name))
-			assert.Equal(t, true, categories[0].IsIncome)
 		})
 	})
 

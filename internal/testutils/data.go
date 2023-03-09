@@ -53,15 +53,15 @@ func MakeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID 
 	return group
 }
 
-func MakeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) *beans.Category {
-	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)}
-	err := postgres.NewCategoryRepository(pool).Create(context.Background(), nil, category)
+func MakeIncomeCategoryGroup(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) *beans.CategoryGroup {
+	group := &beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name), IsIncome: true}
+	err := postgres.NewCategoryRepository(pool).CreateGroup(context.Background(), nil, group)
 	require.Nil(tb, err)
-	return category
+	return group
 }
 
-func MakeIncomeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) *beans.Category {
-	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name), IsIncome: true}
+func MakeCategory(tb testing.TB, pool *pgxpool.Pool, name string, groupID beans.ID, budgetID beans.ID) *beans.Category {
+	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)}
 	err := postgres.NewCategoryRepository(pool).Create(context.Background(), nil, category)
 	require.Nil(tb, err)
 	return category

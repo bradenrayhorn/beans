@@ -29,7 +29,12 @@ SELECT sum(transactions.amount)::numeric
 FROM transactions
 JOIN categories
   ON categories.id = transactions.category_id
-  AND categories.is_income = true
+JOIN category_groups
+  ON category_groups.id = categories.group_id
+  AND category_groups.is_income = true
+JOIN accounts
+  ON accounts.id = transactions.account_id
+  AND accounts.budget_id = @budget_id
 WHERE
   transactions.date <= @end_date
   AND transactions.date >= @begin_date;

@@ -27,8 +27,8 @@ func (q *Queries) CategoryGroupExists(ctx context.Context, arg CategoryGroupExis
 
 const createCategory = `-- name: CreateCategory :exec
 INSERT INTO categories (
-  id, budget_id, group_id, name, is_income
-) VALUES ($1, $2, $3, $4, $5)
+  id, budget_id, group_id, name 
+) VALUES ($1, $2, $3, $4)
 `
 
 type CreateCategoryParams struct {
@@ -36,7 +36,6 @@ type CreateCategoryParams struct {
 	BudgetID string
 	GroupID  string
 	Name     string
-	IsIncome bool
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) error {
@@ -45,30 +44,35 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		arg.BudgetID,
 		arg.GroupID,
 		arg.Name,
-		arg.IsIncome,
 	)
 	return err
 }
 
 const createCategoryGroup = `-- name: CreateCategoryGroup :exec
 INSERT INTO category_groups (
-  id, budget_id, name
-) VALUES ($1, $2, $3)
+  id, budget_id, name, is_income
+) VALUES ($1, $2, $3, $4)
 `
 
 type CreateCategoryGroupParams struct {
 	ID       string
 	BudgetID string
 	Name     string
+	IsIncome bool
 }
 
 func (q *Queries) CreateCategoryGroup(ctx context.Context, arg CreateCategoryGroupParams) error {
-	_, err := q.db.Exec(ctx, createCategoryGroup, arg.ID, arg.BudgetID, arg.Name)
+	_, err := q.db.Exec(ctx, createCategoryGroup,
+		arg.ID,
+		arg.BudgetID,
+		arg.Name,
+		arg.IsIncome,
+	)
 	return err
 }
 
 const getCategoriesForBudget = `-- name: GetCategoriesForBudget :many
-SELECT id, name, is_income, budget_id, group_id, created_at FROM categories WHERE budget_id = $1
+SELECT id, name, budget_id, group_id, created_at FROM categories WHERE budget_id = $1
 `
 
 func (q *Queries) GetCategoriesForBudget(ctx context.Context, budgetID string) ([]Category, error) {
@@ -83,7 +87,6 @@ func (q *Queries) GetCategoriesForBudget(ctx context.Context, budgetID string) (
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.IsIncome,
 			&i.BudgetID,
 			&i.GroupID,
 			&i.CreatedAt,
@@ -99,7 +102,7 @@ func (q *Queries) GetCategoriesForBudget(ctx context.Context, budgetID string) (
 }
 
 const getCategoryForBudget = `-- name: GetCategoryForBudget :one
-SELECT id, name, is_income, budget_id, group_id, created_at FROM categories WHERE id = $1 AND budget_id = $2
+SELECT id, name, budget_id, group_id, created_at FROM categories WHERE id = $1 AND budget_id = $2
 `
 
 type GetCategoryForBudgetParams struct {
@@ -113,7 +116,6 @@ func (q *Queries) GetCategoryForBudget(ctx context.Context, arg GetCategoryForBu
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.IsIncome,
 		&i.BudgetID,
 		&i.GroupID,
 		&i.CreatedAt,
@@ -122,7 +124,7 @@ func (q *Queries) GetCategoryForBudget(ctx context.Context, arg GetCategoryForBu
 }
 
 const getCategoryGroupsForBudget = `-- name: GetCategoryGroupsForBudget :many
-SELECT id, name, budget_id, created_at FROM category_groups WHERE budget_id = $1
+SELECT id, name, is_income, budget_id, created_at FROM category_groups WHERE budget_id = $1
 `
 
 func (q *Queries) GetCategoryGroupsForBudget(ctx context.Context, budgetID string) ([]CategoryGroup, error) {
@@ -137,6 +139,7 @@ func (q *Queries) GetCategoryGroupsForBudget(ctx context.Context, budgetID strin
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.IsIncome,
 			&i.BudgetID,
 			&i.CreatedAt,
 		); err != nil {

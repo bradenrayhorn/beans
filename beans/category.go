@@ -7,13 +7,13 @@ type Category struct {
 	BudgetID ID
 	GroupID  ID
 	Name     Name
-	IsIncome bool
 }
 
 type CategoryGroup struct {
 	ID       ID
 	BudgetID ID
 	Name     Name
+	IsIncome bool
 }
 
 type CategoryContract interface {

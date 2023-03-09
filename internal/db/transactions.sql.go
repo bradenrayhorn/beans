@@ -89,19 +89,25 @@ SELECT sum(transactions.amount)::numeric
 FROM transactions
 JOIN categories
   ON categories.id = transactions.category_id
-  AND categories.is_income = true
+JOIN category_groups
+  ON category_groups.id = categories.group_id
+  AND category_groups.is_income = true
+JOIN accounts
+  ON accounts.id = transactions.account_id
+  AND accounts.budget_id = $1
 WHERE
-  transactions.date <= $1
-  AND transactions.date >= $2
+  transactions.date <= $2
+  AND transactions.date >= $3
 `
 
 type GetIncomeBetweenParams struct {
+	BudgetID  string
 	EndDate   time.Time
 	BeginDate time.Time
 }
 
 func (q *Queries) GetIncomeBetween(ctx context.Context, arg GetIncomeBetweenParams) (pgtype.Numeric, error) {
-	row := q.db.QueryRow(ctx, getIncomeBetween, arg.EndDate, arg.BeginDate)
+	row := q.db.QueryRow(ctx, getIncomeBetween, arg.BudgetID, arg.EndDate, arg.BeginDate)
 	var column_1 pgtype.Numeric
 	err := row.Scan(&column_1)
 	return column_1, err

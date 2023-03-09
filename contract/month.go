@@ -41,7 +41,7 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	income, err := c.transactionRepository.GetIncomeBetween(ctx, month.Date.FirstDay(), month.Date.LastDay())
+	income, err := c.transactionRepository.GetIncomeBetween(ctx, auth.BudgetID(), month.Date.FirstDay(), month.Date.LastDay())
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}

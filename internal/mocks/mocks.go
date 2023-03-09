@@ -5844,7 +5844,7 @@ func NewMockTransactionRepository() *MockTransactionRepository {
 			},
 		},
 		GetIncomeBetweenFunc: &TransactionRepositoryGetIncomeBetweenFunc{
-			defaultHook: func(context.Context, beans.Date, beans.Date) (r0 beans.Amount, r1 error) {
+			defaultHook: func(context.Context, beans.ID, beans.Date, beans.Date) (r0 beans.Amount, r1 error) {
 				return
 			},
 		},
@@ -5877,7 +5877,7 @@ func NewStrictMockTransactionRepository() *MockTransactionRepository {
 			},
 		},
 		GetIncomeBetweenFunc: &TransactionRepositoryGetIncomeBetweenFunc{
-			defaultHook: func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
+			defaultHook: func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error) {
 				panic("unexpected invocation of MockTransactionRepository.GetIncomeBetween")
 			},
 		},
@@ -6240,24 +6240,24 @@ func (c TransactionRepositoryGetForBudgetFuncCall) Results() []interface{} {
 // GetIncomeBetween method of the parent MockTransactionRepository instance
 // is invoked.
 type TransactionRepositoryGetIncomeBetweenFunc struct {
-	defaultHook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)
-	hooks       []func(context.Context, beans.Date, beans.Date) (beans.Amount, error)
+	defaultHook func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error)
+	hooks       []func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error)
 	history     []TransactionRepositoryGetIncomeBetweenFuncCall
 	mutex       sync.Mutex
 }
 
 // GetIncomeBetween delegates to the next hook function in the queue and
 // stores the parameter and result values of this invocation.
-func (m *MockTransactionRepository) GetIncomeBetween(v0 context.Context, v1 beans.Date, v2 beans.Date) (beans.Amount, error) {
-	r0, r1 := m.GetIncomeBetweenFunc.nextHook()(v0, v1, v2)
-	m.GetIncomeBetweenFunc.appendCall(TransactionRepositoryGetIncomeBetweenFuncCall{v0, v1, v2, r0, r1})
+func (m *MockTransactionRepository) GetIncomeBetween(v0 context.Context, v1 beans.ID, v2 beans.Date, v3 beans.Date) (beans.Amount, error) {
+	r0, r1 := m.GetIncomeBetweenFunc.nextHook()(v0, v1, v2, v3)
+	m.GetIncomeBetweenFunc.appendCall(TransactionRepositoryGetIncomeBetweenFuncCall{v0, v1, v2, v3, r0, r1})
 	return r0, r1
 }
 
 // SetDefaultHook sets function that is called when the GetIncomeBetween
 // method of the parent MockTransactionRepository instance is invoked and
 // the hook queue is empty.
-func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultHook(hook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultHook(hook func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error)) {
 	f.defaultHook = hook
 }
 
@@ -6266,7 +6266,7 @@ func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultHook(hook func(con
 // invokes the hook at the front of the queue and discards it. After the
 // queue is empty, the default hook function is invoked for any future
 // action.
-func (f *TransactionRepositoryGetIncomeBetweenFunc) PushHook(hook func(context.Context, beans.Date, beans.Date) (beans.Amount, error)) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) PushHook(hook func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -6275,19 +6275,19 @@ func (f *TransactionRepositoryGetIncomeBetweenFunc) PushHook(hook func(context.C
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
 func (f *TransactionRepositoryGetIncomeBetweenFunc) SetDefaultReturn(r0 beans.Amount, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
 func (f *TransactionRepositoryGetIncomeBetweenFunc) PushReturn(r0 beans.Amount, r1 error) {
-	f.PushHook(func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
+	f.PushHook(func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error) {
 		return r0, r1
 	})
 }
 
-func (f *TransactionRepositoryGetIncomeBetweenFunc) nextHook() func(context.Context, beans.Date, beans.Date) (beans.Amount, error) {
+func (f *TransactionRepositoryGetIncomeBetweenFunc) nextHook() func(context.Context, beans.ID, beans.Date, beans.Date) (beans.Amount, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -6327,10 +6327,13 @@ type TransactionRepositoryGetIncomeBetweenFuncCall struct {
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.Date
+	Arg1 beans.ID
 	// Arg2 is the value of the 3rd argument passed to this method
 	// invocation.
 	Arg2 beans.Date
+	// Arg3 is the value of the 4th argument passed to this method
+	// invocation.
+	Arg3 beans.Date
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 beans.Amount
@@ -6342,7 +6345,7 @@ type TransactionRepositoryGetIncomeBetweenFuncCall struct {
 // Args returns an interface slice containing the arguments of this
 // invocation.
 func (c TransactionRepositoryGetIncomeBetweenFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2, c.Arg3}
 }
 
 // Results returns an interface slice containing the results of this

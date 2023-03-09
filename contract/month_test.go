@@ -68,8 +68,9 @@ func TestMonth(t *testing.T) {
 
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
+			incomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "Group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
-			incomeCategory := testutils.MakeIncomeCategory(t, pool, "Income", group.ID, budget.ID)
+			incomeCategory := testutils.MakeCategory(t, pool, "Income", incomeGroup.ID, budget.ID)
 			monthCategory := testutils.MakeMonthCategory(t, pool, monthMay.ID, category.ID, beans.NewAmount(34, -1))
 			testutils.MakeMonthCategory(t, pool, monthApril.ID, category.ID, beans.NewAmount(34, -1))
 

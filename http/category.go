@@ -6,12 +6,6 @@ import (
 	"github.com/bradenrayhorn/beans/beans"
 )
 
-type categoryResponse struct {
-	ID      beans.ID   `json:"id"`
-	GroupID beans.ID   `json:"group_id"`
-	Name    beans.Name `json:"name"`
-}
-
 type listCategoryResponse struct {
 	ID   beans.ID   `json:"id"`
 	Name beans.Name `json:"name"`
@@ -20,15 +14,8 @@ type listCategoryResponse struct {
 type categoryGroupResponse struct {
 	ID         beans.ID               `json:"id"`
 	Name       beans.Name             `json:"name"`
+	IsIncome   bool                   `json:"is_income"`
 	Categories []listCategoryResponse `json:"categories"`
-}
-
-func responseFromCategory(c *beans.Category) categoryResponse {
-	return categoryResponse{ID: c.ID, GroupID: c.GroupID, Name: c.Name}
-}
-
-func responseFromCategoryGroup(c *beans.CategoryGroup) categoryGroupResponse {
-	return categoryGroupResponse{ID: c.ID, Name: c.Name, Categories: make([]listCategoryResponse, 0)}
 }
 
 func (s *Server) handleCategoryCreate() http.HandlerFunc {
@@ -37,7 +24,7 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 		Name    beans.Name `json:"name"`
 	}
 	type response struct {
-		Data categoryResponse `json:"data"`
+		ID beans.ID `json:"id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +40,11 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, response{Data: responseFromCategory(category)}, http.StatusOK)
+		jsonResponse(w, struct {
+			Data response `json:"data"`
+		}{
+			Data: response{ID: category.ID},
+		}, http.StatusOK)
 	}
 }
 
@@ -62,7 +53,7 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 		Name beans.Name `json:"name"`
 	}
 	type response struct {
-		Data categoryGroupResponse `json:"data"`
+		ID beans.ID `json:"id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +69,11 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, response{Data: responseFromCategoryGroup(group)}, http.StatusOK)
+		jsonResponse(w, struct {
+			Data response `json:"data"`
+		}{
+			Data: response{ID: group.ID},
+		}, http.StatusOK)
 	}
 }
 
@@ -105,7 +100,12 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 
 		res := response{Data: make([]categoryGroupResponse, len(groups))}
 		for i, group := range groups {
-			res.Data[i] = categoryGroupResponse{ID: group.ID, Name: group.Name, Categories: categoriesMap[group.ID.String()]}
+			res.Data[i] = categoryGroupResponse{
+				ID:         group.ID,
+				Name:       group.Name,
+				IsIncome:   group.IsIncome,
+				Categories: categoriesMap[group.ID.String()],
+			}
 		}
 
 		jsonResponse(w, res, http.StatusOK)

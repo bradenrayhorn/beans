@@ -26,7 +26,7 @@ func TestCategory(t *testing.T) {
 		req := fmt.Sprintf(`{"name":"Category1","group_id":"%s"}`, category.GroupID)
 		res := testutils.HTTP(t, sv.handleCategoryCreate(), user, budget, req, http.StatusOK)
 
-		expected := fmt.Sprintf(`{"data":{"name":"Category1","id":"%s","group_id":"%s"}}`, category.ID, category.GroupID)
+		expected := fmt.Sprintf(`{"data":{"id":"%s"}}`, category.ID)
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateCategoryFunc.History()[0]
@@ -41,7 +41,7 @@ func TestCategory(t *testing.T) {
 		req := `{"name":"Group1"}`
 		res := testutils.HTTP(t, sv.handleCategoryGroupCreate(), user, budget, req, http.StatusOK)
 
-		expected := fmt.Sprintf(`{"data":{"name":"Group1","id":"%s","categories":[]}}`, group.ID)
+		expected := fmt.Sprintf(`{"data":{"id":"%s"}}`, group.ID)
 		assert.JSONEq(t, expected, res)
 
 		params := contract.CreateGroupFunc.History()[0]
@@ -53,7 +53,7 @@ func TestCategory(t *testing.T) {
 		contract.GetAllFunc.PushReturn([]*beans.CategoryGroup{group}, []*beans.Category{category}, nil)
 
 		res := testutils.HTTP(t, sv.handleCategoryGetAll(), user, budget, nil, http.StatusOK)
-		expected := fmt.Sprintf(`{"data":[{"name":"Group1","id":"%s","categories":[{"id":"%s","name":"Category1"}]}]}`, group.ID, category.ID)
+		expected := fmt.Sprintf(`{"data":[{"name":"Group1","id":"%s","is_income":false,"categories":[{"id":"%s","name":"Category1"}]}]}`, group.ID, category.ID)
 
 		assert.JSONEq(t, expected, res)
 	})
