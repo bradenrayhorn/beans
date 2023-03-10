@@ -3,7 +3,13 @@ import {
   queryKeys,
   useQueries,
 } from "@/constants/queries";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMonthID } from "@/context/MonthProvider";
+import {
+  useIsMutating,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useBudgetID } from "./budget";
 
@@ -22,13 +28,17 @@ export const useCreateMonth = ({
   onError,
   onSuccess,
 }: {
-  onError: () => void;
+  onError?: () => void;
   onSuccess: (data: CreateMonthResponse) => void;
 }) => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
 
-  const mutation = useMutation(queries.months.create, { onError, onSuccess });
+  const mutation = useMutation(queries.months.create, {
+    onError,
+    onSuccess,
+    mutationKey: [queryKeys.months.create],
+  });
 
   const submit = useCallback(
     ({ date }: { date: string }) => mutation.mutateAsync({ date }),
@@ -36,6 +46,15 @@ export const useCreateMonth = ({
   );
 
   return { ...mutation, submit };
+};
+
+export const useIsMonthLoading = (): boolean => {
+  const monthID = useMonthID();
+  const isMutating = useIsMutating({ mutationKey: [queryKeys.months.create] });
+
+  const { isLoading: isMonthLoading } = useMonth({ monthID });
+
+  return !!isMutating || isMonthLoading;
 };
 
 export const useUpdateMonthCategory = ({

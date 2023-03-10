@@ -31,6 +31,7 @@ const queryKeys = {
 
   months: {
     get: "month_get",
+    create: "month_create",
     categories: {
       update: "month_category_update",
     },

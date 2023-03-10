@@ -25,6 +25,7 @@ const customRender = (
   ui: React.ReactElement,
   options: { routes?: RouteObject[] } = {}
 ) => {
+  queryClient.clear();
   const router = createMemoryRouter([
     {
       path: "/",

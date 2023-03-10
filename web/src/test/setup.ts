@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom";
 import { setupServer } from "msw/node";
 import "cross-fetch/polyfill";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import dayjs from "dayjs";
+
+dayjs.extend(customParseFormat);
 
 export const server = setupServer();
 
