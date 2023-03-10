@@ -5,6 +5,10 @@ import { ChakraProvider } from "@chakra-ui/react";
 import "./index.css";
 import theme from "./theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import dayjs from "dayjs";
+
+dayjs.extend(customParseFormat);
 
 const client = new QueryClient();
 

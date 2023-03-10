@@ -1,6 +1,11 @@
 import { Month } from "@/constants/types";
-import { amountToFraction, formatAmount } from "@/data/format/amount";
-import { Box, Tag } from "@chakra-ui/react";
+import {
+  amountToFraction,
+  formatAmount,
+  zeroAmount,
+} from "@/data/format/amount";
+import { useIsMonthLoading } from "@/data/queries/month";
+import { Box, Skeleton, Tag } from "@chakra-ui/react";
 import { useId } from "react";
 
 const colorScheme = (res: number): string => {
@@ -13,19 +18,23 @@ const colorScheme = (res: number): string => {
   }
 };
 
-export default function ToBudget({ month }: { month: Month }) {
-  const budgetable = amountToFraction(month.budgetable);
+export default function ToBudget({ month }: { month?: Month }) {
+  const budgetable = amountToFraction(month?.budgetable ?? zeroAmount);
 
   const labelId = useId();
 
+  const isMonthLoading = useIsMonthLoading();
+
   return (
-    <Tag colorScheme={colorScheme(budgetable.compare(0))}>
-      <Box fontSize="medium" mr={2} id={labelId}>
-        To Budget:
-      </Box>
-      <Box fontSize="large" aria-labelledby={labelId}>
-        {formatAmount(month.budgetable)}
-      </Box>
-    </Tag>
+    <Skeleton isLoaded={!isMonthLoading}>
+      <Tag colorScheme={colorScheme(budgetable.compare(0))}>
+        <Box fontSize="medium" mr={2} id={labelId}>
+          To Budget:
+        </Box>
+        <Box fontSize="large" aria-labelledby={labelId}>
+          {formatAmount(month?.budgetable ?? zeroAmount)}
+        </Box>
+      </Tag>
+    </Skeleton>
   );
 }
