@@ -28,7 +28,7 @@
     "dayjs": "1.11.7",
     "downshift": "7.3.2",
     "fraction.js": "4.2.0",
-    "framer-motion": "10.1.0",
+    "framer-motion": "10.2.3",
     "ky": "0.33.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
