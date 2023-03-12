@@ -29,7 +29,12 @@ func MakeBudget(tb testing.TB, pool *pgxpool.Pool, name string, userID beans.ID)
 }
 
 func MakeMonth(tb testing.TB, pool *pgxpool.Pool, budgetID beans.ID, date beans.Date) *beans.Month {
-	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budgetID, Date: beans.NewMonthDate(date)}
+	month := &beans.Month{
+		ID:        beans.NewBeansID(),
+		BudgetID:  budgetID,
+		Date:      beans.NewMonthDate(date),
+		Carryover: beans.NewAmount(0, 0),
+	}
 	err := postgres.NewMonthRepository(pool).Create(context.Background(), nil, month)
 	require.Nil(tb, err)
 	return month

@@ -75,6 +75,26 @@ func Add(amounts ...Amount) (Amount, error) {
 	return NewAmountWithBigInt(bigInt, accumulator.Exponent), nil
 }
 
+// The same amount but with the opposite sign.
+func (a *Amount) Negate() Amount {
+	if a.Empty() || a.decimal.IsZero() {
+		return NewAmount(0, 0)
+	}
+
+	newDecimal := a.decimal
+	newDecimal.Neg(&newDecimal)
+	return Amount{set: true, decimal: newDecimal}
+}
+
+// If the amount is empty returns a new zero amount.
+func (a *Amount) OrZero() Amount {
+	if a.Empty() {
+		return NewAmount(0, 0)
+	}
+
+	return *a
+}
+
 func (a *Amount) String() string {
 	if !a.set {
 		return ""

@@ -356,4 +356,12 @@ func TestMonthCategory(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, beans.NewAmount(11, 0), amount)
 	})
+
+	t.Run("can get blank assigned in month", func(t *testing.T) {
+		defer cleanup()
+
+		amount, err := monthCategoryRepository.GetAssignedInMonth(context.Background(), monthJune.ID)
+		require.Nil(t, err)
+		assert.Equal(t, beans.NewAmount(0, 0), amount)
+	})
 }

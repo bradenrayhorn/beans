@@ -24,6 +24,16 @@ func TestCanCreateNegativeAmount(t *testing.T) {
 	assert.Equal(t, int32(-1), amount.Exponent())
 }
 
+func TestCanNegateAmounts(t *testing.T) {
+	amount := beans.NewAmount(-55, -1)
+
+	amount = amount.Negate()
+	assert.Equal(t, "5.5", amount.String())
+
+	amount = amount.Negate()
+	assert.Equal(t, "-5.5", amount.String())
+}
+
 func TestAmountJSON(t *testing.T) {
 	t.Run("marshal", func(t *testing.T) {
 		var tests = []struct {

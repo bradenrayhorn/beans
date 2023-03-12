@@ -32,11 +32,33 @@ func TestMonth(t *testing.T) {
 
 	t.Run("can create and get", func(t *testing.T) {
 		defer cleanup()
-		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewMonthDate(beans.NewDate(time.Now().AddDate(0, 1, 0))), BudgetID: budgetID}
+		month := &beans.Month{
+			ID:        beans.NewBeansID(),
+			Date:      beans.NewMonthDate(beans.NewDate(time.Now().AddDate(0, 1, 0))),
+			BudgetID:  budgetID,
+			Carryover: beans.NewAmount(5, 0),
+		}
 		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
 
 		res, err := monthRepository.Get(context.Background(), month.ID)
 		require.Nil(t, err)
+		assert.True(t, reflect.DeepEqual(month, res))
+	})
+
+	t.Run("can create with no carryover", func(t *testing.T) {
+		defer cleanup()
+		month := &beans.Month{
+			ID:       beans.NewBeansID(),
+			Date:     beans.NewMonthDate(beans.NewDate(time.Now().AddDate(0, 1, 0))),
+			BudgetID: budgetID,
+		}
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
+
+		res, err := monthRepository.Get(context.Background(), month.ID)
+		require.Nil(t, err)
+
+		// carryover should have been initialized to 0
+		month.Carryover = beans.NewAmount(0, 0)
 		assert.True(t, reflect.DeepEqual(month, res))
 	})
 
@@ -75,6 +97,49 @@ func TestMonth(t *testing.T) {
 		assertPgError(t, pgerrcode.UniqueViolation, monthRepository.Create(context.Background(), nil, month2))
 	})
 
+	t.Run("can update month carryover", func(t *testing.T) {
+		defer cleanup()
+		date := beans.NewMonthDate(beans.NewDate(time.Now()))
+
+		month := &beans.Month{
+			ID:        beans.NewBeansID(),
+			Date:      date,
+			BudgetID:  budgetID,
+			Carryover: beans.NewAmount(0, 0),
+		}
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
+
+		month.Carryover = beans.NewAmount(5, 0)
+		require.Nil(t, monthRepository.Update(context.Background(), month))
+
+		res, err := monthRepository.Get(context.Background(), month.ID)
+		require.Nil(t, err)
+		assert.True(t, reflect.DeepEqual(month, res))
+	})
+
+	t.Run("can update month carryover to nil", func(t *testing.T) {
+		defer cleanup()
+		date := beans.NewMonthDate(beans.NewDate(time.Now()))
+
+		month := &beans.Month{
+			ID:        beans.NewBeansID(),
+			Date:      date,
+			BudgetID:  budgetID,
+			Carryover: beans.NewAmount(5, 0),
+		}
+		require.Nil(t, monthRepository.Create(context.Background(), nil, month))
+
+		month.Carryover = beans.NewEmptyAmount()
+		require.Nil(t, monthRepository.Update(context.Background(), month))
+
+		res, err := monthRepository.Get(context.Background(), month.ID)
+		require.Nil(t, err)
+
+		// carryover should have been reset to 0
+		month.Carryover = beans.NewAmount(0, 0)
+		assert.True(t, reflect.DeepEqual(month, res))
+	})
+
 	t.Run("get or create respects budget", func(t *testing.T) {
 		defer cleanup()
 		date := beans.NewMonthDate(beans.NewDate(time.Now()))
@@ -92,7 +157,12 @@ func TestMonth(t *testing.T) {
 		defer cleanup()
 		date := beans.NewMonthDate(beans.NewDate(time.Now()))
 
-		existingMonth := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budgetID}
+		existingMonth := &beans.Month{
+			ID:        beans.NewBeansID(),
+			Date:      date,
+			BudgetID:  budgetID,
+			Carryover: beans.NewAmount(0, 0),
+		}
 		require.Nil(t, monthRepository.Create(context.Background(), nil, existingMonth))
 
 		month, err := monthRepository.GetOrCreate(context.Background(), nil, budgetID, date)
@@ -115,9 +185,10 @@ func TestMonth(t *testing.T) {
 		assert.NotEqual(t, existingMonth.ID, month.ID)
 		assert.True(t, reflect.DeepEqual(
 			&beans.Month{
-				ID:       month.ID,
-				Date:     date2,
-				BudgetID: budgetID,
+				ID:        month.ID,
+				Date:      date2,
+				BudgetID:  budgetID,
+				Carryover: beans.NewAmount(0, 0),
 			},
 			month,
 		))

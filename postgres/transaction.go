@@ -135,5 +135,5 @@ func (r *TransactionRepository) GetIncomeBetween(ctx context.Context, budgetID b
 		return beans.NewEmptyAmount(), err
 	}
 
-	return amount, nil
+	return amount.OrZero(), nil
 }

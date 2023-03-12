@@ -58,4 +58,9 @@ export interface Month {
   date: string;
   budgetable: Amount;
   categories: MonthCategory[];
+
+  income: Amount;
+  assigned: Amount;
+  carryover: Amount;
+  carried_over: Amount;
 }

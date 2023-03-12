@@ -2,6 +2,7 @@ import { Month } from "@/constants/types";
 import {
   amountToFraction,
   formatAmount,
+  formatFraction,
   zeroAmount,
 } from "@/data/format/amount";
 import { useIsMonthLoading } from "@/data/queries/month";
@@ -42,22 +43,22 @@ export default function ToBudget({ month }: { month?: Month }) {
     {
       id: `${breakdownId}-income`,
       name: "Income",
-      value: zeroAmount,
+      value: amountToFraction(month?.income ?? zeroAmount),
     },
     {
       id: `${breakdownId}-last-month`,
       name: "From last month",
-      value: zeroAmount,
+      value: amountToFraction(month?.carried_over ?? zeroAmount),
     },
     {
       id: `${breakdownId}-assigned`,
       name: "Assigned this month",
-      value: zeroAmount,
+      value: amountToFraction(month?.assigned ?? zeroAmount).neg(),
     },
     {
       id: `${breakdownId}-next-month`,
       name: "For next month",
-      value: zeroAmount,
+      value: amountToFraction(month?.carryover ?? zeroAmount).neg(),
     },
   ];
 
@@ -88,11 +89,11 @@ export default function ToBudget({ month }: { month?: Month }) {
           <AccordionPanel>
             {breakdown.map(({ id, name, value }) => (
               <Flex justifyContent="space-between" key={id}>
-                <Text fontSize="sm" id={id}>
+                <Text fontSize="sm" id={id} role="term">
                   {name}:
                 </Text>
-                <Text fontSize="sm" aria-labelledby={id}>
-                  {formatAmount(value)}
+                <Text fontSize="sm" aria-labelledby={id} role="definition">
+                  {formatFraction(value)}
                 </Text>
               </Flex>
             ))}

@@ -36,6 +36,16 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
+	pastMonth, err := c.monthRepository.GetOrCreate(
+		ctx,
+		nil,
+		auth.BudgetID(),
+		month.Date.Previous(),
+	)
+	if err != nil {
+		return nil, nil, beans.NewEmptyAmount(), err
+	}
+
 	categories, err := c.monthCategoryRepository.GetForMonth(ctx, month)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
@@ -51,10 +61,19 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	available, err := income.Subtract(assignedInMonth)
+	available, err := beans.Add(
+		income,
+		pastMonth.Carryover,
+		month.Carryover.Negate(),
+		assignedInMonth.Negate(),
+	)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
+
+	month.CarriedOver = pastMonth.Carryover
+	month.Income = income
+	month.Assigned = assignedInMonth
 
 	return month, categories, available, nil
 }
@@ -79,6 +98,22 @@ func (c *monthContract) CreateMonth(ctx context.Context, auth *beans.BudgetAuthC
 
 		return month, nil
 	})
+}
+func (c *monthContract) Update(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, carryover beans.Amount) error {
+	if err := beans.ValidateFields(
+		beans.Field("Carryover", beans.Required(&carryover), beans.Positive(carryover)),
+	); err != nil {
+		return err
+	}
+
+	month, err := c.getAndVerifyMonth(ctx, auth, monthID)
+	if err != nil {
+		return err
+	}
+
+	month.Carryover = carryover
+
+	return c.monthRepository.Update(ctx, month)
 }
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {

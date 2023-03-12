@@ -25,10 +25,19 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await page.goto(`/budget/${id}`);
   await page.getByRole("link", { name: /^budget$/ }).click();
 
+  // expand to budget panel
+  page.getByRole("button", { name: "To Budget" }).click();
+
   const toBudget = page
     .getByRole("button", { name: "To Budget" })
     .getByRole("definition");
   await expect(toBudget).toHaveText("$0.00");
+
+  const income = page.getByLabel("Income:");
+  await expect(income).toHaveText("$0.00");
+
+  const assignedThisMonth = page.getByLabel("Assigned this month:");
+  await expect(assignedThisMonth).toHaveText("-$0.00");
 
   const billsCategoryGroup = page
     .getByRole("list", { name: "Categories" })
@@ -75,6 +84,8 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await expect(available).toHaveText("$40.31");
 
   await expect(toBudget).toHaveText("-$60.31");
+  await expect(income).toHaveText("$0.00");
+  await expect(assignedThisMonth).toHaveText("-$60.31");
 
   // navigate to next month
   await page.getByRole("button", { name: "Next month" }).click();

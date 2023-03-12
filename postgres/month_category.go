@@ -157,5 +157,5 @@ func (r *monthCategoryRepository) GetAssignedInMonth(ctx context.Context, monthI
 		return beans.NewEmptyAmount(), err
 	}
 
-	return amount, nil
+	return amount.OrZero(), nil
 }

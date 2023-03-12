@@ -49,6 +49,7 @@ type Month struct {
 	ID        string
 	BudgetID  string
 	Date      time.Time
+	Carryover pgtype.Numeric
 	CreatedAt time.Time
 }
 

@@ -225,4 +225,12 @@ func TestTransactions(t *testing.T) {
 
 		require.Equal(t, beans.NewAmount(5, 0), amount)
 	})
+
+	t.Run("can get blank income", func(t *testing.T) {
+		defer cleanup()
+		amount, err := transactionRepository.GetIncomeBetween(context.Background(), budgetID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
+		require.Nil(t, err)
+
+		require.Equal(t, beans.NewAmount(0, 0), amount)
+	})
 }

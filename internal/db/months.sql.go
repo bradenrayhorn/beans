@@ -8,27 +8,35 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgtype"
 )
 
 const createMonth = `-- name: CreateMonth :exec
 INSERT INTO months (
-  id, budget_id, date
-) VALUES ($1, $2, $3)
+  id, budget_id, date, carryover
+) VALUES ($1, $2, $3, $4)
 `
 
 type CreateMonthParams struct {
-	ID       string
-	BudgetID string
-	Date     time.Time
+	ID        string
+	BudgetID  string
+	Date      time.Time
+	Carryover pgtype.Numeric
 }
 
 func (q *Queries) CreateMonth(ctx context.Context, arg CreateMonthParams) error {
-	_, err := q.db.Exec(ctx, createMonth, arg.ID, arg.BudgetID, arg.Date)
+	_, err := q.db.Exec(ctx, createMonth,
+		arg.ID,
+		arg.BudgetID,
+		arg.Date,
+		arg.Carryover,
+	)
 	return err
 }
 
 const getMonthByDate = `-- name: GetMonthByDate :one
-SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1 AND date = $2
+SELECT id, budget_id, date, carryover, created_at FROM months WHERE budget_id = $1 AND date = $2
 `
 
 type GetMonthByDateParams struct {
@@ -43,13 +51,14 @@ func (q *Queries) GetMonthByDate(ctx context.Context, arg GetMonthByDateParams) 
 		&i.ID,
 		&i.BudgetID,
 		&i.Date,
+		&i.Carryover,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getMonthByID = `-- name: GetMonthByID :one
-SELECT id, budget_id, date, created_at FROM months WHERE id = $1
+SELECT id, budget_id, date, carryover, created_at FROM months WHERE id = $1
 `
 
 func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
@@ -59,13 +68,14 @@ func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
 		&i.ID,
 		&i.BudgetID,
 		&i.Date,
+		&i.Carryover,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getMonthsByBudget = `-- name: GetMonthsByBudget :many
-SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1
+SELECT id, budget_id, date, carryover, created_at FROM months WHERE budget_id = $1
 `
 
 func (q *Queries) GetMonthsByBudget(ctx context.Context, budgetID string) ([]Month, error) {
@@ -81,6 +91,7 @@ func (q *Queries) GetMonthsByBudget(ctx context.Context, budgetID string) ([]Mon
 			&i.ID,
 			&i.BudgetID,
 			&i.Date,
+			&i.Carryover,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -94,7 +105,7 @@ func (q *Queries) GetMonthsByBudget(ctx context.Context, budgetID string) ([]Mon
 }
 
 const getNewestMonth = `-- name: GetNewestMonth :one
-SELECT id, budget_id, date, created_at FROM months WHERE budget_id = $1 ORDER BY date desc LIMIT 1
+SELECT id, budget_id, date, carryover, created_at FROM months WHERE budget_id = $1 ORDER BY date desc LIMIT 1
 `
 
 func (q *Queries) GetNewestMonth(ctx context.Context, budgetID string) (Month, error) {
@@ -104,7 +115,24 @@ func (q *Queries) GetNewestMonth(ctx context.Context, budgetID string) (Month, e
 		&i.ID,
 		&i.BudgetID,
 		&i.Date,
+		&i.Carryover,
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const updateMonth = `-- name: UpdateMonth :exec
+UPDATE months
+  SET carryover = $1
+  WHERE id = $2
+`
+
+type UpdateMonthParams struct {
+	Carryover pgtype.Numeric
+	ID        string
+}
+
+func (q *Queries) UpdateMonth(ctx context.Context, arg UpdateMonthParams) error {
+	_, err := q.db.Exec(ctx, updateMonth, arg.Carryover, arg.ID)
+	return err
 }
