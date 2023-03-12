@@ -16,10 +16,14 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 		CategoryID beans.ID     `json:"category_id"`
 	}
 	type responseMonth struct {
-		ID         beans.ID           `json:"id"`
-		Date       string             `json:"date"`
-		Budgetable beans.Amount       `json:"budgetable"`
-		Categories []responseCategory `json:"categories"`
+		ID          beans.ID           `json:"id"`
+		Date        string             `json:"date"`
+		Budgetable  beans.Amount       `json:"budgetable"`
+		Carryover   beans.Amount       `json:"carryover"`
+		Income      beans.Amount       `json:"income"`
+		Assigned    beans.Amount       `json:"assigned"`
+		CarriedOver beans.Amount       `json:"carried_over"`
+		Categories  []responseCategory `json:"categories"`
 	}
 	type response struct {
 		Data responseMonth `json:"data"`
@@ -51,10 +55,14 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 
 		jsonResponse(w, response{
 			Data: responseMonth{
-				ID:         month.ID,
-				Date:       month.Date.String(),
-				Budgetable: budgetable,
-				Categories: responseCategories,
+				ID:          month.ID,
+				Date:        month.Date.String(),
+				Budgetable:  budgetable,
+				Carryover:   month.Carryover,
+				Income:      month.Income,
+				Assigned:    month.Assigned,
+				CarriedOver: month.CarriedOver,
+				Categories:  responseCategories,
 			},
 		}, http.StatusOK)
 	}
@@ -87,6 +95,31 @@ func (s *Server) handleMonthCreate() http.HandlerFunc {
 		}{
 			Data: response{ID: month.ID},
 		}, http.StatusOK)
+	}
+}
+
+func (s *Server) handleMonthUpdate() http.HandlerFunc {
+	type request struct {
+		Amount beans.Amount `json:"carryover"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req request
+		if err := decodeRequest(r, &req); err != nil {
+			Error(w, err)
+			return
+		}
+
+		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "monthID"))
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		if err := s.monthContract.Update(r.Context(), getBudgetAuth(r), monthID, req.Amount); err != nil {
+			Error(w, err)
+			return
+		}
 	}
 }
 

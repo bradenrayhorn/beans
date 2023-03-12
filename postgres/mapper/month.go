@@ -16,9 +16,15 @@ func Month(d db.Month) (*beans.Month, error) {
 		return nil, err
 	}
 
+	carryover, err := NumericToAmount(d.Carryover)
+	if err != nil {
+		return nil, err
+	}
+
 	return &beans.Month{
-		ID:       id,
-		BudgetID: budgetID,
-		Date:     beans.NewMonthDate(beans.NewDate(d.Date)),
+		ID:        id,
+		BudgetID:  budgetID,
+		Date:      beans.NewMonthDate(beans.NewDate(d.Date)),
+		Carryover: carryover,
 	}, nil
 }

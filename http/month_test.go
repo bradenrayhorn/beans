@@ -17,7 +17,15 @@ func TestMonth(t *testing.T) {
 
 	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
-	month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: testutils.NewMonthDate(t, "2022-05-01")}
+	month := &beans.Month{
+		ID:          beans.NewBeansID(),
+		BudgetID:    budget.ID,
+		Date:        testutils.NewMonthDate(t, "2022-05-01"),
+		Carryover:   beans.NewAmount(5, 0),
+		Income:      beans.NewAmount(6, 0),
+		Assigned:    beans.NewAmount(7, 0),
+		CarriedOver: beans.NewAmount(8, 0),
+	}
 
 	t.Run("create month", func(t *testing.T) {
 		contract.CreateMonthFunc.PushReturn(month, nil)
@@ -51,6 +59,21 @@ func TestMonth(t *testing.T) {
 		assert.Equal(t, beans.NewAmount(34, 0), params.Arg4)
 	})
 
+	t.Run("update month", func(t *testing.T) {
+		contract.UpdateFunc.PushReturn(nil)
+
+		req := `{"carryover":34}`
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
+		res := testutils.HTTPWithOptions(t, sv.handleMonthUpdate(), options, user, budget, req, http.StatusOK)
+
+		assert.Empty(t, res)
+
+		params := contract.UpdateFunc.History()[0]
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
+		assert.Equal(t, month.ID, params.Arg2)
+		assert.Equal(t, beans.NewAmount(34, 0), params.Arg3)
+	})
+
 	t.Run("get", func(t *testing.T) {
 		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Activity: beans.NewAmount(4, 0), Available: beans.NewAmount(1, 0)}
 		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, beans.NewAmount(55, 0), nil)
@@ -63,6 +86,22 @@ func TestMonth(t *testing.T) {
 			"date": "2022-05-01",
 			"budgetable": {
 				"coefficient": 55,
+				"exponent": 0
+			},
+			"carryover": {
+				"coefficient": 5,
+				"exponent": 0
+			},
+			"income": {
+				"coefficient": 6,
+				"exponent": 0
+			},
+			"assigned": {
+				"coefficient": 7,
+				"exponent": 0
+			},
+			"carried_over": {
+				"coefficient": 8,
 				"exponent": 0
 			},
 			"categories": [

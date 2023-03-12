@@ -35,3 +35,13 @@ func TestTimeZoneIsStripped(t *testing.T) {
 	assert.Equal(t, date1, date3)
 	assert.Equal(t, date2, date3)
 }
+
+func TestMonthDate(t *testing.T) {
+
+	t.Run("get previous", func(t *testing.T) {
+		monthDate := NewMonthDate(NewDate(time.Date(2022, 05, 26, 0, 0, 0, 0, time.UTC)))
+
+		previous := monthDate.Previous()
+		assert.Equal(t, previous.String(), "2022-04-01")
+	})
+}

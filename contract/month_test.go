@@ -62,7 +62,12 @@ func TestMonth(t *testing.T) {
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 			monthApril := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-04-01"))
+			monthApril.Carryover = beans.NewAmount(67, -1)
+			require.Nil(t, monthRepository.Update(context.Background(), monthApril))
+
 			monthMay := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			monthMay.Carryover = beans.NewAmount(4, -1)
+			require.Nil(t, monthRepository.Update(context.Background(), monthMay))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -99,6 +104,9 @@ func TestMonth(t *testing.T) {
 			dbMonth, dbCategories, available, err := c.Get(context.Background(), auth, monthMay.ID)
 			require.Nil(t, err)
 
+			monthMay.Income = beans.NewAmount(9, 0)
+			monthMay.Assigned = beans.NewAmount(34, -1)
+			monthMay.CarriedOver = beans.NewAmount(67, -1)
 			assert.True(t, reflect.DeepEqual(monthMay, dbMonth))
 			require.Len(t, dbCategories, 1)
 
@@ -106,7 +114,7 @@ func TestMonth(t *testing.T) {
 			monthCategory.Available = beans.NewAmount(68, -1)
 			assert.True(t, reflect.DeepEqual(monthCategory, dbCategories[0]))
 
-			assert.Equal(t, beans.NewAmount(56, -1), available)
+			assert.Equal(t, beans.NewAmount(119, -1), available)
 		})
 	})
 
@@ -167,6 +175,91 @@ func TestMonth(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, monthCategories, 1)
 			require.Equal(t, category.ID, monthCategories[0].CategoryID)
+		})
+	})
+
+	t.Run("update", func(t *testing.T) {
+		t.Run("cannot update non existant month", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, beans.NewBeansID(), beans.NewAmount(0, 0))
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+
+		t.Run("must have access to month", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			budget2 := testutils.MakeBudget(t, pool, "Budget2", userID)
+			month := testutils.MakeMonth(t, pool, budget2.ID, testutils.NewDate(t, "2022-05-01"))
+
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(0, 0))
+			testutils.AssertErrorCode(t, err, beans.EFORBIDDEN)
+		})
+
+		t.Run("cannot add negative carryover", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(-5, 0))
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot add blank carryover", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, month.ID, beans.NewEmptyAmount())
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("can update carryover", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(5, 0))
+			require.Nil(t, err)
+
+			res, err := monthRepository.Get(context.Background(), month.ID)
+			require.Nil(t, err)
+			assert.Equal(t, beans.NewAmount(5, 0), res.Carryover)
+		})
+
+		t.Run("can update carryover to zero", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+
+			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(0, 0))
+			require.Nil(t, err)
+
+			res, err := monthRepository.Get(context.Background(), month.ID)
+			require.Nil(t, err)
+			assert.Equal(t, beans.NewAmount(0, 0), res.Carryover)
 		})
 	})
 
