@@ -4,7 +4,7 @@ import AddTransactionButton from "@/components/transactions/AddTransactionButton
 
 export default function TransactionsPage() {
   return (
-    <Box as="main" w="full">
+    <Box as="main" w="full" p={4}>
       <Flex justify="space-between" align="center" mb={8}>
         <Flex align="center">
           <Heading size="lg">Transactions</Heading>

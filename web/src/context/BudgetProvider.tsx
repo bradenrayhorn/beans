@@ -19,9 +19,7 @@ export default function BudgetProvider({ children }: PropsWithChildren) {
     <MonthProvider defaultMonthID={budget.latest_month_id}>
       <Flex minH="100vh">
         <Sidebar />
-        <Flex p={4} w="full">
-          {children}
-        </Flex>
+        <Flex w="full">{children}</Flex>
       </Flex>
     </MonthProvider>
   );

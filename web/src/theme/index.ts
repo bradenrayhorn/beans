@@ -1,12 +1,14 @@
 import { extendTheme } from "@chakra-ui/react";
-import PageCard from "./components/page-card";
+import Accordion from "./components/accordion";
 import ComponentSelect from "./components/component-select";
+import PageCard from "./components/page-card";
 import Sidebar from "./components/sidebar";
-import TableRow from "./components/table/row";
 import TableHeader from "./components/table/header";
+import TableRow from "./components/table/row";
 
 const overrides = {
   components: {
+    Accordion,
     ComponentSelect,
     PageCard,
     Sidebar,

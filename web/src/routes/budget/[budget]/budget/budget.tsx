@@ -43,54 +43,58 @@ export default function BudgetPage() {
   }
 
   return (
-    <Flex as="main" w="full" flexDir="column">
-      <Flex mb={8} alignItems="center" justifyContent="space-between">
-        <MonthHeader />
+    <Flex as="main" w="full">
+      <Flex grow="1" flexDir="column" p={4}>
+        <Flex mb={8} alignItems="center" justifyContent="space-between">
+          <MonthHeader />
+        </Flex>
+        <Skeleton isLoaded={!isMonthLoading}>
+          <VStack
+            as={List}
+            aria-label="Categories"
+            w="full"
+            align="flex-start"
+            gap={6}
+          >
+            {categoryGroups
+              .filter((group) => !group.is_income)
+              .map((group) => (
+                <ListItem w="full" key={group.id}>
+                  <Heading textTransform="uppercase" mb={4} size="lg">
+                    {group.name}
+                  </Heading>
+                  <VStack as={List} gap={4} w="full" align="flex-start">
+                    {group.categories.map((category) => (
+                      <PageCard
+                        key={category.id}
+                        as={ListItem}
+                        w="full"
+                        p={4}
+                        display="flex"
+                        flexDir="column"
+                      >
+                        <Flex justify="space-between" align="center" mb={2}>
+                          <Heading size="md">{category.name}</Heading>
+                          <EditButton
+                            category={category}
+                            monthID={monthID}
+                            amount={
+                              categories[category.id]?.assigned ?? zeroAmount
+                            }
+                          />
+                        </Flex>
+                        <CategoryStats category={categories[category.id]} />
+                      </PageCard>
+                    ))}
+                  </VStack>
+                </ListItem>
+              ))}
+          </VStack>
+        </Skeleton>
+      </Flex>
+      <Flex shrink={0} bg={"gray.50"} p={4} shadow="md" minW={72}>
         <ToBudget month={month} />
       </Flex>
-      <Skeleton isLoaded={!isMonthLoading}>
-        <VStack
-          as={List}
-          aria-label="Categories"
-          w="full"
-          align="flex-start"
-          gap={6}
-        >
-          {categoryGroups
-            .filter((group) => !group.is_income)
-            .map((group) => (
-              <ListItem w="full" key={group.id}>
-                <Heading textTransform="uppercase" mb={4} size="lg">
-                  {group.name}
-                </Heading>
-                <VStack as={List} gap={4} w="full" align="flex-start">
-                  {group.categories.map((category) => (
-                    <PageCard
-                      key={category.id}
-                      as={ListItem}
-                      w="full"
-                      p={4}
-                      display="flex"
-                      flexDir="column"
-                    >
-                      <Flex justify="space-between" align="center" mb={2}>
-                        <Heading size="md">{category.name}</Heading>
-                        <EditButton
-                          category={category}
-                          monthID={monthID}
-                          amount={
-                            categories[category.id]?.assigned ?? zeroAmount
-                          }
-                        />
-                      </Flex>
-                      <CategoryStats category={categories[category.id]} />
-                    </PageCard>
-                  ))}
-                </VStack>
-              </ListItem>
-            ))}
-        </VStack>
-      </Skeleton>
     </Flex>
   );
 }
