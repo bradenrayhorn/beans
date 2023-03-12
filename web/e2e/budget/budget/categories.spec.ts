@@ -25,7 +25,9 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   await page.goto(`/budget/${id}`);
   await page.getByRole("link", { name: /^budget$/ }).click();
 
-  const toBudget = page.getByLabel("To Budget:");
+  const toBudget = page
+    .getByRole("button", { name: "To Budget" })
+    .getByRole("definition");
   await expect(toBudget).toHaveText("$0.00");
 
   const billsCategoryGroup = page

@@ -24,7 +24,7 @@ export default function AccountsPage() {
   const { accounts, isLoading, isFetching } = useAccounts();
 
   return (
-    <Box as="main" w="full">
+    <Box as="main" w="full" p={4}>
       <Container>
         <Flex justify="space-between" align="center" mb={8}>
           <Flex align="center">
