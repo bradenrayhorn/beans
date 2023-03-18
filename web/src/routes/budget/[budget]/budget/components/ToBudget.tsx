@@ -64,7 +64,7 @@ export default function ToBudget() {
   return (
     <Skeleton isLoaded={!isMonthLoading} w="full">
       <Accordion allowToggle reduceMotion w="full" variant="minimal">
-        <AccordionItem>
+        <AccordionItem boxShadow="sm">
           <Heading size="xs">
             <AccordionButton aria-label="To Budget">
               <Flex alignItems="center">

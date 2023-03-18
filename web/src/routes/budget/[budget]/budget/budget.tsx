@@ -1,6 +1,6 @@
-import { TimeIcon } from "@chakra-ui/icons";
-import { Button, Divider, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import CategoryTable from "./components/category/Table";
+import ForNextMonth from "./components/ForNextMonth";
 import MonthHeader from "./components/MonthHeader";
 import ToBudget from "./components/ToBudget";
 
@@ -11,22 +11,21 @@ export default function BudgetPage() {
         <Flex alignItems="center" justifyContent="space-between" p={4}>
           <MonthHeader />
         </Flex>
-        <Divider mb={4} />
-        <Flex mb={4} px={4} justifyContent="flex-end">
-          <Button
-            leftIcon={<TimeIcon />}
-            colorScheme="blue"
-            size="xs"
-            variant="ghost"
-          >
-            For Next Month
-          </Button>
-        </Flex>
 
         <CategoryTable />
       </Flex>
-      <Flex shrink={0} bg={"gray.50"} p={4} shadow="md" minW={72}>
+      <Flex
+        shrink={0}
+        bg={"gray.50"}
+        p={2}
+        shadow="md"
+        minW={72}
+        gap={6}
+        flexDir="column"
+      >
         <ToBudget />
+
+        <ForNextMonth />
       </Flex>
     </Flex>
   );

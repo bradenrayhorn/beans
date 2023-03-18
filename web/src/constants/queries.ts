@@ -139,6 +139,7 @@ const buildQueries = (client: KyInstance) => {
         client.post("api/v1/budgets", { json: { name } }),
     },
 
+    // month
     months: {
       get: ({ monthID }: { monthID: string }) =>
         client.get(`api/v1/months/${monthID}`).json<GetMonthResponse>(),
@@ -146,6 +147,13 @@ const buildQueries = (client: KyInstance) => {
         client
           .post(`api/v1/months`, { json: { date } })
           .json<CreateMonthResponse>(),
+      update: ({
+        monthID,
+        carryover,
+      }: {
+        monthID: string;
+        carryover: number;
+      }) => client.put(`api/v1/months/${monthID}`, { json: { carryover } }),
       categories: {
         update: ({
           monthID,
