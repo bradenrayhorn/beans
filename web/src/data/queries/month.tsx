@@ -13,15 +13,25 @@ import {
 import { useCallback } from "react";
 import { useBudgetID } from "./budget";
 
-export const useMonth = ({ monthID }: { monthID: string }) => {
+export const useMonth = ({
+  monthID: propMonthID,
+}: { monthID?: string } = {}) => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
+  const ctxMonthID = useMonthID();
 
+  const isMutating = useIsMutating({ mutationKey: [queryKeys.months.create] });
+
+  const monthID = propMonthID ?? ctxMonthID;
   const query = useQuery([queryKeys.months.get, budgetID, monthID], () =>
     queries.months.get({ monthID })
   );
 
-  return { ...query, month: query.data?.data };
+  return {
+    ...query,
+    isLoading: !!query.isLoading || !!isMutating,
+    month: query.data?.data,
+  };
 };
 
 export const useCreateMonth = ({
