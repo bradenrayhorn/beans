@@ -67,6 +67,30 @@ export const useIsMonthLoading = (): boolean => {
   return !!isMutating || isMonthLoading;
 };
 
+export const useUpdateMonth = () => {
+  const queryClient = useQueryClient();
+  const budgetID = useBudgetID();
+  const monthID = useMonthID();
+  const queries = useQueries({ budgetID });
+
+  const mutation = useMutation(queries.months.update);
+
+  const submit = useCallback(
+    ({ carryover }: { carryover: string }) =>
+      mutation
+        .mutateAsync({
+          carryover: +carryover.replace(/,/g, ""),
+          monthID,
+        })
+        .then(() => {
+          queryClient.invalidateQueries([queryKeys.months.get]);
+        }),
+    [mutation, monthID, queryClient]
+  );
+
+  return { ...mutation, submit };
+};
+
 export const useUpdateMonthCategory = ({
   monthID,
   categoryID,
