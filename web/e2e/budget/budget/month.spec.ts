@@ -13,18 +13,11 @@ test("can navigate between months", async ({
   await page.goto(`/budget/${id}`);
   await page.getByRole("link", { name: /^budget$/ }).click();
 
-  const categoryGroup = page
-    .getByRole("list", { name: "Categories" })
-    .filter({ hasText: "Bills" });
-  const category = categoryGroup
-    .getByRole("list")
-    .getByRole("listitem")
+  const billsCategoryGroup = page.getByRole("rowgroup", { name: "Bills" });
+  const category = billsCategoryGroup
+    .getByRole("row")
     .filter({ hasText: "Electric" });
-  const assigned = category
-    .getByRole("group", {
-      name: "Assigned",
-    })
-    .getByRole("definition");
+  const assigned = category.getByRole("cell").nth(1);
 
   const formatMonth = (date: Date) =>
     `${date.getFullYear()}.${`${date.getMonth() + 1}`.padStart(2, "0")}`;
@@ -35,13 +28,15 @@ test("can navigate between months", async ({
   ).toBeVisible();
 
   // fill out category
-  await category.getByRole("button", { name: `Edit Electric` }).click();
-  await page.getByLabel("Amount").fill("54");
-  await page.getByRole("button", { name: "Save" }).click();
+  await assigned.getByRole("button").click();
+  const editPopup = page.getByRole("dialog");
+  await editPopup.getByLabel("Assigned").fill("54");
+  await editPopup.getByRole("button", { name: "Save" }).click();
+  await expect(editPopup).toBeHidden();
   expect(assigned).toHaveText("$54.00");
 
   // navigate to next month
-  await page.getByRole("button", { name: "Next month" }).click();
+  await page.getByRole("button", { name: /^Next month$/ }).click();
 
   // month header should change
   const nextMonth = new Date();
@@ -54,7 +49,7 @@ test("can navigate between months", async ({
   expect(assigned).toHaveText("$0.00");
 
   // navigate to previous month
-  await page.getByRole("button", { name: "Previous month" }).click();
+  await page.getByRole("button", { name: /^Previous month$/ }).click();
 
   // month header should change
   await expect(

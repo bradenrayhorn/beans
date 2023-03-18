@@ -1,11 +1,10 @@
-import { Month } from "@/constants/types";
 import {
   amountToFraction,
   formatAmount,
   formatFraction,
   zeroAmount,
 } from "@/data/format/amount";
-import { useIsMonthLoading } from "@/data/queries/month";
+import { useMonth } from "@/data/queries/month";
 import {
   Accordion,
   AccordionButton,
@@ -31,13 +30,13 @@ const colorScheme = (res: number): string => {
   }
 };
 
-export default function ToBudget({ month }: { month?: Month }) {
+export default function ToBudget() {
+  const { month, isLoading: isMonthLoading } = useMonth();
+
   const budgetable = month?.budgetable ?? zeroAmount;
 
   const toBudgetId = useId();
   const breakdownId = useId();
-
-  const isMonthLoading = useIsMonthLoading();
 
   const breakdown = [
     {

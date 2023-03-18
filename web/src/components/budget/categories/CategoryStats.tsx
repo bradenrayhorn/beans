@@ -1,6 +1,6 @@
 import { MonthCategory } from "@/constants/types";
 import { formatAmount, zeroAmount } from "@/data/format/amount";
-import { SimpleGrid, Stat, StatLabel, StatNumber } from "@chakra-ui/react";
+import { SimpleGrid, Stat, StatLabel, StatNumber, Tag } from "@chakra-ui/react";
 import { useId } from "react";
 
 export default function CategoryStats({
@@ -18,8 +18,10 @@ export default function CategoryStats({
 
   return (
     <SimpleGrid columns={3}>
-      <Stat role="group" flexGrow={0} aria-labelledby={availableID}>
-        <StatNumber>{formatAmount(available)}</StatNumber>
+      <Stat role="group" flexGrow={0} aria-labelledby={availableID} size="xs">
+        <StatNumber>
+          <Tag colorScheme="green">{formatAmount(available)}</Tag>
+        </StatNumber>
         <StatLabel id={availableID}>Available</StatLabel>
       </Stat>
 
@@ -27,7 +29,7 @@ export default function CategoryStats({
         role="group"
         display="flex"
         alignItems="flex-end"
-        size="sm"
+        size="xs"
         aria-labelledby={assignedID}
       >
         <StatNumber>{formatAmount(assigned)}</StatNumber>
@@ -38,7 +40,7 @@ export default function CategoryStats({
         role="group"
         display="flex"
         alignItems="flex-end"
-        size="sm"
+        size="xs"
         aria-labelledby={activityID}
       >
         <StatNumber>{formatAmount(activity)}</StatNumber>
