@@ -121,7 +121,7 @@ github.com/opencontainers/go-digest
 ## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/orlangure/gnomock v0.25.0
+# github.com/orlangure/gnomock v0.26.0
 ## explicit; go 1.20
 github.com/orlangure/gnomock
 github.com/orlangure/gnomock/internal/cleaner
