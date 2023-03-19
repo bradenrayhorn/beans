@@ -225,26 +225,6 @@ func TestMonth(t *testing.T) {
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 
-	t.Run("can get latest month", func(t *testing.T) {
-		defer cleanup()
-		month1 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-05-01"), BudgetID: budgetID}
-		month2 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-07-01"), BudgetID: budgetID}
-		month3 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-03-01"), BudgetID: budgetID}
-		require.Nil(t, monthRepository.Create(context.Background(), nil, month1))
-		require.Nil(t, monthRepository.Create(context.Background(), nil, month2))
-		require.Nil(t, monthRepository.Create(context.Background(), nil, month3))
-
-		res, err := monthRepository.GetLatest(context.Background(), budgetID)
-		require.Nil(t, err)
-		assert.Equal(t, month2.ID, res.ID)
-	})
-
-	t.Run("can get latest month when none exists", func(t *testing.T) {
-		defer cleanup()
-		_, err := monthRepository.GetLatest(context.Background(), budgetID)
-		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
-	})
-
 	t.Run("can get months in budget", func(t *testing.T) {
 		defer cleanup()
 		month1 := &beans.Month{ID: beans.NewBeansID(), Date: testutils.NewMonthDate(t, "2022-05-01"), BudgetID: budgetID}

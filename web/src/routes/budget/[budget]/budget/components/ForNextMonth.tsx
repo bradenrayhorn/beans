@@ -15,13 +15,13 @@ import { useId, useRef } from "react";
 import ForNextMonthForm from "./ForNextMonthForm";
 
 export default function ForNextMonth() {
-  const { month, isLoading: isMonthLoading } = useMonth();
+  const { month, isSuccess: isLoaded } = useMonth();
   const formInputRef = useRef<HTMLInputElement>(null);
 
   const labelID = useId();
 
   return (
-    <Skeleton isLoaded={!isMonthLoading} w="full">
+    <Skeleton isLoaded={isLoaded} w="full">
       <Popover isLazy placement="bottom-start" initialFocusRef={formInputRef}>
         {({ onClose }) => (
           <>

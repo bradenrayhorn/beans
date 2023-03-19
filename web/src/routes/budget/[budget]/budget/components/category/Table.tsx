@@ -59,8 +59,8 @@ const incomeColumns = [
 ];
 
 export default function CategoryTable() {
-  const { month, isLoading: isMonthLoading } = useMonth();
-  const { isLoading: areCategoriesLoading, categoryGroups } = useCategories();
+  const { month, isSuccess: isMonthLoaded } = useMonth();
+  const { isSuccess: areCategoriesLoaded, categoryGroups } = useCategories();
 
   const categories = useMemo(() => {
     const monthCategories = {} as { [key: string]: MonthCategory | undefined };
@@ -75,7 +75,7 @@ export default function CategoryTable() {
   }, [month?.categories, categoryGroups]);
 
   return (
-    <Skeleton isLoaded={!isMonthLoading && !areCategoriesLoading}>
+    <Skeleton isLoaded={isMonthLoaded && areCategoriesLoaded}>
       <Flex flexDir="column" w="full" role="table" aria-label="Expenses">
         <Header columns={spentColumns} />
 

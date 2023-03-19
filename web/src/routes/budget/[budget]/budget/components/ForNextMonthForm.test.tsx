@@ -57,7 +57,7 @@ const Form = () => {
   const ref = useRef<HTMLInputElement>(null);
 
   return (
-    <MonthProvider defaultMonthID="1">
+    <MonthProvider defaultMonthDate="2023-02-01">
       <ForNextMonthForm
         inputRef={ref}
         month={{

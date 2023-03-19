@@ -127,13 +127,13 @@ func NewServer(
 			})
 
 			r.Route("/months", func(r chi.Router) {
-				r.Post("/", s.handleMonthCreate())
 
 				r.Route("/{monthID}", func(r chi.Router) {
-					r.Get("/", s.handleMonthGet())
 					r.Put("/", s.handleMonthUpdate())
 					r.Post("/categories", s.handleMonthCategoryUpdate())
 				})
+
+				r.Get("/{date}", s.handleMonthGetOrCreate())
 			})
 
 		})

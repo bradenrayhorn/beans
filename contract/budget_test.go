@@ -60,8 +60,9 @@ func TestBudget(t *testing.T) {
 			assert.Equal(t, budget.ID, dbBudget.ID)
 
 			// month was created
-			_, err = monthRepository.GetLatest(context.Background(), budget.ID)
+			months, err := monthRepository.GetForBudget(context.Background(), budget.ID)
 			require.Nil(t, err)
+			require.Len(t, months, 1)
 
 			// income category was created
 			groups, err := categoryRepository.GetGroupsForBudget(context.Background(), budget.ID)
@@ -82,7 +83,7 @@ func TestBudget(t *testing.T) {
 			defer cleanup()
 			userID := testutils.MakeUser(t, pool, "user")
 
-			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID), beans.NewBeansID())
+			_, err := c.Get(context.Background(), beans.NewAuthContext(userID), beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -93,30 +94,18 @@ func TestBudget(t *testing.T) {
 
 			budget := testutils.MakeBudget(t, pool, "Budget", userID1)
 
-			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID2), budget.ID)
+			_, err := c.Get(context.Background(), beans.NewAuthContext(userID2), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
-		})
-
-		t.Run("missing month gives internal error", func(t *testing.T) {
-			defer cleanup()
-			userID := testutils.MakeUser(t, pool, "user")
-
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-
-			_, _, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
-			testutils.AssertErrorCode(t, err, beans.EINTERNAL)
 		})
 
 		t.Run("can get budget", func(t *testing.T) {
 			defer cleanup()
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
 
-			rBudget, rMonth, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
+			rBudget, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
 			require.Nil(t, err)
 			assert.True(t, reflect.DeepEqual(budget, rBudget))
-			assert.True(t, reflect.DeepEqual(month, rMonth))
 		})
 	})
 

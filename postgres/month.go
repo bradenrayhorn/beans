@@ -62,15 +62,6 @@ func (r *monthRepository) GetOrCreate(ctx context.Context, tx beans.Tx, budgetID
 	return mapper.Month(res)
 }
 
-func (r *monthRepository) GetLatest(ctx context.Context, budgetID beans.ID) (*beans.Month, error) {
-	res, err := r.DB(nil).GetNewestMonth(ctx, budgetID.String())
-	if err != nil {
-		return nil, mapPostgresError(err)
-	}
-
-	return mapper.Month(res)
-}
-
 func (r *monthRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Month, error) {
 	res, err := r.DB(nil).GetMonthsByBudget(ctx, budgetID.String())
 	if err != nil {

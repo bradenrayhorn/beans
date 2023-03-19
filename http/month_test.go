@@ -27,20 +27,6 @@ func TestMonth(t *testing.T) {
 		CarriedOver: beans.NewAmount(8, 0),
 	}
 
-	t.Run("create month", func(t *testing.T) {
-		contract.CreateMonthFunc.PushReturn(month, nil)
-
-		req := `{"date":"2022-05-01"}`
-		res := testutils.HTTP(t, sv.handleMonthCreate(), user, budget, req, http.StatusOK)
-
-		expected := fmt.Sprintf(`{"data":{"month_id":"%s"}}`, month.ID)
-		assert.JSONEq(t, expected, res)
-
-		params := contract.CreateMonthFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
-		assert.Equal(t, month.Date, params.Arg2)
-	})
-
 	t.Run("update month category", func(t *testing.T) {
 		contract.SetCategoryAmountFunc.PushReturn(nil)
 
@@ -76,10 +62,10 @@ func TestMonth(t *testing.T) {
 
 	t.Run("get", func(t *testing.T) {
 		category := &beans.MonthCategory{ID: beans.NewBeansID(), CategoryID: beans.NewBeansID(), Amount: beans.NewAmount(5, 0), Activity: beans.NewAmount(4, 0), Available: beans.NewAmount(1, 0)}
-		contract.GetFunc.PushReturn(month, []*beans.MonthCategory{category}, beans.NewAmount(55, 0), nil)
+		contract.GetOrCreateFunc.PushReturn(month, []*beans.MonthCategory{category}, beans.NewAmount(55, 0), nil)
 
-		options := &testutils.HTTPOptions{URLParams: map[string]string{"monthID": month.ID.String()}}
-		res := testutils.HTTPWithOptions(t, sv.handleMonthGet(), options, user, budget, nil, http.StatusOK)
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"date": "2022-05-01"}}
+		res := testutils.HTTPWithOptions(t, sv.handleMonthGetOrCreate(), options, user, budget, nil, http.StatusOK)
 
 		expected := fmt.Sprintf(`{"data": {
 			"id": "%s",
@@ -124,6 +110,22 @@ func TestMonth(t *testing.T) {
 			]
 		}}`, month.ID, category.ID, category.CategoryID)
 
+		assert.JSONEq(t, expected, res)
+	})
+
+	t.Run("cannot get with invalid date", func(t *testing.T) {
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"date": "2022---33"}}
+		res := testutils.HTTPWithOptions(t, sv.handleMonthGetOrCreate(), options, user, budget, nil, http.StatusUnprocessableEntity)
+
+		expected := `{"error":"Invalid data provided","code":"invalid"}`
+		assert.JSONEq(t, expected, res)
+	})
+
+	t.Run("cannot get no date", func(t *testing.T) {
+		options := &testutils.HTTPOptions{URLParams: map[string]string{"date": ""}}
+		res := testutils.HTTPWithOptions(t, sv.handleMonthGetOrCreate(), options, user, budget, nil, http.StatusUnprocessableEntity)
+
+		expected := `{"error":"Invalid data provided","code":"invalid"}`
 		assert.JSONEq(t, expected, res)
 	})
 }

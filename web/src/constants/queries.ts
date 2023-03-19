@@ -31,7 +31,6 @@ const queryKeys = {
 
   months: {
     get: "month_get",
-    create: "month_create",
     categories: {
       update: "month_category_update",
     },
@@ -49,9 +48,8 @@ interface GetAllBudgetsResponse {
   data: Budget[];
 }
 
-export type GetBudgetData = Budget & { latest_month_id: string };
 interface GetBudgetResponse {
-  data: GetBudgetData;
+  data: Budget;
 }
 interface GetTransactionsResponse {
   data: Transaction[];
@@ -62,12 +60,6 @@ interface GetCategoriesResponse {
 
 interface GetMonthResponse {
   data: Month;
-}
-
-export interface CreateMonthResponse {
-  data: {
-    month_id: string;
-  };
 }
 
 const buildQueries = (client: KyInstance) => {
@@ -141,12 +133,8 @@ const buildQueries = (client: KyInstance) => {
 
     // month
     months: {
-      get: ({ monthID }: { monthID: string }) =>
-        client.get(`api/v1/months/${monthID}`).json<GetMonthResponse>(),
-      create: ({ date }: { date: string }) =>
-        client
-          .post(`api/v1/months`, { json: { date } })
-          .json<CreateMonthResponse>(),
+      get: ({ date }: { date: string }) =>
+        client.get(`api/v1/months/${date}`).json<GetMonthResponse>(),
       update: ({
         monthID,
         carryover,

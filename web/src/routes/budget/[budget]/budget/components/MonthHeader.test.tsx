@@ -12,16 +12,18 @@ import { rest } from "msw";
 import { expect } from "vitest";
 import MonthHeader from "./MonthHeader";
 
-const defaultMonthHandler = rest.get(api("/api/v1/months/1"), (_, res, ctx) =>
-  res(
-    ctx.delay(20),
-    ctx.json({
-      data: {
-        id: "1",
-        date: dateToString(dayjs(currentDate()).startOf("month")),
-      },
-    })
-  )
+const defaultMonthHandler = rest.get(
+  api("/api/v1/months/2022-05-01"),
+  (_, res, ctx) =>
+    res(
+      ctx.delay(20),
+      ctx.json({
+        data: {
+          id: "1",
+          date: dateToString(dayjs(currentDate()).startOf("month")),
+        },
+      })
+    )
 );
 
 describe("MonthHeader", async () => {
@@ -29,7 +31,7 @@ describe("MonthHeader", async () => {
     server.use(defaultMonthHandler);
 
     render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -58,19 +60,16 @@ describe("MonthHeader", async () => {
   });
 
   it("can navigate to next month", async () => {
-    const nextMonth = dateToString(dayjs().add(1, "month"));
+    const nextMonth = dateToString(dayjs().add(1, "month").startOf("month"));
     server.use(
       defaultMonthHandler,
-      rest.post(api("/api/v1/months"), (_, res, ctx) =>
-        res(ctx.delay(50), ctx.json({ data: { month_id: "2" } }))
-      ),
-      rest.get(api("/api/v1/months/2"), (_, res, ctx) =>
+      rest.get(api(`/api/v1/months/${nextMonth}`), (_, res, ctx) =>
         res(ctx.delay(20), ctx.json({ data: { id: "2", date: nextMonth } }))
       )
     );
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -85,19 +84,18 @@ describe("MonthHeader", async () => {
   });
 
   it("can navigate to previous month", async () => {
-    const previousMonth = dateToString(dayjs().subtract(1, "month"));
+    const previousMonth = dateToString(
+      dayjs().subtract(1, "month").startOf("month")
+    );
     server.use(
       defaultMonthHandler,
-      rest.post(api("/api/v1/months"), (_, res, ctx) => {
-        return res(ctx.delay(50), ctx.json({ data: { month_id: "2" } }));
-      }),
-      rest.get(api("/api/v1/months/2"), (_, res, ctx) =>
+      rest.get(api(`/api/v1/months/${previousMonth}`), (_, res, ctx) =>
         res(ctx.delay(20), ctx.json({ data: { id: "2", date: previousMonth } }))
       )
     );
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -117,7 +115,7 @@ describe("MonthPicker", () => {
     server.use(defaultMonthHandler);
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -156,7 +154,7 @@ describe("MonthPicker", () => {
     server.use(defaultMonthHandler);
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -205,7 +203,7 @@ describe("MonthPicker", () => {
     server.use(defaultMonthHandler);
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );
@@ -235,16 +233,13 @@ describe("MonthPicker", () => {
 
     server.use(
       defaultMonthHandler,
-      rest.post(api("/api/v1/months"), (_, res, ctx) => {
-        return res(ctx.delay(50), ctx.json({ data: { month_id: "2" } }));
-      }),
-      rest.get(api("/api/v1/months/2"), (_, res, ctx) =>
+      rest.get(api(`/api/v1/months/${newDate}`), (_, res, ctx) =>
         res(ctx.delay(20), ctx.json({ data: { id: "2", date: newDate } }))
       )
     );
 
     const { user } = render(
-      <MonthProvider defaultMonthID="1">
+      <MonthProvider defaultMonthDate="2022-05-01">
         <MonthHeader />
       </MonthProvider>
     );

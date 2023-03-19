@@ -31,7 +31,7 @@ const colorScheme = (res: number): string => {
 };
 
 export default function ToBudget() {
-  const { month, isLoading: isMonthLoading } = useMonth();
+  const { month, isSuccess: isLoaded } = useMonth();
 
   const budgetable = month?.budgetable ?? zeroAmount;
 
@@ -62,7 +62,7 @@ export default function ToBudget() {
   ];
 
   return (
-    <Skeleton isLoaded={!isMonthLoading} w="full">
+    <Skeleton isLoaded={isLoaded} w="full">
       <Accordion allowToggle reduceMotion w="full" variant="minimal">
         <AccordionItem boxShadow="sm">
           <Heading size="xs">

@@ -30,8 +30,8 @@ func NewMonthContract(
 	}
 }
 
-func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID) (*beans.Month, []*beans.MonthCategory, beans.Amount, error) {
-	month, err := c.getAndVerifyMonth(ctx, auth, monthID)
+func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, []*beans.MonthCategory, beans.Amount, error) {
+	month, err := c.createMonth(ctx, auth, date)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
@@ -78,7 +78,7 @@ func (c *monthContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, 
 	return month, categories, available, nil
 }
 
-func (c *monthContract) CreateMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {
+func (c *monthContract) createMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {
 	return beans.ExecTx(ctx, c.txManager, func(tx beans.Tx) (*beans.Month, error) {
 		month, err := c.monthRepository.GetOrCreate(ctx, tx, auth.BudgetID(), date)
 		if err != nil {
@@ -142,9 +142,17 @@ func (c *monthContract) getAndVerifyMonth(ctx context.Context, auth *beans.Budge
 		return nil, err
 	}
 
-	if month.BudgetID != auth.BudgetID() {
-		return nil, beans.NewError(beans.EFORBIDDEN, "No access to month")
+	if err = c.verifyMonth(ctx, auth, month); err != nil {
+		return nil, err
 	}
 
 	return month, nil
+}
+
+func (c *monthContract) verifyMonth(ctx context.Context, auth *beans.BudgetAuthContext, month *beans.Month) error {
+	if month.BudgetID != auth.BudgetID() {
+		return beans.NewError(beans.EFORBIDDEN, "No access to month")
+	}
+
+	return nil
 }

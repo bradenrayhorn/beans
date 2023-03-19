@@ -2,15 +2,15 @@ import CurrencyInput from "@/components/CurrencyInput";
 import FormButton from "@/components/FormButton";
 import { getHTTPErrorResponseMessage } from "@/constants/queries";
 import { MonthCategory } from "@/constants/types";
-import { useMonthID } from "@/context/MonthProvider";
 import { amountToFraction } from "@/data/format/amount";
-import { useUpdateMonthCategory } from "@/data/queries/month";
+import { useMonth, useUpdateMonthCategory } from "@/data/queries/month";
 import {
   Alert,
   AlertIcon,
   Flex,
   FormControl,
   FormLabel,
+  Spinner,
 } from "@chakra-ui/react";
 import { HTTPError } from "ky";
 import { FormEvent, RefObject } from "react";
@@ -35,9 +35,9 @@ export default function EditAssignedForm({
     },
   });
 
-  const monthID = useMonthID();
+  const { month, isSuccess: isLoaded } = useMonth();
   const { submit, error } = useUpdateMonthCategory({
-    monthID,
+    monthID: month?.id ?? "",
     categoryID: monthCategory?.category_id ?? "",
   });
 
@@ -53,6 +53,10 @@ export default function EditAssignedForm({
           }
         })
     )(event);
+
+  if (!isLoaded) {
+    return <Spinner />;
+  }
 
   return (
     <form onSubmit={onSubmit} autoComplete="off">

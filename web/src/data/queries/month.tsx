@@ -1,76 +1,27 @@
-import {
-  CreateMonthResponse,
-  queryKeys,
-  useQueries,
-} from "@/constants/queries";
-import { useMonthID } from "@/context/MonthProvider";
-import {
-  useIsMutating,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryKeys, useQueries } from "@/constants/queries";
+import { useMonthDate } from "@/context/MonthProvider";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useBudgetID } from "./budget";
 
-export const useMonth = ({
-  monthID: propMonthID,
-}: { monthID?: string } = {}) => {
+export const useMonth = () => {
   const budgetID = useBudgetID();
   const queries = useQueries({ budgetID });
-  const ctxMonthID = useMonthID();
+  const monthDate = useMonthDate();
 
-  const isMutating = useIsMutating({ mutationKey: [queryKeys.months.create] });
-
-  const monthID = propMonthID ?? ctxMonthID;
-  const query = useQuery([queryKeys.months.get, budgetID, monthID], () =>
-    queries.months.get({ monthID })
+  const query = useQuery([queryKeys.months.get, budgetID, monthDate], () =>
+    queries.months.get({ date: monthDate })
   );
 
   return {
     ...query,
-    isLoading: !!query.isLoading || !!isMutating,
     month: query.data?.data,
   };
 };
 
-export const useCreateMonth = ({
-  onError,
-  onSuccess,
-}: {
-  onError?: () => void;
-  onSuccess: (data: CreateMonthResponse) => void;
-}) => {
-  const budgetID = useBudgetID();
-  const queries = useQueries({ budgetID });
-
-  const mutation = useMutation(queries.months.create, {
-    onError,
-    onSuccess,
-    mutationKey: [queryKeys.months.create],
-  });
-
-  const submit = useCallback(
-    ({ date }: { date: string }) => mutation.mutateAsync({ date }),
-    [mutation]
-  );
-
-  return { ...mutation, submit };
-};
-
-export const useIsMonthLoading = (): boolean => {
-  const monthID = useMonthID();
-  const isMutating = useIsMutating({ mutationKey: [queryKeys.months.create] });
-
-  const { isLoading: isMonthLoading } = useMonth({ monthID });
-
-  return !!isMutating || isMonthLoading;
-};
-
-export const useUpdateMonth = () => {
+export const useUpdateMonth = ({ monthID }: { monthID: string }) => {
   const queryClient = useQueryClient();
   const budgetID = useBudgetID();
-  const monthID = useMonthID();
   const queries = useQueries({ budgetID });
 
   const mutation = useMutation(queries.months.update);

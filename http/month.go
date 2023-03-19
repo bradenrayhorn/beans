@@ -1,13 +1,15 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/go-chi/chi/v5"
 )
 
-func (s *Server) handleMonthGet() http.HandlerFunc {
+func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 	type responseCategory struct {
 		ID         beans.ID     `json:"id"`
 		Assigned   beans.Amount `json:"assigned"`
@@ -30,13 +32,14 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "monthID"))
-		if err != nil {
-			Error(w, err)
+		dateParam := chi.URLParam(r, "date")
+		var date beans.Date
+		if err := json.Unmarshal([]byte(fmt.Sprintf(`"%s"`, dateParam)), &date); err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorInvalid))
 			return
 		}
 
-		month, categories, budgetable, err := s.monthContract.Get(r.Context(), getBudgetAuth(r), monthID)
+		month, categories, budgetable, err := s.monthContract.GetOrCreate(r.Context(), getBudgetAuth(r), beans.NewMonthDate(date))
 		if err != nil {
 			Error(w, err)
 			return
@@ -64,36 +67,6 @@ func (s *Server) handleMonthGet() http.HandlerFunc {
 				CarriedOver: month.CarriedOver,
 				Categories:  responseCategories,
 			},
-		}, http.StatusOK)
-	}
-}
-
-func (s *Server) handleMonthCreate() http.HandlerFunc {
-	type request struct {
-		Date beans.Date `json:"date"`
-	}
-
-	type response struct {
-		ID beans.ID `json:"month_id"`
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
-		if err := decodeRequest(r, &req); err != nil {
-			Error(w, err)
-			return
-		}
-
-		month, err := s.monthContract.CreateMonth(r.Context(), getBudgetAuth(r), beans.NewMonthDate(req.Date))
-		if err != nil {
-			Error(w, err)
-			return
-		}
-
-		jsonResponse(w, struct {
-			Data response `json:"data"`
-		}{
-			Data: response{ID: month.ID},
 		}, http.StatusOK)
 	}
 }

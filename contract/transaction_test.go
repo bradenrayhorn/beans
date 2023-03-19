@@ -101,8 +101,11 @@ func TestTransaction(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(transaction, dbTransactions[0]))
 
 			// month was created
-			month, err := monthRepository.GetLatest(context.Background(), budget.ID)
+			months, err := monthRepository.GetForBudget(context.Background(), budget.ID)
 			require.Nil(t, err)
+			require.Len(t, months, 1)
+			month := months[0]
+
 			assert.Equal(t, testutils.NewMonthDate(t, "2022-06-01"), month.Date)
 
 			// month category was created
@@ -147,8 +150,9 @@ func TestTransaction(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(transaction, dbTransactions[0]))
 
 			// month was not created
-			_, err = monthRepository.GetLatest(context.Background(), budget.ID)
-			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			months, err := monthRepository.GetForBudget(context.Background(), budget.ID)
+			require.Nil(t, err)
+			require.Len(t, months, 0)
 		})
 
 		t.Run("cannot create with missing account", func(t *testing.T) {
@@ -330,8 +334,11 @@ func TestTransaction(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(transaction, dbTransaction))
 
 			// month was created
-			month, err := monthRepository.GetLatest(context.Background(), budget.ID)
+			months, err := monthRepository.GetForBudget(context.Background(), budget.ID)
 			require.Nil(t, err)
+			require.Len(t, months, 1)
+			month := months[0]
+
 			assert.Equal(t, testutils.NewMonthDate(t, "2022-06-01"), month.Date)
 
 			// month category was created
@@ -384,8 +391,9 @@ func TestTransaction(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(transaction, dbTransaction))
 
 			// month was not created
-			_, err = monthRepository.GetLatest(context.Background(), budget.ID)
-			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			months, err := monthRepository.GetForBudget(context.Background(), budget.ID)
+			require.Nil(t, err)
+			require.Len(t, months, 0)
 		})
 
 		t.Run("cannot update with missing account", func(t *testing.T) {

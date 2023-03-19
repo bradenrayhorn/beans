@@ -34,7 +34,7 @@ export default function ForNextMonthForm({
     },
   });
 
-  const { submit, error } = useUpdateMonth();
+  const { submit, error } = useUpdateMonth({ monthID: month?.id ?? "" });
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) =>
     form.handleSubmit((values) =>

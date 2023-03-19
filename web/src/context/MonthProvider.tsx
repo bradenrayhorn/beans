@@ -1,23 +1,23 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 
 const MonthContext = createContext({
-  monthID: "",
-  setMonthID: (_monthID: string): void => {},
+  monthDate: "",
+  setMonthDate: (_monthDate: string): void => {},
 });
 
-export const useMonthID = () => useContext(MonthContext).monthID;
+export const useMonthDate = () => useContext(MonthContext).monthDate;
 
-export const useSetMonthID = () => useContext(MonthContext).setMonthID;
+export const useSetMonthDate = () => useContext(MonthContext).setMonthDate;
 
 type Props = {
-  defaultMonthID: string;
+  defaultMonthDate: string;
 } & PropsWithChildren;
 
-export default function MonthProvider({ children, defaultMonthID }: Props) {
-  const [monthID, setMonthID] = useState(defaultMonthID);
+export default function MonthProvider({ children, defaultMonthDate }: Props) {
+  const [monthDate, setMonthDate] = useState(() => defaultMonthDate);
 
   return (
-    <MonthContext.Provider value={{ monthID, setMonthID }}>
+    <MonthContext.Provider value={{ monthDate, setMonthDate }}>
       {children}
     </MonthContext.Provider>
   );
