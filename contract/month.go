@@ -61,11 +61,11 @@ func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthC
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	available, err := beans.Add(
+	available, err := beans.Arithmetic.Add(
 		income,
 		pastMonth.Carryover,
-		month.Carryover.Negate(),
-		assignedInMonth.Negate(),
+		beans.Arithmetic.Negate(month.Carryover),
+		beans.Arithmetic.Negate(assignedInMonth),
 	)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err

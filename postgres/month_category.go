@@ -87,15 +87,14 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 		}
 
 		pastAssigned := previousAssignedByCategory[v.CategoryID]
-		if pastAssigned.Empty() {
-			pastAssigned = beans.NewAmount(0, 0)
-		}
 		pastActivity := previousActivityByCategory[v.CategoryID]
-		if pastActivity.Empty() {
-			pastActivity = beans.NewAmount(0, 0)
-		}
 
-		available, err := beans.Add(pastAssigned, pastActivity, monthCategory.Amount, monthCategory.Activity)
+		available, err := beans.Arithmetic.Add(
+			pastAssigned.OrZero(),
+			pastActivity.OrZero(),
+			monthCategory.Amount,
+			monthCategory.Activity,
+		)
 		if err != nil {
 			return monthCategories, err
 		}

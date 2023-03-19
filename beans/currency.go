@@ -41,51 +41,6 @@ func (a *Amount) Coefficient() *big.Int {
 	return bigInt
 }
 
-func (a *Amount) Subtract(b Amount) (Amount, error) {
-	res := apd.New(0, 0)
-
-	_, err := apd.BaseContext.Sub(res, &a.decimal, &b.decimal)
-	if err != nil {
-		return NewEmptyAmount(), err
-	}
-
-	bigInt := res.Coeff.MathBigInt()
-	if res.Negative {
-		bigInt.Neg(bigInt)
-	}
-	return NewAmountWithBigInt(bigInt, res.Exponent), nil
-}
-
-func Add(amounts ...Amount) (Amount, error) {
-	accumulator := apd.New(0, 0)
-
-	for _, b := range amounts {
-		_, err := apd.BaseContext.Add(accumulator, accumulator, &b.decimal)
-		if err != nil {
-			return NewEmptyAmount(), err
-		}
-
-	}
-
-	bigInt := accumulator.Coeff.MathBigInt()
-	if accumulator.Negative {
-		bigInt.Neg(bigInt)
-	}
-
-	return NewAmountWithBigInt(bigInt, accumulator.Exponent), nil
-}
-
-// The same amount but with the opposite sign.
-func (a *Amount) Negate() Amount {
-	if a.Empty() || a.decimal.IsZero() {
-		return NewAmount(0, 0)
-	}
-
-	newDecimal := a.decimal
-	newDecimal.Neg(&newDecimal)
-	return Amount{set: true, decimal: newDecimal}
-}
-
 // If the amount is empty returns a new zero amount.
 func (a *Amount) OrZero() Amount {
 	if a.Empty() {
