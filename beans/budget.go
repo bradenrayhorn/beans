@@ -26,9 +26,9 @@ type BudgetContract interface {
 	// Creates a budget.
 	Create(ctx context.Context, auth *AuthContext, name Name) (*Budget, error)
 
-	// Gets a budget and its latest month by the budget ID.
+	// Gets a budget by the budget ID.
 	// Ensures the user has access to the budget.
-	Get(ctx context.Context, auth *AuthContext, id ID) (*Budget, *Month, error)
+	Get(ctx context.Context, auth *AuthContext, id ID) (*Budget, error)
 
 	// Gets all budgets accessible to the user.
 	GetAll(ctx context.Context, auth *AuthContext) ([]*Budget, error)

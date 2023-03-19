@@ -1,43 +1,23 @@
-import { useMonthID, useSetMonthID } from "@/context/MonthProvider";
+import { useSetMonthDate } from "@/context/MonthProvider";
 import { currentDate, dateToString, parseDate } from "@/data/format/date";
-import {
-  useCreateMonth,
-  useIsMonthLoading,
-  useMonth,
-} from "@/data/queries/month";
+import { useMonth } from "@/data/queries/month";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { Flex, IconButton, Skeleton, useToast } from "@chakra-ui/react";
+import { Flex, IconButton, Skeleton } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import MonthPicker from "./MonthPicker";
 
 const MonthHeader = () => {
-  const toast = useToast();
-
-  const monthID = useMonthID();
-  const { month } = useMonth({ monthID });
-
-  const isMonthLoading = useIsMonthLoading();
-  const setMonthID = useSetMonthID();
-  const { mutate } = useCreateMonth({
-    onSuccess: ({ data: { month_id } }) => {
-      setMonthID(month_id);
-    },
-    onError: () => {
-      toast({
-        title: "Failed to switch month.",
-        status: "error",
-      });
-    },
-  });
+  const { month, isSuccess: isLoaded } = useMonth();
+  const setMonthDate = useSetMonthDate();
 
   const selectMonth = (newDate: dayjs.Dayjs) => {
-    mutate({ date: dateToString(newDate) });
+    setMonthDate(dateToString(newDate));
   };
 
   const today = parseDate(month?.date ?? currentDate());
 
   return (
-    <Skeleton isLoaded={!isMonthLoading}>
+    <Skeleton isLoaded={isLoaded}>
       <Flex alignItems="center" shrink="0">
         <IconButton
           aria-label="Previous month"

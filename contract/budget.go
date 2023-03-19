@@ -73,22 +73,17 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 	})
 }
 
-func (c *budgetContract) Get(ctx context.Context, auth *beans.AuthContext, id beans.ID) (*beans.Budget, *beans.Month, error) {
+func (c *budgetContract) Get(ctx context.Context, auth *beans.AuthContext, id beans.ID) (*beans.Budget, error) {
 	budget, err := c.budgetRepository.Get(ctx, id)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if !budget.UserHasAccess(auth.UserID()) {
-		return nil, nil, beans.ErrorNotFound
+		return nil, beans.ErrorNotFound
 	}
 
-	month, err := c.monthRepository.GetLatest(ctx, budget.ID)
-	if err != nil {
-		return nil, nil, beans.WrapError(err, beans.ErrorInternal)
-	}
-
-	return budget, month, nil
+	return budget, nil
 }
 
 func (c *budgetContract) GetAll(ctx context.Context, auth *beans.AuthContext) ([]*beans.Budget, error) {

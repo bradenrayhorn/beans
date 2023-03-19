@@ -62,7 +62,6 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 
 func (s *Server) handleBudgetGet() http.HandlerFunc {
 	type responseData struct {
-		LatestMonth beans.ID `json:"latest_month_id"`
 		responseBudget
 	}
 	type response struct {
@@ -75,7 +74,7 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		budget, latestMonth, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
+		budget, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -83,7 +82,6 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 
 		res := response{Data: responseData{
 			responseBudget: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)},
-			LatestMonth:    latestMonth.ID,
 		}}
 
 		jsonResponse(w, res, http.StatusOK)

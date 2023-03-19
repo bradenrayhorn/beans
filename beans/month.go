@@ -61,12 +61,10 @@ func normalizeMonth(date time.Time) time.Time {
 
 type MonthContract interface {
 	// Gets a month, its categories, and budgetable amount.
+	// If the month does not exist it is created.
 	//
 	// Attaches the fields: CarriedOver, Income, Assigned.
-	Get(ctx context.Context, auth *BudgetAuthContext, monthID ID) (*Month, []*MonthCategory, Amount, error)
-
-	// Creates a month in the budget with the provided date. If the month already exists, it is returned instead with no error.
-	CreateMonth(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (*Month, error)
+	GetOrCreate(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (*Month, []*MonthCategory, Amount, error)
 
 	// Updates the given month.
 	Update(ctx context.Context, auth *BudgetAuthContext, monthID ID, carryover Amount) error
@@ -81,6 +79,5 @@ type MonthRepository interface {
 	// Only updates the Carryover field.
 	Update(ctx context.Context, month *Month) error
 	GetOrCreate(ctx context.Context, tx Tx, budgetID ID, date MonthDate) (*Month, error)
-	GetLatest(ctx context.Context, budgetID ID) (*Month, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Month, error)
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/internal/mocks"
@@ -34,12 +33,11 @@ func TestBudget(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID, Date: beans.NewMonthDate(beans.NewDate(time.Now()))}
-		contract.GetFunc.PushReturn(budget, month, nil)
+		contract.GetFunc.PushReturn(budget, nil)
 
 		options := &testutils.HTTPOptions{URLParams: map[string]string{"budgetID": budget.ID.String()}}
 		res := testutils.HTTPWithOptions(t, sv.handleBudgetGet(), options, user, nil, nil, http.StatusOK)
-		expected := fmt.Sprintf(`{"data":{"name":"Budget1","id":"%s","latest_month_id":"%s"}}`, budget.ID, month.ID)
+		expected := fmt.Sprintf(`{"data":{"name":"Budget1","id":"%s"}}`, budget.ID)
 
 		assert.JSONEq(t, expected, res)
 	})
