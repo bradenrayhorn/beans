@@ -42,7 +42,7 @@ test("can carryover funds", async ({ budget: { id }, page }) => {
   await page.getByRole("button", { name: /^Next month$/i }).click();
 
   // expand To Budget panel
-  page.getByRole("button", { name: "To Budget" }).click();
+  await page.getByRole("button", { name: "To Budget" }).click();
 
   // assert values updated for new month
   await expect(toBudget).toHaveText("$50.00");
