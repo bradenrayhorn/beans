@@ -1,6 +1,7 @@
 package inmem_test
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -52,4 +53,30 @@ func TestCanDeleteSession(t *testing.T) {
 
 	_, err = r.Get(session.ID)
 	require.Equal(t, beans.ErrorNotFound, err)
+}
+
+func TestCanUseConcurrentSessions(t *testing.T) {
+	r := inmem.NewSessionRepository()
+	var wg sync.WaitGroup
+
+	makeAndGetSession := func(i int) {
+		defer wg.Done()
+		userID := beans.NewBeansID()
+		session, err := r.Create(userID)
+		require.Nil(t, err)
+
+		gotSession, err := r.Get(session.ID)
+		require.Nil(t, err)
+		assert.Equal(t, session.ID, gotSession.ID)
+		assert.Equal(t, session.UserID, gotSession.UserID)
+
+		require.Nil(t, r.Delete(session.ID))
+	}
+
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go makeAndGetSession(i)
+	}
+
+	wg.Wait()
 }

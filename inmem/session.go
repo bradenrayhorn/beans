@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/bradenrayhorn/beans/beans"
@@ -11,6 +12,7 @@ import (
 
 type sessionRepository struct {
 	sessions map[string]*beans.Session
+	mu       sync.RWMutex
 }
 
 func NewSessionRepository() *sessionRepository {
@@ -26,6 +28,10 @@ func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
 		return nil, err
 	}
 	sessionID := base64.RawURLEncoding.EncodeToString(bytes)
+
+	// lock map
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	if _, ok := r.sessions[sessionID]; ok {
 		return nil, beans.WrapError(errors.New("session id conflict"), beans.ErrorInternal)
@@ -43,6 +49,9 @@ func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
 }
 
 func (r *sessionRepository) Get(id beans.SessionID) (*beans.Session, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	if session, ok := r.sessions[string(id)]; ok {
 		return session, nil
 	}
@@ -51,6 +60,9 @@ func (r *sessionRepository) Get(id beans.SessionID) (*beans.Session, error) {
 }
 
 func (r *sessionRepository) Delete(id beans.SessionID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	delete(r.sessions, string(id))
 
 	return nil
