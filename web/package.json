@@ -35,7 +35,7 @@
     "react-focus-lock": "^2.9.4",
     "react-hook-form": "7.43.8",
     "react-number-format": "5.1.4",
-    "react-router-dom": "6.9.0",
+    "react-router-dom": "6.10.0",
     "zustand": "4.3.6"
   },
   "devDependencies": {
