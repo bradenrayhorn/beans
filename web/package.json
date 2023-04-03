@@ -19,8 +19,8 @@
     "test:ci": "vitest run"
   },
   "dependencies": {
-    "@chakra-ui/icons": "2.0.17",
-    "@chakra-ui/react": "2.5.4",
+    "@chakra-ui/icons": "2.0.18",
+    "@chakra-ui/react": "2.5.5",
     "@chakra-ui/theme-tools": "2.0.16",
     "@emotion/react": "11.10.6",
     "@emotion/styled": "11.10.6",
