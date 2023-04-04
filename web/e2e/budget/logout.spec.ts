@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { test } from "../test.js";
+import { test } from "../setup.js";
 
 test("can logout", async ({ register: { username }, budget: { id }, page }) => {
   await page.goto(`/budget/${id}`);

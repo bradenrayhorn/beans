@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { createCategory, createCategoryGroup, test } from "../../test.js";
+import { createCategory, createCategoryGroup, test } from "../../setup.js";
 
 test("can navigate between months", async ({
   budget: { id },

@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { test } from "../../test.js";
+import { test } from "../../setup.js";
 
 test("can carryover funds", async ({ budget: { id }, page }) => {
   // go to budgets page

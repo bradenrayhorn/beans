@@ -5,7 +5,7 @@ import {
   createCategoryGroup,
   createTransaction,
   test,
-} from "../../test.js";
+} from "../../setup.js";
 
 test("can view account", async ({ budget: { id }, page, request }) => {
   // create account and transaction
