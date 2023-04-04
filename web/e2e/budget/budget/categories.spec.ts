@@ -5,7 +5,7 @@ import {
   createCategoryGroup,
   createTransaction,
   test,
-} from "../../test.js";
+} from "../../setup.js";
 
 const getAssigned = (locator: Locator) => locator.getByRole("cell").nth(1);
 const getSpent = (locator: Locator) => locator.getByRole("cell").nth(2);

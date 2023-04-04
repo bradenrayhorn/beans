@@ -4,7 +4,7 @@ import {
   createCategory,
   createCategoryGroup,
   test,
-} from "../../test.js";
+} from "../../setup.js";
 
 test("can edit transaction", async ({ budget: { id }, page }) => {
   await createAccount(id, "Checking", page.context().request);

@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { test } from "../test.js";
+import { test } from "../setup.js";
 
 test("can add and go to budget", async ({ login: _, page }) => {
   await page.goto("/budget");
