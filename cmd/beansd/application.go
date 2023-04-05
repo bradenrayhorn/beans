@@ -24,6 +24,7 @@ type Application struct {
 	categoryRepository      beans.CategoryRepository
 	monthRepository         beans.MonthRepository
 	monthCategoryRepository beans.MonthCategoryRepository
+	payeeRepository         beans.PayeeRepository
 	sessionRepository       beans.SessionRepository
 	transactionRepository   beans.TransactionRepository
 	userRepository          beans.UserRepository
@@ -58,6 +59,7 @@ func (a *Application) Start() error {
 	a.categoryRepository = postgres.NewCategoryRepository(pool)
 	a.monthRepository = postgres.NewMonthRepository(pool)
 	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
+	a.payeeRepository = postgres.NewPayeeRepository(pool)
 	a.transactionRepository = postgres.NewTransactionRepository(pool)
 	a.userRepository = postgres.NewUserRepository(pool)
 
@@ -86,6 +88,7 @@ func (a *Application) Start() error {
 			a.transactionRepository,
 			a.txManager,
 		),
+		contract.NewPayeeContract(a.payeeRepository),
 		contract.NewTransactionContract(
 			a.transactionRepository,
 			a.accountRepository,

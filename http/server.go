@@ -22,6 +22,7 @@ type Server struct {
 	budgetContract      beans.BudgetContract
 	categoryContract    beans.CategoryContract
 	monthContract       beans.MonthContract
+	payeeContract       beans.PayeeContract
 	transactionContract beans.TransactionContract
 	userContract        beans.UserContract
 
@@ -49,6 +50,7 @@ func NewServer(
 	budgetContract beans.BudgetContract,
 	categoryContract beans.CategoryContract,
 	monthContract beans.MonthContract,
+	payeeContract beans.PayeeContract,
 	transactionContract beans.TransactionContract,
 	userContract beans.UserContract,
 ) *Server {
@@ -60,6 +62,7 @@ func NewServer(
 		budgetContract:      budgetContract,
 		categoryContract:    categoryContract,
 		monthContract:       monthContract,
+		payeeContract:       payeeContract,
 		transactionContract: transactionContract,
 		userContract:        userContract,
 
@@ -111,12 +114,6 @@ func NewServer(
 				r.Post("/", s.handleAccountCreate())
 			})
 
-			r.Route("/transactions", func(r chi.Router) {
-				r.Get("/", s.handleTransactionGetAll())
-				r.Post("/", s.handleTransactionCreate())
-				r.Put("/{transactionID}", s.handleTransactionUpdate())
-			})
-
 			r.Route("/categories", func(r chi.Router) {
 				r.Get("/", s.handleCategoryGetAll())
 				r.Post("/", s.handleCategoryCreate())
@@ -127,13 +124,23 @@ func NewServer(
 			})
 
 			r.Route("/months", func(r chi.Router) {
-
 				r.Route("/{monthID}", func(r chi.Router) {
 					r.Put("/", s.handleMonthUpdate())
 					r.Post("/categories", s.handleMonthCategoryUpdate())
 				})
 
 				r.Get("/{date}", s.handleMonthGetOrCreate())
+			})
+
+			r.Route("/payees", func(r chi.Router) {
+				r.Get("/", s.handlePayeeCreate())
+				r.Post("/", s.handlePayeeGetAll())
+			})
+
+			r.Route("/transactions", func(r chi.Router) {
+				r.Get("/", s.handleTransactionGetAll())
+				r.Post("/", s.handleTransactionCreate())
+				r.Put("/{transactionID}", s.handleTransactionUpdate())
 			})
 
 		})
