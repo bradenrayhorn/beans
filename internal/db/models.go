@@ -65,7 +65,6 @@ type Payee struct {
 	ID        string
 	Name      string
 	BudgetID  string
-	AccountID sql.NullString
 	CreatedAt time.Time
 }
 

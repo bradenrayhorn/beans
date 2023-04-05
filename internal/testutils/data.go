@@ -78,3 +78,10 @@ func MakeMonthCategory(tb testing.TB, pool *pgxpool.Pool, monthID beans.ID, cate
 	require.Nil(tb, err)
 	return category
 }
+
+func MakePayee(tb testing.TB, pool *pgxpool.Pool, name string, budgetID beans.ID) *beans.Payee {
+	payee := &beans.Payee{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name)}
+	err := postgres.NewPayeeRepository(pool).Create(context.Background(), payee)
+	require.Nil(tb, err)
+	return payee
+}

@@ -5001,6 +5001,559 @@ func (c MonthRepositoryUpdateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
+// MockPayeeContract is a mock implementation of the PayeeContract interface
+// (from the package github.com/bradenrayhorn/beans/beans) used for unit
+// testing.
+type MockPayeeContract struct {
+	// CreatePayeeFunc is an instance of a mock function object controlling
+	// the behavior of the method CreatePayee.
+	CreatePayeeFunc *PayeeContractCreatePayeeFunc
+	// GetAllFunc is an instance of a mock function object controlling the
+	// behavior of the method GetAll.
+	GetAllFunc *PayeeContractGetAllFunc
+}
+
+// NewMockPayeeContract creates a new mock of the PayeeContract interface.
+// All methods return zero values for all results, unless overwritten.
+func NewMockPayeeContract() *MockPayeeContract {
+	return &MockPayeeContract{
+		CreatePayeeFunc: &PayeeContractCreatePayeeFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, beans.Name) (r0 *beans.Payee, r1 error) {
+				return
+			},
+		},
+		GetAllFunc: &PayeeContractGetAllFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext) (r0 []*beans.Payee, r1 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockPayeeContract creates a new mock of the PayeeContract
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockPayeeContract() *MockPayeeContract {
+	return &MockPayeeContract{
+		CreatePayeeFunc: &PayeeContractCreatePayeeFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error) {
+				panic("unexpected invocation of MockPayeeContract.CreatePayee")
+			},
+		},
+		GetAllFunc: &PayeeContractGetAllFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error) {
+				panic("unexpected invocation of MockPayeeContract.GetAll")
+			},
+		},
+	}
+}
+
+// NewMockPayeeContractFrom creates a new mock of the MockPayeeContract
+// interface. All methods delegate to the given implementation, unless
+// overwritten.
+func NewMockPayeeContractFrom(i beans.PayeeContract) *MockPayeeContract {
+	return &MockPayeeContract{
+		CreatePayeeFunc: &PayeeContractCreatePayeeFunc{
+			defaultHook: i.CreatePayee,
+		},
+		GetAllFunc: &PayeeContractGetAllFunc{
+			defaultHook: i.GetAll,
+		},
+	}
+}
+
+// PayeeContractCreatePayeeFunc describes the behavior when the CreatePayee
+// method of the parent MockPayeeContract instance is invoked.
+type PayeeContractCreatePayeeFunc struct {
+	defaultHook func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error)
+	hooks       []func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error)
+	history     []PayeeContractCreatePayeeFuncCall
+	mutex       sync.Mutex
+}
+
+// CreatePayee delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockPayeeContract) CreatePayee(v0 context.Context, v1 *beans.BudgetAuthContext, v2 beans.Name) (*beans.Payee, error) {
+	r0, r1 := m.CreatePayeeFunc.nextHook()(v0, v1, v2)
+	m.CreatePayeeFunc.appendCall(PayeeContractCreatePayeeFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the CreatePayee method
+// of the parent MockPayeeContract instance is invoked and the hook queue is
+// empty.
+func (f *PayeeContractCreatePayeeFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CreatePayee method of the parent MockPayeeContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *PayeeContractCreatePayeeFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *PayeeContractCreatePayeeFunc) SetDefaultReturn(r0 *beans.Payee, r1 error) {
+	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *PayeeContractCreatePayeeFunc) PushReturn(r0 *beans.Payee, r1 error) {
+	f.PushHook(func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+func (f *PayeeContractCreatePayeeFunc) nextHook() func(context.Context, *beans.BudgetAuthContext, beans.Name) (*beans.Payee, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *PayeeContractCreatePayeeFunc) appendCall(r0 PayeeContractCreatePayeeFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of PayeeContractCreatePayeeFuncCall objects
+// describing the invocations of this function.
+func (f *PayeeContractCreatePayeeFunc) History() []PayeeContractCreatePayeeFuncCall {
+	f.mutex.Lock()
+	history := make([]PayeeContractCreatePayeeFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// PayeeContractCreatePayeeFuncCall is an object that describes an
+// invocation of method CreatePayee on an instance of MockPayeeContract.
+type PayeeContractCreatePayeeFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.BudgetAuthContext
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Name
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Payee
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c PayeeContractCreatePayeeFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c PayeeContractCreatePayeeFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// PayeeContractGetAllFunc describes the behavior when the GetAll method of
+// the parent MockPayeeContract instance is invoked.
+type PayeeContractGetAllFunc struct {
+	defaultHook func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error)
+	hooks       []func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error)
+	history     []PayeeContractGetAllFuncCall
+	mutex       sync.Mutex
+}
+
+// GetAll delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockPayeeContract) GetAll(v0 context.Context, v1 *beans.BudgetAuthContext) ([]*beans.Payee, error) {
+	r0, r1 := m.GetAllFunc.nextHook()(v0, v1)
+	m.GetAllFunc.appendCall(PayeeContractGetAllFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetAll method of the
+// parent MockPayeeContract instance is invoked and the hook queue is empty.
+func (f *PayeeContractGetAllFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetAll method of the parent MockPayeeContract instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *PayeeContractGetAllFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *PayeeContractGetAllFunc) SetDefaultReturn(r0 []*beans.Payee, r1 error) {
+	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *PayeeContractGetAllFunc) PushReturn(r0 []*beans.Payee, r1 error) {
+	f.PushHook(func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+func (f *PayeeContractGetAllFunc) nextHook() func(context.Context, *beans.BudgetAuthContext) ([]*beans.Payee, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *PayeeContractGetAllFunc) appendCall(r0 PayeeContractGetAllFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of PayeeContractGetAllFuncCall objects
+// describing the invocations of this function.
+func (f *PayeeContractGetAllFunc) History() []PayeeContractGetAllFuncCall {
+	f.mutex.Lock()
+	history := make([]PayeeContractGetAllFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// PayeeContractGetAllFuncCall is an object that describes an invocation of
+// method GetAll on an instance of MockPayeeContract.
+type PayeeContractGetAllFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.BudgetAuthContext
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 []*beans.Payee
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c PayeeContractGetAllFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c PayeeContractGetAllFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// MockPayeeRepository is a mock implementation of the PayeeRepository
+// interface (from the package github.com/bradenrayhorn/beans/beans) used
+// for unit testing.
+type MockPayeeRepository struct {
+	// CreateFunc is an instance of a mock function object controlling the
+	// behavior of the method Create.
+	CreateFunc *PayeeRepositoryCreateFunc
+	// GetForBudgetFunc is an instance of a mock function object controlling
+	// the behavior of the method GetForBudget.
+	GetForBudgetFunc *PayeeRepositoryGetForBudgetFunc
+}
+
+// NewMockPayeeRepository creates a new mock of the PayeeRepository
+// interface. All methods return zero values for all results, unless
+// overwritten.
+func NewMockPayeeRepository() *MockPayeeRepository {
+	return &MockPayeeRepository{
+		CreateFunc: &PayeeRepositoryCreateFunc{
+			defaultHook: func(context.Context, *beans.Payee) (r0 error) {
+				return
+			},
+		},
+		GetForBudgetFunc: &PayeeRepositoryGetForBudgetFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 []*beans.Payee, r1 error) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockPayeeRepository creates a new mock of the PayeeRepository
+// interface. All methods panic on invocation, unless overwritten.
+func NewStrictMockPayeeRepository() *MockPayeeRepository {
+	return &MockPayeeRepository{
+		CreateFunc: &PayeeRepositoryCreateFunc{
+			defaultHook: func(context.Context, *beans.Payee) error {
+				panic("unexpected invocation of MockPayeeRepository.Create")
+			},
+		},
+		GetForBudgetFunc: &PayeeRepositoryGetForBudgetFunc{
+			defaultHook: func(context.Context, beans.ID) ([]*beans.Payee, error) {
+				panic("unexpected invocation of MockPayeeRepository.GetForBudget")
+			},
+		},
+	}
+}
+
+// NewMockPayeeRepositoryFrom creates a new mock of the MockPayeeRepository
+// interface. All methods delegate to the given implementation, unless
+// overwritten.
+func NewMockPayeeRepositoryFrom(i beans.PayeeRepository) *MockPayeeRepository {
+	return &MockPayeeRepository{
+		CreateFunc: &PayeeRepositoryCreateFunc{
+			defaultHook: i.Create,
+		},
+		GetForBudgetFunc: &PayeeRepositoryGetForBudgetFunc{
+			defaultHook: i.GetForBudget,
+		},
+	}
+}
+
+// PayeeRepositoryCreateFunc describes the behavior when the Create method
+// of the parent MockPayeeRepository instance is invoked.
+type PayeeRepositoryCreateFunc struct {
+	defaultHook func(context.Context, *beans.Payee) error
+	hooks       []func(context.Context, *beans.Payee) error
+	history     []PayeeRepositoryCreateFuncCall
+	mutex       sync.Mutex
+}
+
+// Create delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockPayeeRepository) Create(v0 context.Context, v1 *beans.Payee) error {
+	r0 := m.CreateFunc.nextHook()(v0, v1)
+	m.CreateFunc.appendCall(PayeeRepositoryCreateFuncCall{v0, v1, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Create method of the
+// parent MockPayeeRepository instance is invoked and the hook queue is
+// empty.
+func (f *PayeeRepositoryCreateFunc) SetDefaultHook(hook func(context.Context, *beans.Payee) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Create method of the parent MockPayeeRepository instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *PayeeRepositoryCreateFunc) PushHook(hook func(context.Context, *beans.Payee) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *PayeeRepositoryCreateFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, *beans.Payee) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *PayeeRepositoryCreateFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, *beans.Payee) error {
+		return r0
+	})
+}
+
+func (f *PayeeRepositoryCreateFunc) nextHook() func(context.Context, *beans.Payee) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *PayeeRepositoryCreateFunc) appendCall(r0 PayeeRepositoryCreateFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of PayeeRepositoryCreateFuncCall objects
+// describing the invocations of this function.
+func (f *PayeeRepositoryCreateFunc) History() []PayeeRepositoryCreateFuncCall {
+	f.mutex.Lock()
+	history := make([]PayeeRepositoryCreateFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// PayeeRepositoryCreateFuncCall is an object that describes an invocation
+// of method Create on an instance of MockPayeeRepository.
+type PayeeRepositoryCreateFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.Payee
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c PayeeRepositoryCreateFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c PayeeRepositoryCreateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// PayeeRepositoryGetForBudgetFunc describes the behavior when the
+// GetForBudget method of the parent MockPayeeRepository instance is
+// invoked.
+type PayeeRepositoryGetForBudgetFunc struct {
+	defaultHook func(context.Context, beans.ID) ([]*beans.Payee, error)
+	hooks       []func(context.Context, beans.ID) ([]*beans.Payee, error)
+	history     []PayeeRepositoryGetForBudgetFuncCall
+	mutex       sync.Mutex
+}
+
+// GetForBudget delegates to the next hook function in the queue and stores
+// the parameter and result values of this invocation.
+func (m *MockPayeeRepository) GetForBudget(v0 context.Context, v1 beans.ID) ([]*beans.Payee, error) {
+	r0, r1 := m.GetForBudgetFunc.nextHook()(v0, v1)
+	m.GetForBudgetFunc.appendCall(PayeeRepositoryGetForBudgetFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetForBudget method
+// of the parent MockPayeeRepository instance is invoked and the hook queue
+// is empty.
+func (f *PayeeRepositoryGetForBudgetFunc) SetDefaultHook(hook func(context.Context, beans.ID) ([]*beans.Payee, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetForBudget method of the parent MockPayeeRepository instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *PayeeRepositoryGetForBudgetFunc) PushHook(hook func(context.Context, beans.ID) ([]*beans.Payee, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *PayeeRepositoryGetForBudgetFunc) SetDefaultReturn(r0 []*beans.Payee, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) ([]*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *PayeeRepositoryGetForBudgetFunc) PushReturn(r0 []*beans.Payee, r1 error) {
+	f.PushHook(func(context.Context, beans.ID) ([]*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+func (f *PayeeRepositoryGetForBudgetFunc) nextHook() func(context.Context, beans.ID) ([]*beans.Payee, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *PayeeRepositoryGetForBudgetFunc) appendCall(r0 PayeeRepositoryGetForBudgetFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of PayeeRepositoryGetForBudgetFuncCall objects
+// describing the invocations of this function.
+func (f *PayeeRepositoryGetForBudgetFunc) History() []PayeeRepositoryGetForBudgetFuncCall {
+	f.mutex.Lock()
+	history := make([]PayeeRepositoryGetForBudgetFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// PayeeRepositoryGetForBudgetFuncCall is an object that describes an
+// invocation of method GetForBudget on an instance of MockPayeeRepository.
+type PayeeRepositoryGetForBudgetFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 []*beans.Payee
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c PayeeRepositoryGetForBudgetFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c PayeeRepositoryGetForBudgetFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
 // MockSessionRepository is a mock implementation of the SessionRepository
 // interface (from the package github.com/bradenrayhorn/beans/beans) used
 // for unit testing.
