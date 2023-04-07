@@ -9,6 +9,7 @@ type Transaction struct {
 
 	AccountID  ID
 	CategoryID ID
+	PayeeID    ID
 
 	Amount Amount
 	Date   Date
@@ -18,6 +19,8 @@ type Transaction struct {
 	Account *Account
 	// Must be explicitly loaded.
 	CategoryName NullString
+	// Must be explicitly loaded.
+	PayeeName NullString
 }
 
 type TransactionNotes struct{ NullString }
@@ -30,7 +33,7 @@ type TransactionContract interface {
 	// Creates a transaction. Attaches Account field.
 	Create(ctx context.Context, auth *BudgetAuthContext, params TransactionCreateParams) (*Transaction, error)
 
-	// Gets all transactions for budget. Attaches Account, CategoryName fields.
+	// Gets all transactions for budget. Attaches Account, CategoryName, PayeeName fields.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Transaction, error)
 
 	// Edits a transaction.
@@ -42,7 +45,7 @@ type TransactionRepository interface {
 
 	Update(ctx context.Context, transaction *Transaction) error
 
-	// Attaches Account, CategoryName fields to Transactions.
+	// Attaches Account, CategoryName, PayeeName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
 
 	// Get transaction. Attaches Account field to Transaction.
@@ -55,6 +58,7 @@ type TransactionRepository interface {
 type TransactionParams struct {
 	AccountID  ID
 	CategoryID ID
+	PayeeID    ID
 	Amount     Amount
 	Date       Date
 	Notes      TransactionNotes

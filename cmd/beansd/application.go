@@ -95,6 +95,7 @@ func (a *Application) Start() error {
 			a.categoryRepository,
 			a.monthCategoryRepository,
 			a.monthRepository,
+			a.payeeRepository,
 		),
 		contract.NewUserContract(a.userRepository),
 	)

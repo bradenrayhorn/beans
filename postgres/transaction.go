@@ -21,6 +21,7 @@ func (r *TransactionRepository) Create(ctx context.Context, transaction *beans.T
 		ID:         transaction.ID.String(),
 		AccountID:  transaction.AccountID.String(),
 		CategoryID: idToNullString(transaction.CategoryID),
+		PayeeID:    idToNullString(transaction.PayeeID),
 		Date:       transaction.Date.Time,
 		Amount:     amountToNumeric(transaction.Amount),
 		Notes:      transaction.Notes.SQLNullString(),
@@ -32,6 +33,7 @@ func (r *TransactionRepository) Update(ctx context.Context, transaction *beans.T
 		ID:         transaction.ID.String(),
 		AccountID:  transaction.AccountID.String(),
 		CategoryID: idToNullString(transaction.CategoryID),
+		PayeeID:    idToNullString(transaction.PayeeID),
 		Date:       transaction.Date.Time,
 		Amount:     amountToNumeric(transaction.Amount),
 		Notes:      transaction.Notes.SQLNullString(),
@@ -60,11 +62,16 @@ func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Tr
 	if err != nil {
 		return nil, err
 	}
+	payeeID, err := nullStringToID(t.PayeeID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &beans.Transaction{
 		ID:         id,
 		AccountID:  accountID,
 		CategoryID: categoryID,
+		PayeeID:    payeeID,
 		Amount:     amount,
 		Date:       beans.NewDate(t.Date),
 		Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
@@ -100,11 +107,16 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		if err != nil {
 			return transactions, err
 		}
+		payeeID, err := nullStringToID(t.PayeeID)
+		if err != nil {
+			return transactions, err
+		}
 
 		transactions = append(transactions, &beans.Transaction{
 			ID:         id,
 			AccountID:  accountID,
 			CategoryID: categoryID,
+			PayeeID:    payeeID,
 			Amount:     amount,
 			Date:       beans.NewDate(t.Date),
 			Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
@@ -114,6 +126,7 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 				BudgetID: budgetID,
 			},
 			CategoryName: beans.NullStringFromSQL(t.CategoryName),
+			PayeeName:    beans.NullStringFromSQL(t.PayeeName),
 		})
 	}
 

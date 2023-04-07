@@ -29,6 +29,8 @@ func TestTransactions(t *testing.T) {
 	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
 	incomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID)
 	budget2IncomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID2)
+	payee := testutils.MakePayee(t, pool, "payee", budgetID)
+	payee2 := testutils.MakePayee(t, pool, "payee2", budgetID)
 	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
 	categoryID2 := testutils.MakeCategory(t, pool, "category2", categoryGroupID, budgetID).ID
 	incomeCategory := testutils.MakeCategory(t, pool, "category", incomeGroup.ID, budgetID)
@@ -46,6 +48,7 @@ func TestTransactions(t *testing.T) {
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				CategoryID: categoryID,
+				PayeeID:    payee.ID,
 				Amount:     beans.NewAmount(5, 0),
 				Date:       beans.NewDate(time.Now()),
 				Notes:      beans.NewTransactionNotes("notes"),
@@ -66,6 +69,7 @@ func TestTransactions(t *testing.T) {
 			ID:         beans.NewBeansID(),
 			AccountID:  account.ID,
 			CategoryID: categoryID,
+			PayeeID:    payee.ID,
 			Amount:     beans.NewAmount(5, 0),
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
@@ -85,6 +89,7 @@ func TestTransactions(t *testing.T) {
 			ID:         beans.NewBeansID(),
 			AccountID:  account.ID,
 			CategoryID: categoryID,
+			PayeeID:    payee.ID,
 			Amount:     beans.NewAmount(5, 0),
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
@@ -94,6 +99,7 @@ func TestTransactions(t *testing.T) {
 
 		transaction.AccountID = account2.ID
 		transaction.CategoryID = categoryID2
+		transaction.PayeeID = payee2.ID
 		transaction.Amount = beans.NewAmount(6, 0)
 		transaction.Date = testutils.NewDate(t, "2022-08-30")
 		transaction.Notes = beans.NewTransactionNotes("notes 5")
@@ -113,21 +119,25 @@ func TestTransactions(t *testing.T) {
 			ID:           beans.NewBeansID(),
 			AccountID:    account.ID,
 			CategoryID:   categoryID,
+			PayeeID:      payee.ID,
 			Amount:       beans.NewAmount(5, 0),
 			Date:         testutils.NewDate(t, "2022-08-28"),
 			Notes:        beans.NewTransactionNotes("notes"),
 			Account:      account,
 			CategoryName: beans.NewNullString("category"),
+			PayeeName:    beans.NewNullString("payee"),
 		}
 		transaction2 := &beans.Transaction{
 			ID:           beans.NewBeansID(),
 			AccountID:    account.ID,
 			CategoryID:   categoryID,
+			PayeeID:      payee.ID,
 			Amount:       beans.NewAmount(7, 0),
 			Date:         testutils.NewDate(t, "2022-08-26"),
 			Notes:        beans.NewTransactionNotes("my notes"),
 			Account:      account,
 			CategoryName: beans.NewNullString("category"),
+			PayeeName:    beans.NewNullString("payee"),
 		}
 		err := transactionRepository.Create(context.Background(), transaction1)
 		require.Nil(t, err)
@@ -141,7 +151,7 @@ func TestTransactions(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(transactions[1], transaction2))
 	})
 
-	t.Run("can store with empty category", func(t *testing.T) {
+	t.Run("can store with empty optional fields category", func(t *testing.T) {
 		defer cleanup()
 		transaction1 := &beans.Transaction{
 			ID:        beans.NewBeansID(),
@@ -155,6 +165,7 @@ func TestTransactions(t *testing.T) {
 			Amount:     beans.NewAmount(7, 0),
 			Date:       testutils.NewDate(t, "2022-08-26"),
 			CategoryID: testutils.NewEmptyID(),
+			PayeeID:    testutils.NewEmptyID(),
 		}
 		require.Nil(t, transactionRepository.Create(context.Background(), transaction1))
 		require.Nil(t, transactionRepository.Create(context.Background(), transaction2))
@@ -162,8 +173,12 @@ func TestTransactions(t *testing.T) {
 		transactions, err := transactionRepository.GetForBudget(context.Background(), budgetID)
 		require.Nil(t, err)
 		assert.Len(t, transactions, 2)
+
 		assert.True(t, transactions[0].CategoryID.Empty())
 		assert.True(t, transactions[1].CategoryID.Empty())
+
+		assert.True(t, transactions[0].PayeeID.Empty())
+		assert.True(t, transactions[1].PayeeID.Empty())
 	})
 
 	t.Run("can get income", func(t *testing.T) {
