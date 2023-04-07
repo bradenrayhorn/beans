@@ -15,13 +15,14 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :exec
 INSERT INTO transactions (
-  id, account_id, category_id, date, amount, notes
-) VALUES ($1, $2, $3, $4, $5, $6)
+  id, account_id, payee_id, category_id, date, amount, notes
+) VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type CreateTransactionParams struct {
 	ID         string
 	AccountID  string
+	PayeeID    sql.NullString
 	CategoryID sql.NullString
 	Date       time.Time
 	Amount     pgtype.Numeric
@@ -32,6 +33,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	_, err := q.db.Exec(ctx, createTransaction,
 		arg.ID,
 		arg.AccountID,
+		arg.PayeeID,
 		arg.CategoryID,
 		arg.Date,
 		arg.Amount,
@@ -153,12 +155,19 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (GetTransaction
 }
 
 const getTransactionsForBudget = `-- name: GetTransactionsForBudget :many
-SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, categories.name as category_name from transactions
+SELECT
+  transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at,
+  accounts.name as account_name,
+  categories.name as category_name,
+  payees.name as payee_name
+FROM transactions
 JOIN accounts
   ON accounts.id = transactions.account_id
   AND accounts.budget_id = $1
 LEFT JOIN categories
   ON categories.id = transactions.category_id
+LEFT JOIN payees
+  ON payees.id = transactions.payee_id
 ORDER BY date desc
 `
 
@@ -173,6 +182,7 @@ type GetTransactionsForBudgetRow struct {
 	CreatedAt    time.Time
 	AccountName  string
 	CategoryName sql.NullString
+	PayeeName    sql.NullString
 }
 
 func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]GetTransactionsForBudgetRow, error) {
@@ -195,6 +205,7 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 			&i.CreatedAt,
 			&i.AccountName,
 			&i.CategoryName,
+			&i.PayeeName,
 		); err != nil {
 			return nil, err
 		}
@@ -208,13 +219,14 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 
 const updateTransaction = `-- name: UpdateTransaction :exec
 UPDATE transactions
-  SET account_id=$1, category_id=$2, date=$3, amount=$4, notes=$5
-  WHERE id=$6
+  SET account_id=$1, category_id=$2, payee_id=$3, date=$4, amount=$5, notes=$6
+  WHERE id=$7
 `
 
 type UpdateTransactionParams struct {
 	AccountID  string
 	CategoryID sql.NullString
+	PayeeID    sql.NullString
 	Date       time.Time
 	Amount     pgtype.Numeric
 	Notes      sql.NullString
@@ -225,6 +237,7 @@ func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionPa
 	_, err := q.db.Exec(ctx, updateTransaction,
 		arg.AccountID,
 		arg.CategoryID,
+		arg.PayeeID,
 		arg.Date,
 		arg.Amount,
 		arg.Notes,

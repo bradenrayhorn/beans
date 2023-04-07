@@ -7,10 +7,16 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type transactionPayee struct {
+	ID   beans.ID   `json:"id"`
+	Name beans.Name `json:"name"`
+}
+
 type transactionResponse struct {
 	ID       string                 `json:"id"`
 	Account  responseAccount        `json:"account"`
 	Category *listCategoryResponse  `json:"category"`
+	Payee    *transactionPayee      `json:"payee"`
 	Amount   beans.Amount           `json:"amount"`
 	Date     string                 `json:"date"`
 	Notes    beans.TransactionNotes `json:"notes"`
@@ -25,10 +31,19 @@ func responseFromTransaction(transaction *beans.Transaction) transactionResponse
 		}
 	}
 
+	var payee *transactionPayee
+	if !transaction.PayeeID.Empty() && !transaction.PayeeName.Empty() {
+		payee = &transactionPayee{
+			ID:   transaction.PayeeID,
+			Name: beans.Name(transaction.PayeeName.String()),
+		}
+	}
+
 	return transactionResponse{
 		ID:       transaction.ID.String(),
 		Account:  responseFromAccount(transaction.Account),
 		Category: category,
+		Payee:    payee,
 		Amount:   transaction.Amount,
 		Date:     transaction.Date.String(),
 		Notes:    transaction.Notes,
@@ -39,6 +54,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 	type request struct {
 		AccountID  beans.ID               `json:"account_id"`
 		CategoryID beans.ID               `json:"category_id"`
+		PayeeID    beans.ID               `json:"payee_id"`
 		Amount     beans.Amount           `json:"amount"`
 		Date       beans.Date             `json:"date"`
 		Notes      beans.TransactionNotes `json:"notes"`
@@ -59,6 +75,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
 				CategoryID: req.CategoryID,
+				PayeeID:    req.PayeeID,
 				Amount:     req.Amount,
 				Date:       req.Date,
 				Notes:      req.Notes,
@@ -82,6 +99,7 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 	type request struct {
 		AccountID  beans.ID               `json:"account_id"`
 		CategoryID beans.ID               `json:"category_id"`
+		PayeeID    beans.ID               `json:"payee_id"`
 		Amount     beans.Amount           `json:"amount"`
 		Date       beans.Date             `json:"date"`
 		Notes      beans.TransactionNotes `json:"notes"`
@@ -105,6 +123,7 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
 				CategoryID: req.CategoryID,
+				PayeeID:    req.PayeeID,
 				Amount:     req.Amount,
 				Date:       req.Date,
 				Notes:      req.Notes,

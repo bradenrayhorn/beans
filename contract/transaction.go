@@ -13,6 +13,7 @@ type TransactionContract struct {
 	categoryRepository      beans.CategoryRepository
 	monthCategoryRepository beans.MonthCategoryRepository
 	monthRepository         beans.MonthRepository
+	payeeRepository         beans.PayeeRepository
 }
 
 func NewTransactionContract(
@@ -21,8 +22,9 @@ func NewTransactionContract(
 	categoryRepository beans.CategoryRepository,
 	monthCategoryRepository beans.MonthCategoryRepository,
 	monthRepository beans.MonthRepository,
+	payeeRepository beans.PayeeRepository,
 ) *TransactionContract {
-	return &TransactionContract{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository}
+	return &TransactionContract{transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository, payeeRepository}
 }
 
 func (c *TransactionContract) Create(ctx context.Context, auth *beans.BudgetAuthContext, data beans.TransactionCreateParams) (*beans.Transaction, error) {
@@ -61,10 +63,15 @@ func (c *TransactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		}
 	}
 
+	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
+		return nil, err
+	}
+
 	transaction := &beans.Transaction{
 		ID:         beans.NewBeansID(),
 		AccountID:  data.AccountID,
 		CategoryID: data.CategoryID,
+		PayeeID:    data.PayeeID,
 		Amount:     data.Amount,
 		Date:       data.Date,
 		Notes:      data.Notes,
@@ -128,8 +135,13 @@ func (c *TransactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		}
 	}
 
+	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
+		return err
+	}
+
 	transaction.AccountID = data.AccountID
 	transaction.CategoryID = data.CategoryID
+	transaction.PayeeID = data.PayeeID
 	transaction.Amount = data.Amount
 	transaction.Date = data.Date
 	transaction.Notes = data.Notes
@@ -144,4 +156,20 @@ func (c *TransactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 
 func (c *TransactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.Transaction, error) {
 	return c.transactionRepository.GetForBudget(ctx, auth.BudgetID())
+}
+
+func (c *TransactionContract) validatePayee(ctx context.Context, auth *beans.BudgetAuthContext, payeeID beans.ID) error {
+	if !payeeID.Empty() {
+		payee, err := c.payeeRepository.Get(ctx, payeeID)
+
+		if err != nil && errors.Is(err, beans.ErrorNotFound) {
+			return beans.NewError(beans.EINVALID, "Invalid Payee ID")
+		} else if err != nil {
+			return err
+		} else if err == nil && payee.BudgetID != auth.BudgetID() {
+			return beans.NewError(beans.EINVALID, "Invalid Payee ID")
+		}
+	}
+
+	return nil
 }

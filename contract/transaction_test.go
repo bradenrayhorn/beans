@@ -29,7 +29,15 @@ func TestTransaction(t *testing.T) {
 	accountRepository := postgres.NewAccountRepository(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
-	c := contract.NewTransactionContract(transactionRepository, accountRepository, categoryRepository, monthCategoryRepository, monthRepository)
+	payeeRepository := postgres.NewPayeeRepository(pool)
+	c := contract.NewTransactionContract(
+		transactionRepository,
+		accountRepository,
+		categoryRepository,
+		monthCategoryRepository,
+		monthRepository,
+		payeeRepository,
+	)
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("fields are required", func(t *testing.T) {
@@ -71,11 +79,13 @@ func TestTransaction(t *testing.T) {
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
 					AccountID:  account.ID,
 					CategoryID: category.ID,
+					PayeeID:    payee.ID,
 					Amount:     beans.NewAmount(1, 2),
 					Date:       testutils.NewDate(t, "2022-06-07"),
 					Notes:      beans.NewTransactionNotes("My Notes"),
@@ -87,6 +97,7 @@ func TestTransaction(t *testing.T) {
 			require.Nil(t, err)
 			require.Equal(t, params.AccountID, transaction.AccountID)
 			require.Equal(t, params.CategoryID, transaction.CategoryID)
+			require.Equal(t, params.PayeeID, transaction.PayeeID)
 			require.Equal(t, params.Amount, transaction.Amount)
 			require.Equal(t, params.Date, transaction.Date)
 			require.Equal(t, params.Notes, transaction.Notes)
@@ -98,6 +109,7 @@ func TestTransaction(t *testing.T) {
 			require.Len(t, dbTransactions, 1)
 
 			transaction.CategoryName = beans.NewNullString("category")
+			transaction.PayeeName = beans.NewNullString("payee")
 			assert.True(t, reflect.DeepEqual(transaction, dbTransactions[0]))
 
 			// month was created
@@ -137,6 +149,7 @@ func TestTransaction(t *testing.T) {
 			require.Nil(t, err)
 			require.Equal(t, params.AccountID, transaction.AccountID)
 			require.Equal(t, params.CategoryID, transaction.CategoryID)
+			require.Equal(t, params.PayeeID, transaction.PayeeID)
 			require.Equal(t, params.Amount, transaction.Amount)
 			require.Equal(t, params.Date, transaction.Date)
 			require.Equal(t, params.Notes, transaction.Notes)
@@ -198,7 +211,7 @@ func TestTransaction(t *testing.T) {
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
-		t.Run("cannot create with missing category", func(t *testing.T) {
+		t.Run("cannot create with non existent category", func(t *testing.T) {
 			defer cleanup()
 
 			userID := testutils.MakeUser(t, pool, "user")
@@ -217,6 +230,77 @@ func TestTransaction(t *testing.T) {
 
 			_, err := c.Create(context.Background(), auth, params)
 			testutils.AssertError(t, err, "Invalid Category ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot create with category from other budget", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			group := testutils.MakeCategoryGroup(t, pool, "group", budget2.ID)
+			category := testutils.MakeCategory(t, pool, "name", group.ID, budget2.ID)
+
+			params := beans.TransactionCreateParams{
+				TransactionParams: beans.TransactionParams{
+					AccountID:  account.ID,
+					Amount:     beans.NewAmount(10, 1),
+					Date:       testutils.NewDate(t, "2022-06-07"),
+					CategoryID: category.ID,
+				},
+			}
+
+			_, err := c.Create(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Category ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot create with non existent payee", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+
+			params := beans.TransactionCreateParams{
+				TransactionParams: beans.TransactionParams{
+					AccountID: account.ID,
+					Amount:    beans.NewAmount(10, 1),
+					Date:      testutils.NewDate(t, "2022-06-07"),
+					PayeeID:   beans.NewBeansID(),
+				},
+			}
+
+			_, err := c.Create(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Payee ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot create with payee from other budget", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget2.ID)
+
+			params := beans.TransactionCreateParams{
+				TransactionParams: beans.TransactionParams{
+					AccountID: account.ID,
+					Amount:    beans.NewAmount(10, 1),
+					Date:      testutils.NewDate(t, "2022-06-07"),
+					PayeeID:   payee.ID,
+				},
+			}
+
+			_, err := c.Create(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Payee ID")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 	})
@@ -296,6 +380,7 @@ func TestTransaction(t *testing.T) {
 			account2 := testutils.MakeAccount(t, pool, "account2", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -312,6 +397,7 @@ func TestTransaction(t *testing.T) {
 				TransactionParams: beans.TransactionParams{
 					AccountID:  account2.ID,
 					CategoryID: category.ID,
+					PayeeID:    payee.ID,
 					Amount:     beans.NewAmount(6, 0),
 					Date:       testutils.NewDate(t, "2022-06-07"),
 					Notes:      beans.NewTransactionNotes("My Notes"),
@@ -320,6 +406,7 @@ func TestTransaction(t *testing.T) {
 
 			transaction.AccountID = account2.ID
 			transaction.CategoryID = category.ID
+			transaction.PayeeID = payee.ID
 			transaction.Amount = beans.NewAmount(6, 0)
 			transaction.Date = testutils.NewDate(t, "2022-06-07")
 			transaction.Notes = beans.NewTransactionNotes("My Notes")
@@ -461,7 +548,7 @@ func TestTransaction(t *testing.T) {
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
-		t.Run("cannot update with missing category", func(t *testing.T) {
+		t.Run("cannot update with nonexistent category", func(t *testing.T) {
 			defer cleanup()
 
 			userID := testutils.MakeUser(t, pool, "user")
@@ -491,6 +578,104 @@ func TestTransaction(t *testing.T) {
 			testutils.AssertError(t, err, "Invalid Category ID")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
+
+		t.Run("cannot update with category from other budget", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			group := testutils.MakeCategoryGroup(t, pool, "group", budget2.ID)
+			category := testutils.MakeCategory(t, pool, "name", group.ID, budget2.ID)
+
+			transaction := &beans.Transaction{
+				ID:        beans.NewBeansID(),
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2023-01-09"),
+			}
+			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+			params := beans.TransactionUpdateParams{
+				ID: transaction.ID,
+				TransactionParams: beans.TransactionParams{
+					AccountID:  account.ID,
+					Amount:     beans.NewAmount(5, 0),
+					Date:       testutils.NewDate(t, "2023-01-09"),
+					CategoryID: category.ID,
+				},
+			}
+
+			err := c.Update(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Category ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot update with nonexistent payee", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+
+			transaction := &beans.Transaction{
+				ID:        beans.NewBeansID(),
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2023-01-09"),
+			}
+			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+			params := beans.TransactionUpdateParams{
+				ID: transaction.ID,
+				TransactionParams: beans.TransactionParams{
+					AccountID: account.ID,
+					Amount:    beans.NewAmount(5, 0),
+					Date:      testutils.NewDate(t, "2023-01-09"),
+					PayeeID:   beans.NewBeansID(),
+				},
+			}
+
+			err := c.Update(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Payee ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
+
+		t.Run("cannot update with payee from other budget", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget2.ID)
+
+			transaction := &beans.Transaction{
+				ID:        beans.NewBeansID(),
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2023-01-09"),
+			}
+			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+			params := beans.TransactionUpdateParams{
+				ID: transaction.ID,
+				TransactionParams: beans.TransactionParams{
+					AccountID: account.ID,
+					Amount:    beans.NewAmount(5, 0),
+					Date:      testutils.NewDate(t, "2023-01-09"),
+					PayeeID:   payee.ID,
+				},
+			}
+
+			err := c.Update(context.Background(), auth, params)
+			testutils.AssertError(t, err, "Invalid Payee ID")
+			testutils.AssertErrorCode(t, err, beans.EINVALID)
+		})
 	})
 
 	t.Run("get all", func(t *testing.T) {
@@ -503,17 +688,20 @@ func TestTransaction(t *testing.T) {
 			account := testutils.MakeAccount(t, pool, "account", budget.ID)
 			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
 			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				CategoryID: category.ID,
+				PayeeID:    payee.ID,
 				Amount:     beans.NewAmount(5, 0),
 				Date:       testutils.NewDate(t, "2023-01-09"),
 				Notes:      beans.NewTransactionNotes("hi there"),
 
 				Account:      account,
 				CategoryName: beans.NewNullString("category"),
+				PayeeName:    beans.NewNullString("payee"),
 			}
 			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
 
