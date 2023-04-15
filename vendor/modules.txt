@@ -12,7 +12,7 @@ github.com/davecgh/go-spew/spew
 ## explicit
 github.com/docker/distribution/digestset
 github.com/docker/distribution/reference
-# github.com/docker/docker v23.0.1+incompatible
+# github.com/docker/docker v23.0.3+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -121,7 +121,7 @@ github.com/opencontainers/go-digest
 ## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/orlangure/gnomock v0.26.0
+# github.com/orlangure/gnomock v0.27.0
 ## explicit; go 1.20
 github.com/orlangure/gnomock
 github.com/orlangure/gnomock/internal/cleaner
