@@ -16,7 +16,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/orlangure/gnomock v0.28.0
 	github.com/rs/zerolog v1.29.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	golang.org/x/crypto v0.9.0
 	golang.org/x/net v0.10.0
 )
