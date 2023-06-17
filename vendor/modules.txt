@@ -53,7 +53,7 @@ github.com/go-chi/cors
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/proto
-# github.com/golang-migrate/migrate/v4 v4.16.1
+# github.com/golang-migrate/migrate/v4 v4.16.2
 ## explicit; go 1.18
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database
@@ -114,8 +114,8 @@ github.com/lib/pq/scram
 # github.com/mattn/go-colorable v0.1.12
 ## explicit; go 1.13
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.14
-## explicit; go 1.12
+# github.com/mattn/go-isatty v0.0.16
+## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/opencontainers/go-digest v1.0.0
 ## explicit; go 1.13
