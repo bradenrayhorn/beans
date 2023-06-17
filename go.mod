@@ -9,7 +9,7 @@ require github.com/go-chi/chi/v5 v5.0.8
 require (
 	github.com/cockroachdb/apd/v3 v3.2.0
 	github.com/go-chi/cors v1.2.1
-	github.com/golang-migrate/migrate/v4 v4.16.1
+	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgconn v1.14.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgtype v1.14.0
@@ -40,7 +40,7 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/lib/pq v1.10.8 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
