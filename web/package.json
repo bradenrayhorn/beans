@@ -24,7 +24,7 @@
     "@chakra-ui/theme-tools": "2.1.0",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
-    "@tanstack/react-query": "4.32.0",
+    "@tanstack/react-query": "4.32.1",
     "dayjs": "1.11.9",
     "downshift": "7.6.2",
     "fraction.js": "4.2.0",
