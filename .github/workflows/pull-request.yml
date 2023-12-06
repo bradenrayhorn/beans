@@ -1,0 +1,146 @@
+name: Pull request
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  lint-go:
+    name: Lint Go
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "./go.mod"
+          cache: false
+      - name: Install
+        run: |
+          go install github.com/gordonklaus/ineffassign@latest
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install github.com/kisielk/errcheck@latest
+      - name: format
+        if: always()
+        run: test -z $(gofmt -l ./.. | grep -v vendor)
+      - name: vet
+        if: always()
+        run: go vet ./...
+      - name: errcheck
+        if: always()
+        run: errcheck ./...
+      - name: ineffassign
+        if: always()
+        run: ineffassign ./...
+      - name: staticcheck
+        if: always()
+        run: staticcheck ./...
+
+  test-go:
+    name: Test Go
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "./go.mod"
+          cache: false
+      - name: Run tests
+        run: "go test ./..."
+
+  lint-svelte:
+    name: Lint Svelte
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "./ui/.nvmrc"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./ui
+
+      - name: Prettier and ESLint
+        run: npm run lint
+        working-directory: ./ui
+        if: always()
+
+      - name: svelte-check
+        run: npm run check -- --fail-on-warnings
+        working-directory: ./ui
+        if: always()
+
+  test-svelte:
+    name: Test Svelte
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "./ui/.nvmrc"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./ui
+
+      - name: Vitest
+        run: npm run test:unit
+        working-directory: ./ui
+        if: always()
+
+  test-e2e:
+    name: Test E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "./go.mod"
+          cache: false
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "./ui/.nvmrc"
+
+      - name: Install Svelte dependencies
+        working-directory: ./ui
+        run: npm install
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./ui
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./ui
+
+      - name: Docker compose up
+        run: docker compose up -d
+      - name: Run migrations
+        run: go run ./cmd/beans migrate
+      - name: Run Playwright tests
+        working-directory: ./ui
+        run: npm run test:integration
+      - name: Docker compose down
+        run: docker compose down -v
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: ui/playwright-report/
+          retention-days: 30

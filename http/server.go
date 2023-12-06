@@ -150,8 +150,6 @@ func NewServer(
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	s.router.Get("/*", s.handleServeFrontend())
-
 	return s
 }
 
