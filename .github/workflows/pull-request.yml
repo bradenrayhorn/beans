@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./server
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v4
         with:
-          go-version-file: "./go.mod"
+          go-version-file: "./server/go.mod"
           cache: false
       - name: Install
         run: |
@@ -44,14 +44,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./server
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup go
         uses: actions/setup-go@v4
         with:
-          go-version-file: "./go.mod"
+          go-version-file: "./server/go.mod"
           cache: false
       - name: Run tests
         run: "go test ./..."
@@ -111,7 +111,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v4
         with:
-          go-version-file: "./go.mod"
+          go-version-file: "./server/go.mod"
           cache: false
       - name: Setup node
         uses: actions/setup-node@v3
@@ -131,7 +131,7 @@ jobs:
       - name: Docker compose up
         run: docker compose up -d
       - name: Run migrations
-        run: go run ./cmd/beans migrate
+        run: make migrate
       - name: Run Playwright tests
         working-directory: ./ui
         run: npm run test:integration
