@@ -3,10 +3,10 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/rs/zerolog/log"
 )
 
 var codeToHTTPStatus = map[string]int{
@@ -32,7 +32,7 @@ func Error(w http.ResponseWriter, err error) {
 	}
 
 	if code == beans.EINTERNAL {
-		log.Error().Msg(err.Error())
+		slog.Error(err.Error())
 	}
 
 	w.Header().Set("Content-type", "application/json")
