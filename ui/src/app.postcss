@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.input:focus {
+  outline: none;
+}
+
+[type="checkbox"]:focus {
+  box-shadow: none;
+}
+
+@layer utilities {
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
+
+  .h-screen {
+    height: 100vh;
+    height: -webkit-fill-available;
+    height: 100dvh;
+  }
+
+  .shadow-top {
+    box-shadow:
+      0 0px 6px -1px rgb(0 0 0 / 0.1),
+      0 -2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .text-base-content-light {
+    --tw-text-opacity: 0.8;
+    color: hsl(var(--bc) / var(--tw-text-opacity));
+  }
+}

@@ -1,0 +1,47 @@
+<script lang="ts">
+  import type { Transaction } from "$lib/types/transaction";
+  import { selectedRows } from "./selected-state";
+
+  export let transactions: Transaction[];
+  export let disableSelection: boolean;
+</script>
+
+<table class="w-full text-sm border-collapse table-fixed">
+  <thead>
+    <tr
+      class="text-left uppercase text-base-content-light [&>th]:border-b-base-300 [&>th]:border-b"
+    >
+      <th class="invisible w-8 overflow-hidden">Checkbox</th>
+      <th class="w-28">Date</th>
+      <th>Payee</th>
+      <th>Category</th>
+      <th>Account</th>
+      <th>Notes</th>
+      <th class="text-right w-28">Amount</th>
+      <th class="invisible w-0 overflow-hidden">Edit Links</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {#each transactions as transaction (transaction.id)}
+      <tr class="text-base-content [&>td]:py-2 relative">
+        <td
+          ><input
+            type="checkbox"
+            bind:checked={$selectedRows[transaction.id]}
+            disabled={disableSelection}
+            class="checkbox checkbox-xs checkbox-secondary rounded-none block"
+          /></td
+        >
+        <td>{transaction.date}</td>
+        <td class="pr-2 truncate"
+          >{transaction.category?.name} {transaction.account.name}</td
+        >
+        <td class="pr-2 truncate">{transaction.category?.name}</td>
+        <td class="pr-2 truncate">{transaction.account.name}</td>
+        <td class="pr-2 truncate">{transaction.notes ?? ""}</td>
+        <td class="text-right pr-0 truncate">{transaction.amount.display}</td>
+      </tr>
+    {/each}
+  </tbody>
+</table>
