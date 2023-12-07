@@ -28,6 +28,7 @@
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.35.1",
+    "fraction.js": "^4.3.7",
     "postcss": "^8.4.32",
     "prettier": "^3.1.0",
     "prettier-plugin-svelte": "^3.1.2",
@@ -37,11 +38,8 @@
     "tslib": "^2.4.1",
     "typescript": "^5.3.3",
     "unplugin-icons": "^0.18.1",
-    "vite": "^4.4.2",
-    "vitest": "^0.32.2"
+    "vite": "^4.4.12",
+    "vitest": "^1.0.1"
   },
-  "type": "module",
-  "dependencies": {
-    "fraction.js": "^4.3.7"
-  }
+  "type": "module"
 }
