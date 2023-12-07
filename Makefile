@@ -1,26 +1,26 @@
-default: build
+.PHONY: default build run migrate migration gensql test
 
-build:
-	@go build -o ./beansd ./cmd/beansd
+default: run
+
+SERVER_DIR = ./server/
 
 run:
-	@go run ./cmd/beansd
+	cd $(SERVER_DIR) && go run ./cmd/beansd
 
 migrate:
-	@go run ./cmd/beans migrate
+	cd $(SERVER_DIR) && go run ./cmd/beans migrate
 
 migration:
-	@migrate create -dir internal/sql/migrations -ext sql ${NAME}
-	@rm internal/sql/migrations/*.down.sql
+	cd $(SERVER_DIR) && migrate create -dir internal/sql/migrations -ext sql ${NAME}
+	cd $(SERVER_DIR) && rm internal/sql/migrations/*.down.sql
 
 gensql:
-	@sqlc generate
+	cd $(SERVER_DIR) && sqlc generate
 
 genmock:
-	@go generate ./...
+	cd $(SERVER_DIR) && go generate ./...
 
 test:
-	@go test -tags test --count=1 ./... 
+	cd $(SERVER_DIR) && go test -tags test --count=1 ./... 
 
-.PHONY: default build run migrate migration gensql test
 
