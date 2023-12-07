@@ -8,7 +8,7 @@ import (
 )
 
 func BudgetAuthContext(t testing.TB, userID beans.ID, budget *beans.Budget) *beans.BudgetAuthContext {
-	auth, err := beans.NewBudgetAuthContext(beans.NewAuthContext(userID), budget)
+	auth, err := beans.NewBudgetAuthContext(beans.NewAuthContext(userID, beans.SessionID("1234")), budget)
 	require.Nil(t, err)
 	return auth
 }

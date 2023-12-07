@@ -25,7 +25,7 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.userContract.CreateUser(r.Context(), req.Username, req.Password)
+		err := s.userContract.Register(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return
@@ -46,15 +46,9 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 			return
 		}
 
-		user, err := s.userContract.Login(r.Context(), req.Username, req.Password)
+		session, err := s.userContract.Login(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
-			return
-		}
-
-		session, err := s.sessionRepository.Create(user.ID)
-		if err != nil {
-			Error(w, beans.WrapError(err, beans.ErrorInternal))
 			return
 		}
 
@@ -68,22 +62,12 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 		}
 
 		http.SetCookie(w, &cookie)
-
-		res := userResponse{UserID: user.ID.String(), Username: string(user.Username)}
-		jsonResponse(w, res, http.StatusOK)
 	}
 }
 
 func (s *Server) handleUserLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session_id")
-		if err != nil {
-			Error(w, beans.WrapError(err, beans.ErrorInternal))
-			return
-		}
-
-		err = s.sessionRepository.Delete(beans.SessionID(cookie.Value))
-		if err != nil {
+		if err := s.userContract.Logout(r.Context(), getAuth(r)); err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorInternal))
 			return
 		}
@@ -101,15 +85,14 @@ func (s *Server) handleUserLogout() http.HandlerFunc {
 
 func (s *Server) handleUserMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := getUserID(r)
 
-		user, err := s.userRepository.Get(r.Context(), userID)
+		user, err := s.userContract.GetMe(r.Context(), getAuth(r))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorInternal))
 			return
 		}
 
-		res := userResponse{UserID: userID.String(), Username: string(user.Username)}
+		res := userResponse{UserID: user.ID.String(), Username: string(user.Username)}
 		jsonResponse(w, res, http.StatusOK)
 	}
 }

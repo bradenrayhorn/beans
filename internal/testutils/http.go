@@ -32,10 +32,9 @@ func HTTPWithOptions(t testing.TB, f http.HandlerFunc, options *HTTPOptions, use
 	}
 	req := httptest.NewRequest("", "/", reqBody)
 	req = req.WithContext(context.WithValue(req.Context(), httpcontext.Budget, budget))
-	req = req.WithContext(context.WithValue(req.Context(), httpcontext.UserID, user.ID))
 
-	auth := beans.NewAuthContext(user.ID)
-	req = req.WithContext(context.WithValue(req.Context(), httpcontext.Auth, beans.NewAuthContext(user.ID)))
+	auth := beans.NewAuthContext(user.ID, beans.SessionID("1234"))
+	req = req.WithContext(context.WithValue(req.Context(), httpcontext.Auth, auth))
 
 	if budget != nil {
 		budgetAuth, err := beans.NewBudgetAuthContext(auth, budget)
