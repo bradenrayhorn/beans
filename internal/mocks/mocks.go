@@ -5286,6 +5286,9 @@ type MockPayeeRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *PayeeRepositoryCreateFunc
+	// GetFunc is an instance of a mock function object controlling the
+	// behavior of the method Get.
+	GetFunc *PayeeRepositoryGetFunc
 	// GetForBudgetFunc is an instance of a mock function object controlling
 	// the behavior of the method GetForBudget.
 	GetForBudgetFunc *PayeeRepositoryGetForBudgetFunc
@@ -5298,6 +5301,11 @@ func NewMockPayeeRepository() *MockPayeeRepository {
 	return &MockPayeeRepository{
 		CreateFunc: &PayeeRepositoryCreateFunc{
 			defaultHook: func(context.Context, *beans.Payee) (r0 error) {
+				return
+			},
+		},
+		GetFunc: &PayeeRepositoryGetFunc{
+			defaultHook: func(context.Context, beans.ID) (r0 *beans.Payee, r1 error) {
 				return
 			},
 		},
@@ -5318,6 +5326,11 @@ func NewStrictMockPayeeRepository() *MockPayeeRepository {
 				panic("unexpected invocation of MockPayeeRepository.Create")
 			},
 		},
+		GetFunc: &PayeeRepositoryGetFunc{
+			defaultHook: func(context.Context, beans.ID) (*beans.Payee, error) {
+				panic("unexpected invocation of MockPayeeRepository.Get")
+			},
+		},
 		GetForBudgetFunc: &PayeeRepositoryGetForBudgetFunc{
 			defaultHook: func(context.Context, beans.ID) ([]*beans.Payee, error) {
 				panic("unexpected invocation of MockPayeeRepository.GetForBudget")
@@ -5333,6 +5346,9 @@ func NewMockPayeeRepositoryFrom(i beans.PayeeRepository) *MockPayeeRepository {
 	return &MockPayeeRepository{
 		CreateFunc: &PayeeRepositoryCreateFunc{
 			defaultHook: i.Create,
+		},
+		GetFunc: &PayeeRepositoryGetFunc{
+			defaultHook: i.Get,
 		},
 		GetForBudgetFunc: &PayeeRepositoryGetForBudgetFunc{
 			defaultHook: i.GetForBudget,
@@ -5443,6 +5459,114 @@ func (c PayeeRepositoryCreateFuncCall) Args() []interface{} {
 // invocation.
 func (c PayeeRepositoryCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
+}
+
+// PayeeRepositoryGetFunc describes the behavior when the Get method of the
+// parent MockPayeeRepository instance is invoked.
+type PayeeRepositoryGetFunc struct {
+	defaultHook func(context.Context, beans.ID) (*beans.Payee, error)
+	hooks       []func(context.Context, beans.ID) (*beans.Payee, error)
+	history     []PayeeRepositoryGetFuncCall
+	mutex       sync.Mutex
+}
+
+// Get delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockPayeeRepository) Get(v0 context.Context, v1 beans.ID) (*beans.Payee, error) {
+	r0, r1 := m.GetFunc.nextHook()(v0, v1)
+	m.GetFunc.appendCall(PayeeRepositoryGetFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the Get method of the
+// parent MockPayeeRepository instance is invoked and the hook queue is
+// empty.
+func (f *PayeeRepositoryGetFunc) SetDefaultHook(hook func(context.Context, beans.ID) (*beans.Payee, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Get method of the parent MockPayeeRepository instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *PayeeRepositoryGetFunc) PushHook(hook func(context.Context, beans.ID) (*beans.Payee, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *PayeeRepositoryGetFunc) SetDefaultReturn(r0 *beans.Payee, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID) (*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *PayeeRepositoryGetFunc) PushReturn(r0 *beans.Payee, r1 error) {
+	f.PushHook(func(context.Context, beans.ID) (*beans.Payee, error) {
+		return r0, r1
+	})
+}
+
+func (f *PayeeRepositoryGetFunc) nextHook() func(context.Context, beans.ID) (*beans.Payee, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *PayeeRepositoryGetFunc) appendCall(r0 PayeeRepositoryGetFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of PayeeRepositoryGetFuncCall objects
+// describing the invocations of this function.
+func (f *PayeeRepositoryGetFunc) History() []PayeeRepositoryGetFuncCall {
+	f.mutex.Lock()
+	history := make([]PayeeRepositoryGetFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// PayeeRepositoryGetFuncCall is an object that describes an invocation of
+// method Get on an instance of MockPayeeRepository.
+type PayeeRepositoryGetFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.Payee
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c PayeeRepositoryGetFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c PayeeRepositoryGetFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
 }
 
 // PayeeRepositoryGetForBudgetFunc describes the behavior when the
@@ -7416,25 +7540,41 @@ func (c TxManagerCreateFuncCall) Results() []interface{} {
 // (from the package github.com/bradenrayhorn/beans/beans) used for unit
 // testing.
 type MockUserContract struct {
-	// CreateUserFunc is an instance of a mock function object controlling
-	// the behavior of the method CreateUser.
-	CreateUserFunc *UserContractCreateUserFunc
+	// GetMeFunc is an instance of a mock function object controlling the
+	// behavior of the method GetMe.
+	GetMeFunc *UserContractGetMeFunc
 	// LoginFunc is an instance of a mock function object controlling the
 	// behavior of the method Login.
 	LoginFunc *UserContractLoginFunc
+	// LogoutFunc is an instance of a mock function object controlling the
+	// behavior of the method Logout.
+	LogoutFunc *UserContractLogoutFunc
+	// RegisterFunc is an instance of a mock function object controlling the
+	// behavior of the method Register.
+	RegisterFunc *UserContractRegisterFunc
 }
 
 // NewMockUserContract creates a new mock of the UserContract interface. All
 // methods return zero values for all results, unless overwritten.
 func NewMockUserContract() *MockUserContract {
 	return &MockUserContract{
-		CreateUserFunc: &UserContractCreateUserFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
+		GetMeFunc: &UserContractGetMeFunc{
+			defaultHook: func(context.Context, *beans.AuthContext) (r0 *beans.User, r1 error) {
 				return
 			},
 		},
 		LoginFunc: &UserContractLoginFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.User, r1 error) {
+			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 *beans.Session, r1 error) {
+				return
+			},
+		},
+		LogoutFunc: &UserContractLogoutFunc{
+			defaultHook: func(context.Context, *beans.AuthContext) (r0 error) {
+				return
+			},
+		},
+		RegisterFunc: &UserContractRegisterFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) (r0 error) {
 				return
 			},
 		},
@@ -7445,14 +7585,24 @@ func NewMockUserContract() *MockUserContract {
 // interface. All methods panic on invocation, unless overwritten.
 func NewStrictMockUserContract() *MockUserContract {
 	return &MockUserContract{
-		CreateUserFunc: &UserContractCreateUserFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
-				panic("unexpected invocation of MockUserContract.CreateUser")
+		GetMeFunc: &UserContractGetMeFunc{
+			defaultHook: func(context.Context, *beans.AuthContext) (*beans.User, error) {
+				panic("unexpected invocation of MockUserContract.GetMe")
 			},
 		},
 		LoginFunc: &UserContractLoginFunc{
-			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+			defaultHook: func(context.Context, beans.Username, beans.Password) (*beans.Session, error) {
 				panic("unexpected invocation of MockUserContract.Login")
+			},
+		},
+		LogoutFunc: &UserContractLogoutFunc{
+			defaultHook: func(context.Context, *beans.AuthContext) error {
+				panic("unexpected invocation of MockUserContract.Logout")
+			},
+		},
+		RegisterFunc: &UserContractRegisterFunc{
+			defaultHook: func(context.Context, beans.Username, beans.Password) error {
+				panic("unexpected invocation of MockUserContract.Register")
 			},
 		},
 	}
@@ -7463,44 +7613,49 @@ func NewStrictMockUserContract() *MockUserContract {
 // overwritten.
 func NewMockUserContractFrom(i beans.UserContract) *MockUserContract {
 	return &MockUserContract{
-		CreateUserFunc: &UserContractCreateUserFunc{
-			defaultHook: i.CreateUser,
+		GetMeFunc: &UserContractGetMeFunc{
+			defaultHook: i.GetMe,
 		},
 		LoginFunc: &UserContractLoginFunc{
 			defaultHook: i.Login,
 		},
+		LogoutFunc: &UserContractLogoutFunc{
+			defaultHook: i.Logout,
+		},
+		RegisterFunc: &UserContractRegisterFunc{
+			defaultHook: i.Register,
+		},
 	}
 }
 
-// UserContractCreateUserFunc describes the behavior when the CreateUser
-// method of the parent MockUserContract instance is invoked.
-type UserContractCreateUserFunc struct {
-	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	history     []UserContractCreateUserFuncCall
+// UserContractGetMeFunc describes the behavior when the GetMe method of the
+// parent MockUserContract instance is invoked.
+type UserContractGetMeFunc struct {
+	defaultHook func(context.Context, *beans.AuthContext) (*beans.User, error)
+	hooks       []func(context.Context, *beans.AuthContext) (*beans.User, error)
+	history     []UserContractGetMeFuncCall
 	mutex       sync.Mutex
 }
 
-// CreateUser delegates to the next hook function in the queue and stores
-// the parameter and result values of this invocation.
-func (m *MockUserContract) CreateUser(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
-	r0, r1 := m.CreateUserFunc.nextHook()(v0, v1, v2)
-	m.CreateUserFunc.appendCall(UserContractCreateUserFuncCall{v0, v1, v2, r0, r1})
+// GetMe delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockUserContract) GetMe(v0 context.Context, v1 *beans.AuthContext) (*beans.User, error) {
+	r0, r1 := m.GetMeFunc.nextHook()(v0, v1)
+	m.GetMeFunc.appendCall(UserContractGetMeFuncCall{v0, v1, r0, r1})
 	return r0, r1
 }
 
-// SetDefaultHook sets function that is called when the CreateUser method of
-// the parent MockUserContract instance is invoked and the hook queue is
-// empty.
-func (f *UserContractCreateUserFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+// SetDefaultHook sets function that is called when the GetMe method of the
+// parent MockUserContract instance is invoked and the hook queue is empty.
+func (f *UserContractGetMeFunc) SetDefaultHook(hook func(context.Context, *beans.AuthContext) (*beans.User, error)) {
 	f.defaultHook = hook
 }
 
 // PushHook adds a function to the end of hook queue. Each invocation of the
-// CreateUser method of the parent MockUserContract instance invokes the
-// hook at the front of the queue and discards it. After the queue is empty,
-// the default hook function is invoked for any future action.
-func (f *UserContractCreateUserFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+// GetMe method of the parent MockUserContract instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *UserContractGetMeFunc) PushHook(hook func(context.Context, *beans.AuthContext) (*beans.User, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -7508,20 +7663,20 @@ func (f *UserContractCreateUserFunc) PushHook(hook func(context.Context, beans.U
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *UserContractCreateUserFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractGetMeFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
+	f.SetDefaultHook(func(context.Context, *beans.AuthContext) (*beans.User, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *UserContractCreateUserFunc) PushReturn(r0 *beans.User, r1 error) {
-	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractGetMeFunc) PushReturn(r0 *beans.User, r1 error) {
+	f.PushHook(func(context.Context, *beans.AuthContext) (*beans.User, error) {
 		return r0, r1
 	})
 }
 
-func (f *UserContractCreateUserFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractGetMeFunc) nextHook() func(context.Context, *beans.AuthContext) (*beans.User, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -7534,35 +7689,32 @@ func (f *UserContractCreateUserFunc) nextHook() func(context.Context, beans.User
 	return hook
 }
 
-func (f *UserContractCreateUserFunc) appendCall(r0 UserContractCreateUserFuncCall) {
+func (f *UserContractGetMeFunc) appendCall(r0 UserContractGetMeFuncCall) {
 	f.mutex.Lock()
 	f.history = append(f.history, r0)
 	f.mutex.Unlock()
 }
 
-// History returns a sequence of UserContractCreateUserFuncCall objects
+// History returns a sequence of UserContractGetMeFuncCall objects
 // describing the invocations of this function.
-func (f *UserContractCreateUserFunc) History() []UserContractCreateUserFuncCall {
+func (f *UserContractGetMeFunc) History() []UserContractGetMeFuncCall {
 	f.mutex.Lock()
-	history := make([]UserContractCreateUserFuncCall, len(f.history))
+	history := make([]UserContractGetMeFuncCall, len(f.history))
 	copy(history, f.history)
 	f.mutex.Unlock()
 
 	return history
 }
 
-// UserContractCreateUserFuncCall is an object that describes an invocation
-// of method CreateUser on an instance of MockUserContract.
-type UserContractCreateUserFuncCall struct {
+// UserContractGetMeFuncCall is an object that describes an invocation of
+// method GetMe on an instance of MockUserContract.
+type UserContractGetMeFuncCall struct {
 	// Arg0 is the value of the 1st argument passed to this method
 	// invocation.
 	Arg0 context.Context
 	// Arg1 is the value of the 2nd argument passed to this method
 	// invocation.
-	Arg1 beans.Username
-	// Arg2 is the value of the 3rd argument passed to this method
-	// invocation.
-	Arg2 beans.Password
+	Arg1 *beans.AuthContext
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
 	Result0 *beans.User
@@ -7573,28 +7725,28 @@ type UserContractCreateUserFuncCall struct {
 
 // Args returns an interface slice containing the arguments of this
 // invocation.
-func (c UserContractCreateUserFuncCall) Args() []interface{} {
-	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+func (c UserContractGetMeFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
 }
 
 // Results returns an interface slice containing the results of this
 // invocation.
-func (c UserContractCreateUserFuncCall) Results() []interface{} {
+func (c UserContractGetMeFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 
 // UserContractLoginFunc describes the behavior when the Login method of the
 // parent MockUserContract instance is invoked.
 type UserContractLoginFunc struct {
-	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.User, error)
-	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.User, error)
+	defaultHook func(context.Context, beans.Username, beans.Password) (*beans.Session, error)
+	hooks       []func(context.Context, beans.Username, beans.Password) (*beans.Session, error)
 	history     []UserContractLoginFuncCall
 	mutex       sync.Mutex
 }
 
 // Login delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockUserContract) Login(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.User, error) {
+func (m *MockUserContract) Login(v0 context.Context, v1 beans.Username, v2 beans.Password) (*beans.Session, error) {
 	r0, r1 := m.LoginFunc.nextHook()(v0, v1, v2)
 	m.LoginFunc.appendCall(UserContractLoginFuncCall{v0, v1, v2, r0, r1})
 	return r0, r1
@@ -7602,7 +7754,7 @@ func (m *MockUserContract) Login(v0 context.Context, v1 beans.Username, v2 beans
 
 // SetDefaultHook sets function that is called when the Login method of the
 // parent MockUserContract instance is invoked and the hook queue is empty.
-func (f *UserContractLoginFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+func (f *UserContractLoginFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) (*beans.Session, error)) {
 	f.defaultHook = hook
 }
 
@@ -7610,7 +7762,7 @@ func (f *UserContractLoginFunc) SetDefaultHook(hook func(context.Context, beans.
 // Login method of the parent MockUserContract instance invokes the hook at
 // the front of the queue and discards it. After the queue is empty, the
 // default hook function is invoked for any future action.
-func (f *UserContractLoginFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.User, error)) {
+func (f *UserContractLoginFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) (*beans.Session, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -7618,20 +7770,20 @@ func (f *UserContractLoginFunc) PushHook(hook func(context.Context, beans.Userna
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *UserContractLoginFunc) SetDefaultReturn(r0 *beans.User, r1 error) {
-	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractLoginFunc) SetDefaultReturn(r0 *beans.Session, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) (*beans.Session, error) {
 		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *UserContractLoginFunc) PushReturn(r0 *beans.User, r1 error) {
-	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractLoginFunc) PushReturn(r0 *beans.Session, r1 error) {
+	f.PushHook(func(context.Context, beans.Username, beans.Password) (*beans.Session, error) {
 		return r0, r1
 	})
 }
 
-func (f *UserContractLoginFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.User, error) {
+func (f *UserContractLoginFunc) nextHook() func(context.Context, beans.Username, beans.Password) (*beans.Session, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -7675,7 +7827,7 @@ type UserContractLoginFuncCall struct {
 	Arg2 beans.Password
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
-	Result0 *beans.User
+	Result0 *beans.Session
 	// Result1 is the value of the 2nd result returned from this method
 	// invocation.
 	Result1 error
@@ -7691,6 +7843,218 @@ func (c UserContractLoginFuncCall) Args() []interface{} {
 // invocation.
 func (c UserContractLoginFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
+}
+
+// UserContractLogoutFunc describes the behavior when the Logout method of
+// the parent MockUserContract instance is invoked.
+type UserContractLogoutFunc struct {
+	defaultHook func(context.Context, *beans.AuthContext) error
+	hooks       []func(context.Context, *beans.AuthContext) error
+	history     []UserContractLogoutFuncCall
+	mutex       sync.Mutex
+}
+
+// Logout delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockUserContract) Logout(v0 context.Context, v1 *beans.AuthContext) error {
+	r0 := m.LogoutFunc.nextHook()(v0, v1)
+	m.LogoutFunc.appendCall(UserContractLogoutFuncCall{v0, v1, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Logout method of the
+// parent MockUserContract instance is invoked and the hook queue is empty.
+func (f *UserContractLogoutFunc) SetDefaultHook(hook func(context.Context, *beans.AuthContext) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Logout method of the parent MockUserContract instance invokes the hook at
+// the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *UserContractLogoutFunc) PushHook(hook func(context.Context, *beans.AuthContext) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *UserContractLogoutFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, *beans.AuthContext) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *UserContractLogoutFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, *beans.AuthContext) error {
+		return r0
+	})
+}
+
+func (f *UserContractLogoutFunc) nextHook() func(context.Context, *beans.AuthContext) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *UserContractLogoutFunc) appendCall(r0 UserContractLogoutFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of UserContractLogoutFuncCall objects
+// describing the invocations of this function.
+func (f *UserContractLogoutFunc) History() []UserContractLogoutFuncCall {
+	f.mutex.Lock()
+	history := make([]UserContractLogoutFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// UserContractLogoutFuncCall is an object that describes an invocation of
+// method Logout on an instance of MockUserContract.
+type UserContractLogoutFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.AuthContext
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c UserContractLogoutFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c UserContractLogoutFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// UserContractRegisterFunc describes the behavior when the Register method
+// of the parent MockUserContract instance is invoked.
+type UserContractRegisterFunc struct {
+	defaultHook func(context.Context, beans.Username, beans.Password) error
+	hooks       []func(context.Context, beans.Username, beans.Password) error
+	history     []UserContractRegisterFuncCall
+	mutex       sync.Mutex
+}
+
+// Register delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockUserContract) Register(v0 context.Context, v1 beans.Username, v2 beans.Password) error {
+	r0 := m.RegisterFunc.nextHook()(v0, v1, v2)
+	m.RegisterFunc.appendCall(UserContractRegisterFuncCall{v0, v1, v2, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Register method of
+// the parent MockUserContract instance is invoked and the hook queue is
+// empty.
+func (f *UserContractRegisterFunc) SetDefaultHook(hook func(context.Context, beans.Username, beans.Password) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Register method of the parent MockUserContract instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *UserContractRegisterFunc) PushHook(hook func(context.Context, beans.Username, beans.Password) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *UserContractRegisterFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, beans.Username, beans.Password) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *UserContractRegisterFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, beans.Username, beans.Password) error {
+		return r0
+	})
+}
+
+func (f *UserContractRegisterFunc) nextHook() func(context.Context, beans.Username, beans.Password) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *UserContractRegisterFunc) appendCall(r0 UserContractRegisterFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of UserContractRegisterFuncCall objects
+// describing the invocations of this function.
+func (f *UserContractRegisterFunc) History() []UserContractRegisterFuncCall {
+	f.mutex.Lock()
+	history := make([]UserContractRegisterFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// UserContractRegisterFuncCall is an object that describes an invocation of
+// method Register on an instance of MockUserContract.
+type UserContractRegisterFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.Username
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 beans.Password
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c UserContractRegisterFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c UserContractRegisterFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
 }
 
 // MockUserRepository is a mock implementation of the UserRepository

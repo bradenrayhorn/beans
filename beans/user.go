@@ -42,8 +42,17 @@ type User struct {
 }
 
 type UserContract interface {
-	CreateUser(ctx context.Context, username Username, password Password) (*User, error)
-	Login(ctx context.Context, username Username, password Password) (*User, error)
+	// Creates a new account
+	Register(ctx context.Context, username Username, password Password) error
+
+	// Logs in and returns a session
+	Login(ctx context.Context, username Username, password Password) (*Session, error)
+
+	// Logs out and deletes the active session
+	Logout(ctx context.Context, auth *AuthContext) error
+
+	// Gets the currently authenticated user
+	GetMe(ctx context.Context, auth *AuthContext) (*User, error)
 }
 
 type UserRepository interface {

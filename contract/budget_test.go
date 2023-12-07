@@ -33,11 +33,13 @@ func TestBudget(t *testing.T) {
 		postgres.NewTxManager(pool),
 	)
 
+	sessionID := beans.SessionID("1234")
+
 	t.Run("create", func(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.Create(context.Background(), beans.NewAuthContext(beans.NewBeansID()), beans.Name(""))
+			_, err := c.Create(context.Background(), beans.NewAuthContext(beans.NewBeansID(), sessionID), beans.Name(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
@@ -46,7 +48,7 @@ func TestBudget(t *testing.T) {
 
 			userID := testutils.MakeUser(t, pool, "user")
 
-			budget, err := c.Create(context.Background(), beans.NewAuthContext(userID), beans.Name("Test"))
+			budget, err := c.Create(context.Background(), beans.NewAuthContext(userID, sessionID), beans.Name("Test"))
 			require.Nil(t, err)
 
 			// budget was returned
@@ -83,7 +85,7 @@ func TestBudget(t *testing.T) {
 			defer cleanup()
 			userID := testutils.MakeUser(t, pool, "user")
 
-			_, err := c.Get(context.Background(), beans.NewAuthContext(userID), beans.NewBeansID())
+			_, err := c.Get(context.Background(), beans.NewAuthContext(userID, sessionID), beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -94,7 +96,7 @@ func TestBudget(t *testing.T) {
 
 			budget := testutils.MakeBudget(t, pool, "Budget", userID1)
 
-			_, err := c.Get(context.Background(), beans.NewAuthContext(userID2), budget.ID)
+			_, err := c.Get(context.Background(), beans.NewAuthContext(userID2, sessionID), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -103,7 +105,7 @@ func TestBudget(t *testing.T) {
 			userID := testutils.MakeUser(t, pool, "user")
 			budget := testutils.MakeBudget(t, pool, "Budget", userID)
 
-			rBudget, err := c.Get(context.Background(), beans.NewAuthContext(userID), budget.ID)
+			rBudget, err := c.Get(context.Background(), beans.NewAuthContext(userID, sessionID), budget.ID)
 			require.Nil(t, err)
 			assert.True(t, reflect.DeepEqual(budget, rBudget))
 		})
@@ -118,7 +120,7 @@ func TestBudget(t *testing.T) {
 			userID2 := testutils.MakeUser(t, pool, "user")
 			_ = testutils.MakeBudget(t, pool, "Budget", userID2)
 
-			budgets, err := c.GetAll(context.Background(), beans.NewAuthContext(userID))
+			budgets, err := c.GetAll(context.Background(), beans.NewAuthContext(userID, sessionID))
 			require.Nil(t, err)
 			require.Len(t, budgets, 1)
 

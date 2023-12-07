@@ -2,11 +2,11 @@ package contract_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/beans"
 	"github.com/bradenrayhorn/beans/contract"
+	"github.com/bradenrayhorn/beans/inmem"
 	"github.com/bradenrayhorn/beans/internal/testutils"
 	"github.com/bradenrayhorn/beans/postgres"
 	"github.com/stretchr/testify/assert"
@@ -24,40 +24,35 @@ func TestUser(t *testing.T) {
 	}
 
 	userRepository := postgres.NewUserRepository(pool)
-	c := contract.NewUserContract(userRepository)
+	sessionRepository := inmem.NewSessionRepository()
+	c := contract.NewUserContract(sessionRepository, userRepository)
 
-	t.Run("create", func(t *testing.T) {
+	t.Run("register", func(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.CreateUser(context.Background(), beans.Username(""), beans.Password(""))
+			err := c.Register(context.Background(), beans.Username(""), beans.Password(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
 		t.Run("can create user", func(t *testing.T) {
 			defer cleanup()
 
-			user, err := c.CreateUser(context.Background(), beans.Username("user"), beans.Password("pass"))
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
 			require.Nil(t, err)
-
-			// user was returned
-			assert.Equal(t, "user", string(user.Username))
-			assert.False(t, user.ID.Empty())
-			assert.NotEmpty(t, string(user.PasswordHash))
 
 			// user was saved
-			dbUser, err := userRepository.Get(context.Background(), user.ID)
+			_, err = userRepository.GetByUsername(context.Background(), beans.Username("user"))
 			require.Nil(t, err)
-			assert.True(t, reflect.DeepEqual(user, dbUser))
 		})
 
 		t.Run("cannot create same user twice", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.CreateUser(context.Background(), beans.Username("user"), beans.Password("pass"))
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
 			require.Nil(t, err)
 
-			_, err = c.CreateUser(context.Background(), beans.Username("user"), beans.Password("password"))
+			err = c.Register(context.Background(), beans.Username("user"), beans.Password("password"))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 	})
@@ -87,7 +82,7 @@ func TestUser(t *testing.T) {
 		t.Run("cannot login with invalid password", func(t *testing.T) {
 			defer cleanup()
 
-			_, err := c.CreateUser(context.Background(), beans.Username("user"), beans.Password("pass"))
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
 			require.Nil(t, err)
 
 			_, err = c.Login(context.Background(), beans.Username("user"), beans.Password("password"))
@@ -97,13 +92,50 @@ func TestUser(t *testing.T) {
 		t.Run("can login", func(t *testing.T) {
 			defer cleanup()
 
-			user, err := c.CreateUser(context.Background(), beans.Username("user"), beans.Password("pass"))
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
 			require.Nil(t, err)
 
-			loggedInUser, err := c.Login(context.Background(), beans.Username("user"), beans.Password("pass"))
+			session, err := c.Login(context.Background(), beans.Username("user"), beans.Password("pass"))
 			require.Nil(t, err)
 
-			assert.Equal(t, user.ID, loggedInUser.ID)
+			dbUser, err := userRepository.Get(context.Background(), session.UserID)
+			require.Nil(t, err)
+			assert.Equal(t, "user", string(dbUser.Username))
+		})
+	})
+
+	t.Run("logout", func(t *testing.T) {
+		t.Run("can logout", func(t *testing.T) {
+			defer cleanup()
+
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
+			require.Nil(t, err)
+
+			session, err := c.Login(context.Background(), beans.Username("user"), beans.Password("pass"))
+			require.Nil(t, err)
+
+			err = c.Logout(context.Background(), beans.NewAuthContext(session.UserID, session.ID))
+			require.Nil(t, err)
+
+			_, err = sessionRepository.Get(session.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+	})
+
+	t.Run("get me", func(t *testing.T) {
+		t.Run("can get me", func(t *testing.T) {
+			defer cleanup()
+
+			err := c.Register(context.Background(), beans.Username("user"), beans.Password("pass"))
+			require.Nil(t, err)
+
+			session, err := c.Login(context.Background(), beans.Username("user"), beans.Password("pass"))
+			require.Nil(t, err)
+
+			user, err := c.GetMe(context.Background(), beans.NewAuthContext(session.UserID, session.ID))
+			require.Nil(t, err)
+
+			assert.Equal(t, "user", string(user.Username))
 		})
 	})
 }

@@ -97,7 +97,10 @@ func (a *Application) Start() error {
 			a.monthRepository,
 			a.payeeRepository,
 		),
-		contract.NewUserContract(a.userRepository),
+		contract.NewUserContract(
+			a.sessionRepository,
+			a.userRepository,
+		),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)

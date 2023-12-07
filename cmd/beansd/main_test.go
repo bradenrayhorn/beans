@@ -2,21 +2,17 @@ package main_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
-	"github.com/bradenrayhorn/beans/beans"
 	main "github.com/bradenrayhorn/beans/cmd/beansd"
-	"github.com/bradenrayhorn/beans/contract"
 	"github.com/bradenrayhorn/beans/internal/sql/migrations"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type TestApplication struct {
@@ -152,78 +148,4 @@ func (ta *TestApplication) doRequest(tb testing.TB, method string, path string, 
 	}
 
 	return &TestResponse{resp: resp, StatusCode: resp.StatusCode, Body: string(respBody), SessionIDFromCookie: sessionID}
-}
-
-// database helpers
-
-func (ta *TestApplication) CreateUser(tb testing.TB, username string, password string) *beans.User {
-	userID := beans.NewBeansID()
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	require.Nil(tb, err)
-	err = ta.application.UserRepository().Create(context.Background(), userID, beans.Username(username), beans.PasswordHash(passwordHash))
-	require.Nil(tb, err)
-	return &beans.User{ID: userID, Username: beans.Username(username), PasswordHash: beans.PasswordHash(passwordHash)}
-}
-
-func (ta *TestApplication) CreateSession(tb testing.TB, user *beans.User) *beans.Session {
-	session, err := ta.application.SessionRepository().Create(user.ID)
-	require.Nil(tb, err)
-	return session
-}
-
-func (ta *TestApplication) CreateUserAndSession(tb testing.TB) (*beans.User, *beans.Session) {
-	user := ta.CreateUser(tb, "testuser", "password")
-	session := ta.CreateSession(tb, user)
-	return user, session
-}
-
-func (ta *TestApplication) CreateBudget(tb testing.TB, name string, user *beans.User) *beans.Budget {
-	c := contract.NewBudgetContract(
-		ta.application.BudgetRepository(),
-		ta.application.CategoryRepository(),
-		ta.application.MonthRepository(),
-		ta.application.TxManager(),
-	)
-	budget, err := c.Create(context.Background(), beans.NewAuthContext(user.ID), beans.Name(name))
-	require.Nil(tb, err)
-	return budget
-}
-
-func (ta *TestApplication) CreateMonth(tb testing.TB, budget *beans.Budget, date beans.Date) *beans.Month {
-	id := beans.NewBeansID()
-	month := &beans.Month{ID: id, BudgetID: budget.ID, Date: beans.NewMonthDate(date)}
-	err := ta.application.MonthRepository().Create(context.Background(), nil, month)
-	require.Nil(tb, err)
-	return month
-}
-
-func (ta *TestApplication) CreateCategory(tb testing.TB, budget *beans.Budget, group *beans.CategoryGroup, name string) *beans.Category {
-	id := beans.NewBeansID()
-	category := &beans.Category{ID: id, BudgetID: budget.ID, GroupID: group.ID, Name: beans.Name(name)}
-	err := ta.application.CategoryRepository().Create(context.Background(), nil, category)
-	require.Nil(tb, err)
-	return category
-}
-
-func (ta *TestApplication) CreateCategoryGroup(tb testing.TB, budget *beans.Budget, name string) *beans.CategoryGroup {
-	id := beans.NewBeansID()
-	group := &beans.CategoryGroup{ID: id, BudgetID: budget.ID, Name: beans.Name(name)}
-	err := ta.application.CategoryRepository().CreateGroup(context.Background(), nil, group)
-	require.Nil(tb, err)
-	return group
-}
-
-func (ta *TestApplication) CreateMonthCategory(tb testing.TB, month *beans.Month, category *beans.Category, amount beans.Amount) *beans.MonthCategory {
-	id := beans.NewBeansID()
-	monthCategory := &beans.MonthCategory{ID: id, MonthID: month.ID, CategoryID: category.ID, Amount: amount}
-	err := ta.application.MonthCategoryRepository().Create(context.Background(), nil, monthCategory)
-	require.Nil(tb, err)
-	return monthCategory
-}
-
-func (ta *TestApplication) CreateAccount(tb testing.TB, name string, budget *beans.Budget) *beans.Account {
-	id := beans.NewBeansID()
-	err := ta.application.AccountRepository().Create(context.Background(), id, beans.Name(name), budget.ID)
-	require.Nil(tb, err)
-	return &beans.Account{ID: id, Name: beans.Name(name), BudgetID: budget.ID}
 }
