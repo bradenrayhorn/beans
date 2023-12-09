@@ -1,4 +1,4 @@
-package http
+package http_test
 
 import (
 	"fmt"
@@ -6,15 +6,11 @@ import (
 	"testing"
 
 	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/bradenrayhorn/beans/server/internal/mocks"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransaction(t *testing.T) {
-	contract := mocks.NewMockTransactionContract()
-	sv := Server{transactionContract: contract}
-
 	user := &beans.User{ID: beans.NewBeansID()}
 	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
 	account := &beans.Account{ID: beans.NewBeansID(), Name: "Accounty", BudgetID: budget.ID}
@@ -36,15 +32,32 @@ func TestTransaction(t *testing.T) {
 	}
 
 	t.Run("create", func(t *testing.T) {
-		contract.CreateFunc.PushReturn(transaction, nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		req := fmt.Sprintf(`{"account_id":"%s","category_id":"%s","payee_id":"%s","amount":5,"date":"2022-01-09","notes":"hi there"}`, account.ID, category.ID, payee.ID)
-		res := testutils.HTTP(t, sv.handleTransactionCreate(), user, budget, req, http.StatusOK)
+		test.transactionContract.CreateFunc.PushReturn(transaction, nil)
 
-		expected := fmt.Sprintf(`{"data":{"transaction_id":"%s"}}`, transaction.ID)
-		assert.JSONEq(t, expected, res)
+		res := test.DoRequest(t, HTTPRequest{
+			method: "POST",
+			path:   "/api/v1/transactions",
+			body: fmt.Sprintf(`{
+				"account_id":"%s",
+				"category_id":"%s",
+				"payee_id":"%s",
+				"amount":5,
+				"date":"2022-01-09",
+				"notes":"hi there"
+			}`, account.ID, category.ID, payee.ID),
+			user:   user,
+			budget: budget,
+		})
 
-		params := contract.CreateFunc.History()[0]
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.JSONEq(t, fmt.Sprintf(
+			`{"data":{"transaction_id":"%s"}}`, transaction.ID,
+		), res.body)
+
+		params := test.transactionContract.CreateFunc.History()[0]
 		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, beans.TransactionCreateParams{
 			TransactionParams: beans.TransactionParams{
@@ -59,13 +72,30 @@ func TestTransaction(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		contract.UpdateFunc.PushReturn(nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		req := fmt.Sprintf(`{"account_id":"%s","category_id":"%s","payee_id":"%s","amount":5,"date":"2022-01-09","notes":"hi there"}`, account.ID, category.ID, payee.ID)
-		options := &testutils.HTTPOptions{URLParams: map[string]string{"transactionID": transaction.ID.String()}}
-		_ = testutils.HTTPWithOptions(t, sv.handleTransactionUpdate(), options, user, budget, req, http.StatusOK)
+		test.transactionContract.UpdateFunc.PushReturn(nil)
 
-		params := contract.UpdateFunc.History()[0]
+		res := test.DoRequest(t, HTTPRequest{
+			method: "PUT",
+			path:   fmt.Sprintf("/api/v1/transactions/%s", transaction.ID),
+			body: fmt.Sprintf(`{
+				"account_id":"%s",
+				"category_id":"%s",
+				"payee_id":"%s",
+				"amount":5,
+				"date":"2022-01-09",
+				"notes":"hi there"
+			}`, account.ID, category.ID, payee.ID),
+			user:   user,
+			budget: budget,
+		})
+
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, res.body)
+
+		params := test.transactionContract.UpdateFunc.History()[0]
 		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
 		assert.Equal(t, beans.TransactionUpdateParams{
 			ID: transaction.ID,
@@ -81,9 +111,17 @@ func TestTransaction(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		contract.GetAllFunc.PushReturn([]*beans.Transaction{transaction}, nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		res := testutils.HTTP(t, sv.handleTransactionGetAll(), user, budget, nil, http.StatusOK)
+		test.transactionContract.GetAllFunc.PushReturn([]*beans.Transaction{transaction}, nil)
+
+		res := test.DoRequest(t, HTTPRequest{
+			method: "GET",
+			path:   "/api/v1/transactions",
+			user:   user,
+			budget: budget,
+		})
 
 		expected := fmt.Sprintf(`{"data": [{
 			"id": "%s",
@@ -107,6 +145,7 @@ func TestTransaction(t *testing.T) {
 			"notes": "hi there"
 		}]}`, transaction.ID, account.ID, category.ID, payee.ID)
 
-		assert.JSONEq(t, expected, res)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.JSONEq(t, expected, res.body)
 	})
 }

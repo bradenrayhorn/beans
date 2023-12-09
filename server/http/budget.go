@@ -98,7 +98,7 @@ func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 			return
 		}
 
-		budget, err := s.budgetRepository.Get(r.Context(), budgetID)
+		budget, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
 		if err != nil {
 			Error(w, err)
 			return

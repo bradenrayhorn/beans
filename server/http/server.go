@@ -25,27 +25,9 @@ type Server struct {
 	payeeContract       beans.PayeeContract
 	transactionContract beans.TransactionContract
 	userContract        beans.UserContract
-
-	accountRepository       beans.AccountRepository
-	budgetRepository        beans.BudgetRepository
-	categoryRepository      beans.CategoryRepository
-	monthRepository         beans.MonthRepository
-	monthCategoryRepository beans.MonthCategoryRepository
-	sessionRepository       beans.SessionRepository
-	transactionRepository   beans.TransactionRepository
-	userRepository          beans.UserRepository
 }
 
 func NewServer(
-	ar beans.AccountRepository,
-	br beans.BudgetRepository,
-	cr beans.CategoryRepository,
-	mr beans.MonthRepository,
-	mcr beans.MonthCategoryRepository,
-	sr beans.SessionRepository,
-	tr beans.TransactionRepository,
-	ur beans.UserRepository,
-
 	accountContract beans.AccountContract,
 	budgetContract beans.BudgetContract,
 	categoryContract beans.CategoryContract,
@@ -65,15 +47,6 @@ func NewServer(
 		payeeContract:       payeeContract,
 		transactionContract: transactionContract,
 		userContract:        userContract,
-
-		accountRepository:       ar,
-		budgetRepository:        br,
-		categoryRepository:      cr,
-		monthRepository:         mr,
-		monthCategoryRepository: mcr,
-		sessionRepository:       sr,
-		transactionRepository:   tr,
-		userRepository:          ur,
 	}
 
 	s.sv.Handler = s.router

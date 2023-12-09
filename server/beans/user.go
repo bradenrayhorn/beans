@@ -53,6 +53,9 @@ type UserContract interface {
 
 	// Gets the currently authenticated user
 	GetMe(ctx context.Context, auth *AuthContext) (*User, error)
+
+	// Builds auth context
+	GetAuth(ctx context.Context, sessionID SessionID) (*AuthContext, error)
 }
 
 type UserRepository interface {

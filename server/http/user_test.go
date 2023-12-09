@@ -1,67 +1,115 @@
-package http
+package http_test
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/bradenrayhorn/beans/server/internal/mocks"
-	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUser(t *testing.T) {
-	contract := mocks.NewMockUserContract()
-	sv := Server{userContract: contract}
-
 	user := &beans.User{ID: beans.NewBeansID(), Username: "user"}
 
 	t.Run("register", func(t *testing.T) {
-		contract.RegisterFunc.PushReturn(nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		req := `{"username":"user","password":"password"}`
-		res := testutils.HTTP(t, sv.handleUserRegister(), user, nil, req, http.StatusOK)
+		test.userContract.RegisterFunc.PushReturn(nil)
 
-		assert.Equal(t, "", res)
+		res := test.DoRequest(t, HTTPRequest{
+			method: "POST",
+			path:   "/api/v1/user/register",
+			body:   `{"username":"user","password":"password"}`,
+		})
 
-		params := contract.RegisterFunc.History()[0]
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, res.body)
+
+		params := test.userContract.RegisterFunc.History()[0]
 		assert.Equal(t, "user", string(params.Arg1))
 		assert.Equal(t, "password", string(params.Arg2))
 	})
 
 	t.Run("login", func(t *testing.T) {
-		contract.LoginFunc.PushReturn(&beans.Session{}, nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		req := `{"username":"user","password":"password"}`
-		res := testutils.HTTP(t, sv.handleUserLogin(), user, nil, req, http.StatusOK)
+		test.userContract.LoginFunc.PushReturn(&beans.Session{
+			ID: beans.SessionID("12345"),
+		}, nil)
 
-		assert.Equal(t, "", res)
+		res := test.DoRequest(t, HTTPRequest{
+			method: "POST",
+			path:   "/api/v1/user/login",
+			body:   `{"username":"user","password":"password"}`,
+		})
 
-		params := contract.LoginFunc.History()[0]
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, res.body)
+		var cookie *http.Cookie
+		for _, c := range res.Cookies() {
+			if c.Name == "session_id" {
+				cookie = c
+			}
+		}
+		require.NotNil(t, cookie)
+		assert.Equal(t, "12345", cookie.Value)
+
+		params := test.userContract.LoginFunc.History()[0]
 		assert.Equal(t, "user", string(params.Arg1))
 		assert.Equal(t, "password", string(params.Arg2))
 	})
 
 	t.Run("logout", func(t *testing.T) {
-		contract.LogoutFunc.PushReturn(nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		res := testutils.HTTP(t, sv.handleUserLogout(), user, nil, nil, http.StatusOK)
+		test.userContract.LogoutFunc.PushReturn(nil)
 
-		assert.Equal(t, "", res)
+		res := test.DoRequest(t, HTTPRequest{
+			method: "POST",
+			path:   "/api/v1/user/logout",
+			user:   user,
+		})
 
-		params := contract.LogoutFunc.History()[0]
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, res.body)
+		var cookie *http.Cookie
+		for _, c := range res.Cookies() {
+			if c.Name == "session_id" {
+				cookie = c
+			}
+		}
+		require.NotNil(t, cookie)
+		assert.LessOrEqual(t, cookie.Expires, time.Now())
+
+		params := test.userContract.LogoutFunc.History()[0]
 		assert.Equal(t, user.ID, params.Arg1.UserID())
 	})
 
 	t.Run("get me", func(t *testing.T) {
-		contract.GetMeFunc.PushReturn(user, nil)
+		test := newHttpTest(t)
+		defer test.Stop(t)
 
-		res := testutils.HTTP(t, sv.handleUserMe(), user, nil, nil, http.StatusOK)
+		test.userContract.GetMeFunc.PushReturn(user, nil)
 
-		assert.JSONEq(t, fmt.Sprintf(`{"username":"user","id":"%s"}`, user.ID.String()), res)
+		res := test.DoRequest(t, HTTPRequest{
+			method: "GET",
+			path:   "/api/v1/user/me",
+			user:   user,
+		})
 
-		params := contract.GetMeFunc.History()[0]
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.JSONEq(t, fmt.Sprintf(
+			`{"username":"user","id":"%s"}`,
+			user.ID.String(),
+		), res.body)
+
+		params := test.userContract.GetMeFunc.History()[0]
 		assert.Equal(t, user.ID, params.Arg1.UserID())
 	})
 }

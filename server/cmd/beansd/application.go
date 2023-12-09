@@ -63,15 +63,6 @@ func (a *Application) Start() error {
 	a.userRepository = postgres.NewUserRepository(pool)
 
 	a.httpServer = http.NewServer(
-		a.accountRepository,
-		a.budgetRepository,
-		a.categoryRepository,
-		a.monthRepository,
-		a.monthCategoryRepository,
-		a.sessionRepository,
-		a.transactionRepository,
-		a.userRepository,
-
 		contract.NewAccountContract(a.accountRepository),
 		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
 		contract.NewCategoryContract(
