@@ -1,5 +1,6 @@
 import { getAccounts } from "$lib/api/requests/account";
 import { getCategoryGroups } from "$lib/api/requests/category";
+import { getPayees } from "$lib/api/requests/payee";
 import type { LayoutLoad } from "./$types";
 
 export const load: LayoutLoad = async ({ fetch, params }) => {
@@ -8,5 +9,7 @@ export const load: LayoutLoad = async ({ fetch, params }) => {
 
   const accounts = await getAccounts({ fetch, params });
 
-  return { categoryGroups, categories, accounts };
+  const payees = await getPayees({ fetch, params });
+
+  return { categoryGroups, categories, accounts, payees };
 };

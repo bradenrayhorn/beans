@@ -23,4 +23,8 @@
   <b>Add Transaction</b>
 </div>
 
-<TransactionForm categories={data.categories} accounts={data.accounts} />
+<TransactionForm
+  categories={data.categories}
+  accounts={data.accounts}
+  payees={data.payees}
+/>

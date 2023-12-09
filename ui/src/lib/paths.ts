@@ -33,7 +33,10 @@ export const paths = {
         newSubGroup:
           "/budget/[budgetID]/settings/categories/[categoryGroupID]/new",
       },
-      payees: "/budget/[budgetID]/settings/payees",
+      payees: {
+        base: "/budget/[budgetID]/settings/payees",
+        new: "/budget/[budgetID]/settings/payees/new",
+      },
     },
   },
 };

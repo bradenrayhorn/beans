@@ -3,6 +3,7 @@ import {
   createAccount,
   createCategory,
   createCategoryGroup,
+  createPayee,
   test,
 } from "../../setup";
 
@@ -14,6 +15,7 @@ test("can add transaction", async ({ budget: { id }, page }) => {
     page.context().request,
   );
   await createCategory(id, groupID, "Electric", page.context().request);
+  await createPayee(id, "Workplace", page.context().request);
 
   // go to ledger page
   await page.goto(`/budget/${id}`);
@@ -23,6 +25,7 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await page.getByRole("link", { name: "Add" }).click();
 
   await page.getByLabel("Date").locator("visible=true").fill("2022-10-14");
+  await page.getByRole("combobox", { name: "Payee" }).selectOption("Workplace");
   await page
     .getByRole("combobox", { name: "Account" })
     .selectOption("Checking");
@@ -39,7 +42,7 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await expect(page.getByRole("row")).toHaveCount(2);
   const cells = page.getByRole("row").nth(1).getByRole("cell");
   await expect(cells.nth(1)).toHaveText("2022-10-14");
-  await expect(cells.nth(2)).toHaveText("Electric Checking");
+  await expect(cells.nth(2)).toHaveText("Workplace");
   await expect(cells.nth(3)).toHaveText("Electric");
   await expect(cells.nth(4)).toHaveText("Checking");
   await expect(cells.nth(5)).toHaveText("Test notes");

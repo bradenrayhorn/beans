@@ -115,6 +115,7 @@ export const createCategory = async (
 
 export const createTransaction = async (
   budgetID: string,
+  payeeID: string | null,
   categoryID: string,
   accountID: string,
   amount: string,
@@ -124,6 +125,7 @@ export const createTransaction = async (
   const response = await request.post(`/api/v1/transactions`, {
     data: {
       date,
+      payee_id: payeeID,
       category_id: categoryID,
       account_id: accountID,
       amount,
@@ -132,4 +134,22 @@ export const createTransaction = async (
   });
 
   expect(response.ok()).toBeTruthy();
+};
+
+export const createPayee = async (
+  budgetID: string,
+  name: string,
+  request: APIRequestContext,
+): Promise<string> => {
+  const response = await request.post(`/api/v1/payees`, {
+    data: {
+      name,
+    },
+    headers: { "Budget-ID": budgetID },
+  });
+
+  expect(response.ok()).toBeTruthy();
+
+  const data = await response.json();
+  return data.data?.id;
 };

@@ -5,10 +5,12 @@
   import SubmitButton from "$lib/components/SubmitButton.svelte";
   import type { Account } from "$lib/types/account";
   import type { Category } from "$lib/types/category";
+  import type { Payee } from "$lib/types/payee";
   import type { Transaction } from "$lib/types/transaction";
 
   export let categories: Array<Category>;
   export let accounts: Array<Account>;
+  export let payees: Array<Payee>;
   export let transaction: Transaction | undefined = undefined;
 
   let isSubmitting = false;
@@ -39,6 +41,18 @@
       class="input input-sm input-bordered w-full"
       value={transaction?.date ?? ""}
     />
+  </label>
+
+  <label>
+    <span class="label label-text">Payee</span>
+    <select name="payee_id" class="select select-bordered select-sm w-full">
+      <option value> </option>
+      {#each payees as payee (payee.id)}
+        <option value={payee.id} selected={payee.id === transaction?.payee?.id}>
+          {payee.name}
+        </option>
+      {/each}
+    </select>
   </label>
 
   <label>

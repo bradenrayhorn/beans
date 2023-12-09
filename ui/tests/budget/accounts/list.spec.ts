@@ -14,6 +14,7 @@ test("can view account", async ({ budget: { id }, page, request }) => {
   const accountID = await createAccount(id, "Checking", request);
   await createTransaction(
     id,
+    null,
     categoryID,
     accountID,
     "20.43",
