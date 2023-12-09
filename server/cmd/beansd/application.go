@@ -8,12 +8,11 @@ import (
 	"github.com/bradenrayhorn/beans/server/http"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/postgres"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Application struct {
 	httpServer *http.Server
-	pool       *pgxpool.Pool
+	pool       *postgres.DbPool
 
 	config Config
 

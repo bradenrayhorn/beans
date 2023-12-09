@@ -25,8 +25,7 @@ func TestPayees(t *testing.T) {
 	budgetID2 := testutils.MakeBudget(t, pool, "budget2", userID).ID
 
 	cleanup := func() {
-		_, err := pool.Exec(context.Background(), "truncate payees cascade;")
-		require.Nil(t, err)
+		testutils.MustExec(t, pool, "truncate payees cascade;")
 	}
 
 	t.Run("can create and get", func(t *testing.T) {

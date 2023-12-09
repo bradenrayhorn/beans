@@ -24,7 +24,7 @@ func Month(d db.Month) (*beans.Month, error) {
 	return &beans.Month{
 		ID:        id,
 		BudgetID:  budgetID,
-		Date:      beans.NewMonthDate(beans.NewDate(d.Date)),
+		Date:      PgToMonthDate(d.Date),
 		Carryover: carryover,
 	}, nil
 }

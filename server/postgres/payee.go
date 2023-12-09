@@ -6,14 +6,13 @@ import (
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type payeeRepository struct {
 	repository
 }
 
-func NewPayeeRepository(pool *pgxpool.Pool) *payeeRepository {
+func NewPayeeRepository(pool *DbPool) *payeeRepository {
 	return &payeeRepository{repository{pool}}
 }
 

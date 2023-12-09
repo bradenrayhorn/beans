@@ -25,8 +25,7 @@ func TestCategories(t *testing.T) {
 	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
 
 	cleanup := func() {
-		_, err := pool.Exec(context.Background(), "truncate categories, category_groups cascade;")
-		require.Nil(t, err)
+		testutils.MustExec(t, pool, "truncate categories, category_groups cascade;")
 	}
 
 	t.Run("can create", func(t *testing.T) {

@@ -7,10 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTransaction = `-- name: CreateTransaction :exec
@@ -22,11 +20,11 @@ INSERT INTO transactions (
 type CreateTransactionParams struct {
 	ID         string
 	AccountID  string
-	PayeeID    sql.NullString
-	CategoryID sql.NullString
-	Date       time.Time
+	PayeeID    pgtype.Text
+	CategoryID pgtype.Text
+	Date       pgtype.Date
 	Amount     pgtype.Numeric
-	Notes      sql.NullString
+	Notes      pgtype.Text
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
@@ -58,7 +56,7 @@ SELECT categories.id, sum(transactions.amount)::numeric as activity
 
 type GetActivityBeforeDateByCategoryParams struct {
 	BudgetID string
-	Date     time.Time
+	Date     pgtype.Date
 }
 
 type GetActivityBeforeDateByCategoryRow struct {
@@ -104,8 +102,8 @@ WHERE
 
 type GetIncomeBetweenParams struct {
 	BudgetID  string
-	EndDate   time.Time
-	BeginDate time.Time
+	EndDate   pgtype.Date
+	BeginDate pgtype.Date
 }
 
 func (q *Queries) GetIncomeBetween(ctx context.Context, arg GetIncomeBetweenParams) (pgtype.Numeric, error) {
@@ -126,12 +124,12 @@ SELECT transactions.id, transactions.account_id, transactions.payee_id, transact
 type GetTransactionRow struct {
 	ID          string
 	AccountID   string
-	PayeeID     sql.NullString
-	CategoryID  sql.NullString
-	Date        time.Time
+	PayeeID     pgtype.Text
+	CategoryID  pgtype.Text
+	Date        pgtype.Date
 	Amount      pgtype.Numeric
-	Notes       sql.NullString
-	CreatedAt   time.Time
+	Notes       pgtype.Text
+	CreatedAt   pgtype.Timestamp
 	AccountName string
 	BudgetID    string
 }
@@ -174,15 +172,15 @@ ORDER BY date desc
 type GetTransactionsForBudgetRow struct {
 	ID           string
 	AccountID    string
-	PayeeID      sql.NullString
-	CategoryID   sql.NullString
-	Date         time.Time
+	PayeeID      pgtype.Text
+	CategoryID   pgtype.Text
+	Date         pgtype.Date
 	Amount       pgtype.Numeric
-	Notes        sql.NullString
-	CreatedAt    time.Time
+	Notes        pgtype.Text
+	CreatedAt    pgtype.Timestamp
 	AccountName  string
-	CategoryName sql.NullString
-	PayeeName    sql.NullString
+	CategoryName pgtype.Text
+	PayeeName    pgtype.Text
 }
 
 func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]GetTransactionsForBudgetRow, error) {
@@ -225,11 +223,11 @@ UPDATE transactions
 
 type UpdateTransactionParams struct {
 	AccountID  string
-	CategoryID sql.NullString
-	PayeeID    sql.NullString
-	Date       time.Time
+	CategoryID pgtype.Text
+	PayeeID    pgtype.Text
+	Date       pgtype.Date
 	Amount     pgtype.Numeric
-	Notes      sql.NullString
+	Notes      pgtype.Text
 	ID         string
 }
 

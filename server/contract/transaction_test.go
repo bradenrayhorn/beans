@@ -20,8 +20,7 @@ func TestTransaction(t *testing.T) {
 	defer stop()
 
 	cleanup := func() {
-		_, err := pool.Exec(context.Background(), "truncate table users, budgets cascade;")
-		require.Nil(t, err)
+		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
 	transactionRepository := postgres.NewTransactionRepository(pool)

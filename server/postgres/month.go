@@ -7,14 +7,13 @@ import (
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type monthRepository struct {
 	repository
 }
 
-func NewMonthRepository(pool *pgxpool.Pool) *monthRepository {
+func NewMonthRepository(pool *DbPool) *monthRepository {
 	return &monthRepository{repository{pool}}
 }
 
@@ -22,8 +21,8 @@ func (r *monthRepository) Create(ctx context.Context, tx beans.Tx, month *beans.
 	return r.DB(tx).CreateMonth(ctx, db.CreateMonthParams{
 		ID:        month.ID.String(),
 		BudgetID:  month.BudgetID.String(),
-		Date:      month.Date.Time(),
-		Carryover: amountToNumeric(month.Carryover.OrZero()),
+		Date:      mapper.MonthDateToPg(month.Date),
+		Carryover: mapper.AmountToNumeric(month.Carryover.OrZero()),
 	})
 }
 
@@ -39,12 +38,12 @@ func (r *monthRepository) Get(ctx context.Context, id beans.ID) (*beans.Month, e
 func (r *monthRepository) Update(ctx context.Context, month *beans.Month) error {
 	return r.DB(nil).UpdateMonth(ctx, db.UpdateMonthParams{
 		ID:        month.ID.String(),
-		Carryover: amountToNumeric(month.Carryover.OrZero()),
+		Carryover: mapper.AmountToNumeric(month.Carryover.OrZero()),
 	})
 }
 
 func (r *monthRepository) GetOrCreate(ctx context.Context, tx beans.Tx, budgetID beans.ID, date beans.MonthDate) (*beans.Month, error) {
-	res, err := r.DB(tx).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: date.Time()})
+	res, err := r.DB(tx).GetMonthByDate(ctx, db.GetMonthByDateParams{BudgetID: budgetID.String(), Date: mapper.MonthDateToPg(date)})
 	if err != nil {
 		err = mapPostgresError(err)
 

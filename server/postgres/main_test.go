@@ -6,8 +6,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/postgres"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +17,7 @@ func assertPgError(tb testing.TB, code string, err error) {
 	require.Equal(tb, code, pgErr.Code)
 }
 
-func makeTransaction(tb testing.TB, pool *pgxpool.Pool, transaction *beans.Transaction) *beans.Transaction {
+func makeTransaction(tb testing.TB, pool *postgres.DbPool, transaction *beans.Transaction) *beans.Transaction {
 	err := postgres.NewTransactionRepository(pool).Create(context.Background(), transaction)
 	require.Nil(tb, err)
 	return transaction

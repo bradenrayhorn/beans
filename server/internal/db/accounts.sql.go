@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"time"
 
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createAccount = `-- name: CreateAccount :exec
@@ -62,7 +61,7 @@ type GetAccountsForBudgetRow struct {
 	ID        string
 	Name      string
 	BudgetID  string
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamp
 	Balance   pgtype.Numeric
 }
 

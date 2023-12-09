@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Tx struct {
@@ -21,15 +21,15 @@ func (t *Tx) Rollback(ctx context.Context) error {
 }
 
 type TxManager struct {
-	pool *pgxpool.Pool
+	pool *DbPool
 }
 
-func NewTxManager(pool *pgxpool.Pool) *TxManager {
+func NewTxManager(pool *DbPool) *TxManager {
 	return &TxManager{pool}
 }
 
 func (m *TxManager) Create(ctx context.Context) (beans.Tx, error) {
-	ptx, err := m.pool.Begin(ctx)
+	ptx, err := (*pgxpool.Pool)(m.pool).Begin(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -5,43 +5,43 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/bradenrayhorn/beans/server/postgres/mapper"
 )
 
 type TransactionRepository struct {
-	db *db.Queries
+	repository
 }
 
-func NewTransactionRepository(pool *pgxpool.Pool) *TransactionRepository {
-	return &TransactionRepository{db: db.New(pool)}
+func NewTransactionRepository(pool *DbPool) *TransactionRepository {
+	return &TransactionRepository{repository{pool}}
 }
 
 func (r *TransactionRepository) Create(ctx context.Context, transaction *beans.Transaction) error {
-	return r.db.CreateTransaction(ctx, db.CreateTransactionParams{
+	return r.DB(nil).CreateTransaction(ctx, db.CreateTransactionParams{
 		ID:         transaction.ID.String(),
 		AccountID:  transaction.AccountID.String(),
-		CategoryID: idToNullString(transaction.CategoryID),
-		PayeeID:    idToNullString(transaction.PayeeID),
-		Date:       transaction.Date.Time,
-		Amount:     amountToNumeric(transaction.Amount),
-		Notes:      transaction.Notes.SQLNullString(),
+		CategoryID: mapper.IDToPg(transaction.CategoryID),
+		PayeeID:    mapper.IDToPg(transaction.PayeeID),
+		Date:       mapper.DateToPg(transaction.Date),
+		Amount:     mapper.AmountToNumeric(transaction.Amount),
+		Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
 	})
 }
 
 func (r *TransactionRepository) Update(ctx context.Context, transaction *beans.Transaction) error {
-	return r.db.UpdateTransaction(ctx, db.UpdateTransactionParams{
+	return r.DB(nil).UpdateTransaction(ctx, db.UpdateTransactionParams{
 		ID:         transaction.ID.String(),
 		AccountID:  transaction.AccountID.String(),
-		CategoryID: idToNullString(transaction.CategoryID),
-		PayeeID:    idToNullString(transaction.PayeeID),
-		Date:       transaction.Date.Time,
-		Amount:     amountToNumeric(transaction.Amount),
-		Notes:      transaction.Notes.SQLNullString(),
+		CategoryID: mapper.IDToPg(transaction.CategoryID),
+		PayeeID:    mapper.IDToPg(transaction.PayeeID),
+		Date:       mapper.DateToPg(transaction.Date),
+		Amount:     mapper.AmountToNumeric(transaction.Amount),
+		Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
 	})
 }
 
 func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Transaction, error) {
-	t, err := r.db.GetTransaction(ctx, id.String())
+	t, err := r.DB(nil).GetTransaction(ctx, id.String())
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}
@@ -54,15 +54,15 @@ func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Tr
 	if err != nil {
 		return nil, err
 	}
-	amount, err := numericToAmount(t.Amount)
+	amount, err := mapper.NumericToAmount(t.Amount)
 	if err != nil {
 		return nil, err
 	}
-	categoryID, err := nullStringToID(t.CategoryID)
+	categoryID, err := mapper.PgToID(t.CategoryID)
 	if err != nil {
 		return nil, err
 	}
-	payeeID, err := nullStringToID(t.PayeeID)
+	payeeID, err := mapper.PgToID(t.PayeeID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Tr
 		CategoryID: categoryID,
 		PayeeID:    payeeID,
 		Amount:     amount,
-		Date:       beans.NewDate(t.Date),
-		Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
+		Date:       mapper.PgToDate(t.Date),
+		Notes:      beans.TransactionNotes{NullString: mapper.PgToNullString(t.Notes)},
 		Account: &beans.Account{
 			ID:       accountID,
 			Name:     beans.Name(t.AccountName),
@@ -85,7 +85,7 @@ func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Tr
 
 func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Transaction, error) {
 	transactions := []*beans.Transaction{}
-	dbTransactions, err := r.db.GetTransactionsForBudget(ctx, budgetID.String())
+	dbTransactions, err := r.DB(nil).GetTransactionsForBudget(ctx, budgetID.String())
 	if err != nil {
 		return nil, nil
 	}
@@ -99,15 +99,15 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		if err != nil {
 			return transactions, err
 		}
-		amount, err := numericToAmount(t.Amount)
+		amount, err := mapper.NumericToAmount(t.Amount)
 		if err != nil {
 			return transactions, err
 		}
-		categoryID, err := nullStringToID(t.CategoryID)
+		categoryID, err := mapper.PgToID(t.CategoryID)
 		if err != nil {
 			return transactions, err
 		}
-		payeeID, err := nullStringToID(t.PayeeID)
+		payeeID, err := mapper.PgToID(t.PayeeID)
 		if err != nil {
 			return transactions, err
 		}
@@ -118,15 +118,15 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 			CategoryID: categoryID,
 			PayeeID:    payeeID,
 			Amount:     amount,
-			Date:       beans.NewDate(t.Date),
-			Notes:      beans.TransactionNotes{NullString: beans.NullStringFromSQL(t.Notes)},
+			Date:       mapper.PgToDate(t.Date),
+			Notes:      beans.TransactionNotes{NullString: mapper.PgToNullString(t.Notes)},
 			Account: &beans.Account{
 				ID:       accountID,
 				Name:     beans.Name(t.AccountName),
 				BudgetID: budgetID,
 			},
-			CategoryName: beans.NullStringFromSQL(t.CategoryName),
-			PayeeName:    beans.NullStringFromSQL(t.PayeeName),
+			CategoryName: mapper.PgToNullString(t.CategoryName),
+			PayeeName:    mapper.PgToNullString(t.PayeeName),
 		})
 	}
 
@@ -134,16 +134,16 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 }
 
 func (r *TransactionRepository) GetIncomeBetween(ctx context.Context, budgetID beans.ID, begin beans.Date, end beans.Date) (beans.Amount, error) {
-	res, err := r.db.GetIncomeBetween(ctx, db.GetIncomeBetweenParams{
+	res, err := r.DB(nil).GetIncomeBetween(ctx, db.GetIncomeBetweenParams{
 		BudgetID:  budgetID.String(),
-		BeginDate: begin.Time,
-		EndDate:   end.Time,
+		BeginDate: mapper.DateToPg(begin),
+		EndDate:   mapper.DateToPg(end),
 	})
 	if err != nil {
 		return beans.NewEmptyAmount(), err
 	}
 
-	amount, err := numericToAmount(res)
+	amount, err := mapper.NumericToAmount(res)
 	if err != nil {
 		return beans.NewEmptyAmount(), err
 	}

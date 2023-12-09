@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"time"
 
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMonth = `-- name: CreateMonth :exec
@@ -21,7 +20,7 @@ INSERT INTO months (
 type CreateMonthParams struct {
 	ID        string
 	BudgetID  string
-	Date      time.Time
+	Date      pgtype.Date
 	Carryover pgtype.Numeric
 }
 
@@ -41,7 +40,7 @@ SELECT id, budget_id, date, carryover, created_at FROM months WHERE budget_id = 
 
 type GetMonthByDateParams struct {
 	BudgetID string
-	Date     time.Time
+	Date     pgtype.Date
 }
 
 func (q *Queries) GetMonthByDate(ctx context.Context, arg GetMonthByDateParams) (Month, error) {
