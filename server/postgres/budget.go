@@ -5,14 +5,13 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type BudgetRepository struct {
 	repository
 }
 
-func NewBudgetRepository(pool *pgxpool.Pool) *BudgetRepository {
+func NewBudgetRepository(pool *DbPool) *BudgetRepository {
 	return &BudgetRepository{repository{pool}}
 }
 

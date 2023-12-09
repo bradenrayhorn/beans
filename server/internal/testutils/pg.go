@@ -9,16 +9,16 @@ import (
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/sql/migrations"
 	"github.com/bradenrayhorn/beans/server/postgres"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/orlangure/gnomock"
 	pg "github.com/orlangure/gnomock/preset/postgres"
 	"github.com/stretchr/testify/require"
 )
 
-func StartPool(tb testing.TB) (*pgxpool.Pool, func()) {
+func StartPool(tb testing.TB) (*postgres.DbPool, func()) {
 	p := pg.Preset(
-		pg.WithVersion("15.2"),
+		pg.WithVersion("16.0"),
 		pg.WithDatabase("beans"),
 		pg.WithQueries(getMigrationQueries(tb)),
 	)
@@ -69,8 +69,8 @@ func getMigrationQueries(tb testing.TB) string {
 	return queries
 }
 
-func MustExec(t testing.TB, pool *pgxpool.Pool, sql string) {
-	_, err := pool.Exec(context.Background(), sql)
+func MustExec(t testing.TB, pool *postgres.DbPool, sql string) {
+	_, err := (*pgxpool.Pool)(pool).Exec(context.Background(), sql)
 	require.Nil(t, err)
 }
 

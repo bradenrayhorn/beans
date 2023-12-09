@@ -6,20 +6,19 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository struct {
-	db *db.Queries
+	repository
 }
 
-func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
-	return &UserRepository{db: db.New(pool)}
+func NewUserRepository(pool *DbPool) *UserRepository {
+	return &UserRepository{repository{pool}}
 }
 
 func (r *UserRepository) Create(ctx context.Context, id beans.ID, username beans.Username, passwordHash beans.PasswordHash) error {
-	return r.db.CreateUser(ctx, db.CreateUserParams{
+	return r.DB(nil).CreateUser(ctx, db.CreateUserParams{
 		ID:       id.String(),
 		Username: string(username),
 		Password: string(passwordHash),
@@ -27,11 +26,11 @@ func (r *UserRepository) Create(ctx context.Context, id beans.ID, username beans
 }
 
 func (r *UserRepository) Exists(ctx context.Context, username beans.Username) (bool, error) {
-	return r.db.UserExists(ctx, string(username))
+	return r.DB(nil).UserExists(ctx, string(username))
 }
 
 func (r *UserRepository) Get(ctx context.Context, id beans.ID) (*beans.User, error) {
-	res, err := r.db.GetUserByID(ctx, id.String())
+	res, err := r.DB(nil).GetUserByID(ctx, id.String())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, beans.WrapError(err, beans.ErrorNotFound)
@@ -47,7 +46,7 @@ func (r *UserRepository) Get(ctx context.Context, id beans.ID) (*beans.User, err
 }
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username beans.Username) (*beans.User, error) {
-	res, err := r.db.GetUserByUsername(ctx, string(username))
+	res, err := r.DB(nil).GetUserByUsername(ctx, string(username))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, beans.WrapError(err, beans.ErrorNotFound)

@@ -4,7 +4,6 @@ import (
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/net/context"
 )
 
@@ -12,7 +11,7 @@ type categoryRepository struct {
 	repository
 }
 
-func NewCategoryRepository(pool *pgxpool.Pool) *categoryRepository {
+func NewCategoryRepository(pool *DbPool) *categoryRepository {
 	return &categoryRepository{repository{pool}}
 }
 

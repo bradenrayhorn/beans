@@ -1,7 +1,6 @@
 package beans
 
 import (
-	"database/sql"
 	"encoding/json"
 	"strings"
 )
@@ -23,14 +22,6 @@ type NullString struct {
 
 func NewNullString(string string) NullString {
 	return NullString{string: strings.TrimSpace(string), set: len(strings.TrimSpace(string)) > 0}
-}
-
-func (s NullString) SQLNullString() sql.NullString {
-	return sql.NullString{String: s.string, Valid: s.set}
-}
-
-func NullStringFromSQL(s sql.NullString) NullString {
-	return NullString{string: s.String, set: s.Valid}
 }
 
 func (s NullString) MarshalJSON() ([]byte, error) {

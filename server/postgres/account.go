@@ -5,23 +5,23 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/internal/db"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/bradenrayhorn/beans/server/postgres/mapper"
 )
 
 type AccountRepository struct {
-	db *db.Queries
+	repository
 }
 
-func NewAccountRepository(pool *pgxpool.Pool) *AccountRepository {
-	return &AccountRepository{db: db.New(pool)}
+func NewAccountRepository(pool *DbPool) *AccountRepository {
+	return &AccountRepository{repository{pool}}
 }
 
 func (r *AccountRepository) Create(ctx context.Context, id beans.ID, name beans.Name, budgetID beans.ID) error {
-	return r.db.CreateAccount(ctx, db.CreateAccountParams{ID: id.String(), Name: string(name), BudgetID: budgetID.String()})
+	return r.DB(nil).CreateAccount(ctx, db.CreateAccountParams{ID: id.String(), Name: string(name), BudgetID: budgetID.String()})
 }
 
 func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (*beans.Account, error) {
-	account, err := r.db.GetAccount(ctx, id.String())
+	account, err := r.DB(nil).GetAccount(ctx, id.String())
 	if err != nil {
 		return nil, mapPostgresError(err)
 	}
@@ -38,7 +38,7 @@ func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (*beans.Accoun
 
 func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Account, error) {
 	accounts := []*beans.Account{}
-	dbAccounts, err := r.db.GetAccountsForBudget(ctx, budgetID.String())
+	dbAccounts, err := r.DB(nil).GetAccountsForBudget(ctx, budgetID.String())
 	if err != nil {
 		return accounts, err
 	}
@@ -54,7 +54,7 @@ func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 			return accounts, err
 		}
 
-		balance, err := numericToAmount(a.Balance)
+		balance, err := mapper.NumericToAmount(a.Balance)
 		if err != nil {
 			return accounts, err
 		}
