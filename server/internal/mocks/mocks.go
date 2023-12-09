@@ -10,8 +10,8 @@ import (
 )
 
 // MockAccountContract is a mock implementation of the AccountContract
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockAccountContract struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -290,8 +290,8 @@ func (c AccountContractGetAllFuncCall) Results() []interface{} {
 }
 
 // MockAccountRepository is a mock implementation of the AccountRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockAccountRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -697,8 +697,8 @@ func (c AccountRepositoryGetForBudgetFuncCall) Results() []interface{} {
 }
 
 // MockBudgetContract is a mock implementation of the BudgetContract
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockBudgetContract struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -1103,8 +1103,8 @@ func (c BudgetContractGetAllFuncCall) Results() []interface{} {
 }
 
 // MockBudgetRepository is a mock implementation of the BudgetRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockBudgetRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -1513,8 +1513,8 @@ func (c BudgetRepositoryGetBudgetsForUserFuncCall) Results() []interface{} {
 }
 
 // MockCategoryContract is a mock implementation of the CategoryContract
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockCategoryContract struct {
 	// CreateCategoryFunc is an instance of a mock function object
 	// controlling the behavior of the method CreateCategory.
@@ -1929,8 +1929,8 @@ func (c CategoryContractGetAllFuncCall) Results() []interface{} {
 }
 
 // MockCategoryRepository is a mock implementation of the CategoryRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockCategoryRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -2723,7 +2723,8 @@ func (c CategoryRepositoryGroupExistsFuncCall) Results() []interface{} {
 }
 
 // MockCountable is a mock implementation of the Countable interface (from
-// the package github.com/bradenrayhorn/beans/server/beans) used for unit testing.
+// the package github.com/bradenrayhorn/beans/server/beans) used for unit
+// testing.
 type MockCountable struct {
 	// LengthFunc is an instance of a mock function object controlling the
 	// behavior of the method Length.
@@ -2863,7 +2864,8 @@ func (c CountableLengthFuncCall) Results() []interface{} {
 }
 
 // MockEmptiable is a mock implementation of the Emptiable interface (from
-// the package github.com/bradenrayhorn/beans/server/beans) used for unit testing.
+// the package github.com/bradenrayhorn/beans/server/beans) used for unit
+// testing.
 type MockEmptiable struct {
 	// EmptyFunc is an instance of a mock function object controlling the
 	// behavior of the method Empty.
@@ -3003,7 +3005,8 @@ func (c EmptiableEmptyFuncCall) Results() []interface{} {
 }
 
 // MockError is a mock implementation of the Error interface (from the
-// package github.com/bradenrayhorn/beans/server/beans) used for unit testing.
+// package github.com/bradenrayhorn/beans/server/beans) used for unit
+// testing.
 type MockError struct {
 	// BeansErrorFunc is an instance of a mock function object controlling
 	// the behavior of the method BeansError.
@@ -3930,8 +3933,8 @@ func (c MonthCategoryRepositoryUpdateAmountFuncCall) Results() []interface{} {
 }
 
 // MockMonthContract is a mock implementation of the MonthContract interface
-// (from the package github.com/bradenrayhorn/beans/server/beans) used for unit
-// testing.
+// (from the package github.com/bradenrayhorn/beans/server/beans) used for
+// unit testing.
 type MockMonthContract struct {
 	// GetOrCreateFunc is an instance of a mock function object controlling
 	// the behavior of the method GetOrCreate.
@@ -4349,8 +4352,8 @@ func (c MonthContractUpdateFuncCall) Results() []interface{} {
 }
 
 // MockMonthRepository is a mock implementation of the MonthRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockMonthRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -5002,8 +5005,8 @@ func (c MonthRepositoryUpdateFuncCall) Results() []interface{} {
 }
 
 // MockPayeeContract is a mock implementation of the PayeeContract interface
-// (from the package github.com/bradenrayhorn/beans/server/beans) used for unit
-// testing.
+// (from the package github.com/bradenrayhorn/beans/server/beans) used for
+// unit testing.
 type MockPayeeContract struct {
 	// CreatePayeeFunc is an instance of a mock function object controlling
 	// the behavior of the method CreatePayee.
@@ -5280,8 +5283,8 @@ func (c PayeeContractGetAllFuncCall) Results() []interface{} {
 }
 
 // MockPayeeRepository is a mock implementation of the PayeeRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockPayeeRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -5679,8 +5682,8 @@ func (c PayeeRepositoryGetForBudgetFuncCall) Results() []interface{} {
 }
 
 // MockSessionRepository is a mock implementation of the SessionRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockSessionRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -7391,7 +7394,8 @@ func (c TxRollbackFuncCall) Results() []interface{} {
 }
 
 // MockTxManager is a mock implementation of the TxManager interface (from
-// the package github.com/bradenrayhorn/beans/server/beans) used for unit testing.
+// the package github.com/bradenrayhorn/beans/server/beans) used for unit
+// testing.
 type MockTxManager struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -7537,9 +7541,12 @@ func (c TxManagerCreateFuncCall) Results() []interface{} {
 }
 
 // MockUserContract is a mock implementation of the UserContract interface
-// (from the package github.com/bradenrayhorn/beans/server/beans) used for unit
-// testing.
+// (from the package github.com/bradenrayhorn/beans/server/beans) used for
+// unit testing.
 type MockUserContract struct {
+	// GetAuthFunc is an instance of a mock function object controlling the
+	// behavior of the method GetAuth.
+	GetAuthFunc *UserContractGetAuthFunc
 	// GetMeFunc is an instance of a mock function object controlling the
 	// behavior of the method GetMe.
 	GetMeFunc *UserContractGetMeFunc
@@ -7558,6 +7565,11 @@ type MockUserContract struct {
 // methods return zero values for all results, unless overwritten.
 func NewMockUserContract() *MockUserContract {
 	return &MockUserContract{
+		GetAuthFunc: &UserContractGetAuthFunc{
+			defaultHook: func(context.Context, beans.SessionID) (r0 *beans.AuthContext, r1 error) {
+				return
+			},
+		},
 		GetMeFunc: &UserContractGetMeFunc{
 			defaultHook: func(context.Context, *beans.AuthContext) (r0 *beans.User, r1 error) {
 				return
@@ -7585,6 +7597,11 @@ func NewMockUserContract() *MockUserContract {
 // interface. All methods panic on invocation, unless overwritten.
 func NewStrictMockUserContract() *MockUserContract {
 	return &MockUserContract{
+		GetAuthFunc: &UserContractGetAuthFunc{
+			defaultHook: func(context.Context, beans.SessionID) (*beans.AuthContext, error) {
+				panic("unexpected invocation of MockUserContract.GetAuth")
+			},
+		},
 		GetMeFunc: &UserContractGetMeFunc{
 			defaultHook: func(context.Context, *beans.AuthContext) (*beans.User, error) {
 				panic("unexpected invocation of MockUserContract.GetMe")
@@ -7613,6 +7630,9 @@ func NewStrictMockUserContract() *MockUserContract {
 // overwritten.
 func NewMockUserContractFrom(i beans.UserContract) *MockUserContract {
 	return &MockUserContract{
+		GetAuthFunc: &UserContractGetAuthFunc{
+			defaultHook: i.GetAuth,
+		},
 		GetMeFunc: &UserContractGetMeFunc{
 			defaultHook: i.GetMe,
 		},
@@ -7626,6 +7646,114 @@ func NewMockUserContractFrom(i beans.UserContract) *MockUserContract {
 			defaultHook: i.Register,
 		},
 	}
+}
+
+// UserContractGetAuthFunc describes the behavior when the GetAuth method of
+// the parent MockUserContract instance is invoked.
+type UserContractGetAuthFunc struct {
+	defaultHook func(context.Context, beans.SessionID) (*beans.AuthContext, error)
+	hooks       []func(context.Context, beans.SessionID) (*beans.AuthContext, error)
+	history     []UserContractGetAuthFuncCall
+	mutex       sync.Mutex
+}
+
+// GetAuth delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockUserContract) GetAuth(v0 context.Context, v1 beans.SessionID) (*beans.AuthContext, error) {
+	r0, r1 := m.GetAuthFunc.nextHook()(v0, v1)
+	m.GetAuthFunc.appendCall(UserContractGetAuthFuncCall{v0, v1, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the GetAuth method of
+// the parent MockUserContract instance is invoked and the hook queue is
+// empty.
+func (f *UserContractGetAuthFunc) SetDefaultHook(hook func(context.Context, beans.SessionID) (*beans.AuthContext, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// GetAuth method of the parent MockUserContract instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *UserContractGetAuthFunc) PushHook(hook func(context.Context, beans.SessionID) (*beans.AuthContext, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *UserContractGetAuthFunc) SetDefaultReturn(r0 *beans.AuthContext, r1 error) {
+	f.SetDefaultHook(func(context.Context, beans.SessionID) (*beans.AuthContext, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *UserContractGetAuthFunc) PushReturn(r0 *beans.AuthContext, r1 error) {
+	f.PushHook(func(context.Context, beans.SessionID) (*beans.AuthContext, error) {
+		return r0, r1
+	})
+}
+
+func (f *UserContractGetAuthFunc) nextHook() func(context.Context, beans.SessionID) (*beans.AuthContext, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *UserContractGetAuthFunc) appendCall(r0 UserContractGetAuthFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of UserContractGetAuthFuncCall objects
+// describing the invocations of this function.
+func (f *UserContractGetAuthFunc) History() []UserContractGetAuthFuncCall {
+	f.mutex.Lock()
+	history := make([]UserContractGetAuthFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// UserContractGetAuthFuncCall is an object that describes an invocation of
+// method GetAuth on an instance of MockUserContract.
+type UserContractGetAuthFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.SessionID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 *beans.AuthContext
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c UserContractGetAuthFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c UserContractGetAuthFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
 }
 
 // UserContractGetMeFunc describes the behavior when the GetMe method of the
@@ -8058,8 +8186,8 @@ func (c UserContractRegisterFuncCall) Results() []interface{} {
 }
 
 // MockUserRepository is a mock implementation of the UserRepository
-// interface (from the package github.com/bradenrayhorn/beans/server/beans) used
-// for unit testing.
+// interface (from the package github.com/bradenrayhorn/beans/server/beans)
+// used for unit testing.
 type MockUserRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
@@ -8586,8 +8714,8 @@ func (c UserRepositoryGetByUsernameFuncCall) Results() []interface{} {
 }
 
 // MockValidatable is a mock implementation of the Validatable interface
-// (from the package github.com/bradenrayhorn/beans/server/beans) used for unit
-// testing.
+// (from the package github.com/bradenrayhorn/beans/server/beans) used for
+// unit testing.
 type MockValidatable struct {
 	// ValidateFunc is an instance of a mock function object controlling the
 	// behavior of the method Validate.

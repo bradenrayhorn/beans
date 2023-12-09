@@ -16,13 +16,13 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		session, err := s.sessionRepository.Get(beans.SessionID(cookie.Value))
+		authCtx, err := s.userContract.GetAuth(r.Context(), beans.SessionID(cookie.Value))
 		if err != nil {
-			Error(w, beans.WrapError(err, beans.ErrorUnauthorized))
+			Error(w, err)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), httpcontext.Auth, beans.NewAuthContext(session.UserID, session.ID))
+		ctx := context.WithValue(r.Context(), httpcontext.Auth, authCtx)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

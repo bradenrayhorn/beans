@@ -9,4 +9,3 @@ func (k key) String() string {
 var Auth = key("auth")
 var Budget = key("budget")
 var BudgetAuth = key("budget_auth")
-var UserID = key("userID")

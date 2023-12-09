@@ -3,6 +3,7 @@ package contract
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/bradenrayhorn/beans/server/argon2"
 	"github.com/bradenrayhorn/beans/server/beans"
@@ -89,4 +90,17 @@ func (c *userContract) GetMe(ctx context.Context, auth *beans.AuthContext) (*bea
 	}
 
 	return user, nil
+}
+
+func (c *userContract) GetAuth(ctx context.Context, sessionID beans.SessionID) (*beans.AuthContext, error) {
+	session, err := c.sessionRepository.Get(sessionID)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return nil, beans.ErrorUnauthorized
+		}
+
+		return nil, fmt.Errorf("UserContract.GetAuth get session: %w", err)
+	}
+
+	return beans.NewAuthContext(session.UserID, session.ID), nil
 }
