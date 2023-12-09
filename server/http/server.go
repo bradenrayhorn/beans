@@ -133,8 +133,8 @@ func NewServer(
 			})
 
 			r.Route("/payees", func(r chi.Router) {
-				r.Get("/", s.handlePayeeCreate())
-				r.Post("/", s.handlePayeeGetAll())
+				r.Get("/", s.handlePayeeGetAll())
+				r.Post("/", s.handlePayeeCreate())
 			})
 
 			r.Route("/transactions", func(r chi.Router) {

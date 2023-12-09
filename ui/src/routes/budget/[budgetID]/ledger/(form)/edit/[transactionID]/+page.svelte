@@ -29,5 +29,6 @@
 <TransactionForm
   categories={data.categories}
   accounts={data.accounts}
+  payees={data.payees}
   {transaction}
 />

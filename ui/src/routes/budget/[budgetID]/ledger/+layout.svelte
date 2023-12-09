@@ -46,7 +46,7 @@
                   ...$page.params,
                   transactionID: selectedRowID,
                 })}
-                class="btn btn-primary btn-xs btn-ghost hidden lg:block"
+                class="btn btn-primary btn-xs btn-ghost hidden lg:inline-flex"
               >
                 Edit
               </a>

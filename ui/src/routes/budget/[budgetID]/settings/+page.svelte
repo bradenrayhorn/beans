@@ -20,7 +20,7 @@
     </a>
   </li>
   <li>
-    <a href={withParameter(paths.budget.settings.payees, $page.params)}>
+    <a href={withParameter(paths.budget.settings.payees.base, $page.params)}>
       Payees <IconPayees />
     </a>
   </li>

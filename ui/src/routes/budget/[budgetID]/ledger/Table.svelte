@@ -34,9 +34,7 @@
           /></td
         >
         <td>{transaction.date}</td>
-        <td class="pr-2 truncate"
-          >{transaction.category?.name} {transaction.account.name}</td
-        >
+        <td class="pr-2 truncate">{transaction.payee?.name ?? ""}</td>
         <td class="pr-2 truncate">{transaction.category?.name}</td>
         <td class="pr-2 truncate">{transaction.account.name}</td>
         <td class="pr-2 truncate">{transaction.notes ?? ""}</td>

@@ -19,6 +19,7 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   const currentDate = new Date().toISOString().substring(0, 10);
   await createTransaction(
     id,
+    null,
     categoryID,
     accountID,
     "-20",
