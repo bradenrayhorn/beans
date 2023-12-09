@@ -1,9 +1,10 @@
-version: "1"
-packages:
-  - name: "db"
-    path: "internal/db"
-    queries: "./internal/sql/query/"
-    schema: "./internal/sql/migrations/"
+version: "2"
+sql:
+  - schema: "./internal/sql/migrations/"
     engine: "postgresql"
-    sql_package: "pgx/v4"
-
+    queries: "./internal/sql/query/"
+    gen:
+      go:
+        package: "db"
+        out: "internal/db"
+        sql_package: "pgx/v4"
