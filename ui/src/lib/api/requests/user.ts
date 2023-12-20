@@ -15,5 +15,5 @@ export const logout = async ({ fetch: _fetch }: WithFetch): Promise<void> => {
     return await getError(res);
   }
 
-  throw redirect(302, paths.login);
+  redirect(302, paths.login);
 };

@@ -5,7 +5,7 @@ import { logout } from "$lib/api/requests/user";
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.isLoggedIn) {
-    throw redirect(302, paths.login);
+    redirect(302, paths.login);
   }
 
   await logout({ fetch });

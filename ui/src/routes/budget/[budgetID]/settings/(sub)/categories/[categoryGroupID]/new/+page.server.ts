@@ -17,7 +17,7 @@ export const actions: Actions = {
       return await getErrorForAction(res);
     }
 
-    throw redirect(
+    redirect(
       302,
       withParameter(paths.budget.settings.categories.group, params),
     );

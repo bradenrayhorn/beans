@@ -17,6 +17,6 @@ export const actions: Actions = {
       return await getErrorForAction(res);
     }
 
-    throw redirect(302, withParameter(paths.budget.ledger.base, params));
+    redirect(302, withParameter(paths.budget.ledger.base, params));
   },
 };

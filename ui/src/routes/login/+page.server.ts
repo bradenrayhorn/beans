@@ -6,7 +6,7 @@ import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (locals.isLoggedIn) {
-    throw redirect(302, paths.budgets.list);
+    redirect(302, paths.budgets.list);
   }
 };
 
@@ -23,6 +23,6 @@ export const actions: Actions = {
       return await getErrorForAction(res);
     }
 
-    throw redirect(302, paths.budgets.list);
+    redirect(302, paths.budgets.list);
   },
 };

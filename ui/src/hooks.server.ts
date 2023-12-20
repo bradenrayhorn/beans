@@ -11,7 +11,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (res.status === 401) {
       isLoggedIn = false;
     } else if (!res.ok) {
-      throw await getError(res);
+      await getError(res);
     }
 
     if (res.ok) {
@@ -20,7 +20,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.isLoggedIn = isLoggedIn;
 
     if (event.route.id?.startsWith("/budget") && !isLoggedIn) {
-      throw redirect(302, paths.login);
+      redirect(302, paths.login);
     }
   }
 
