@@ -4,7 +4,7 @@ import type { PageLoad } from "./$types";
 import dayjs from "dayjs";
 
 export const load: PageLoad = async ({ params }) => {
-  throw redirect(
+  redirect(
     302,
     withParameter(paths.budget.budget.month, {
       ...params,

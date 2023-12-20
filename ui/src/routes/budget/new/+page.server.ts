@@ -16,6 +16,6 @@ export const actions: Actions = {
       return await getErrorForAction(res);
     }
 
-    throw redirect(302, paths.budgets.list);
+    redirect(302, paths.budgets.list);
   },
 };

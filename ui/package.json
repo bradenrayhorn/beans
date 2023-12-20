@@ -17,8 +17,9 @@
   "devDependencies": {
     "@iconify-json/mdi": "^1.1.63",
     "@playwright/test": "^1.40.1",
-    "@sveltejs/adapter-auto": "^2.1.1",
-    "@sveltejs/kit": "^1.29.0",
+    "@sveltejs/adapter-auto": "^3.0.0",
+    "@sveltejs/kit": "^2.0.3",
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
     "@tailwindcss/typography": "^0.5.10",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
@@ -38,7 +39,7 @@
     "tslib": "^2.4.1",
     "typescript": "^5.3.3",
     "unplugin-icons": "^0.18.1",
-    "vite": "^4.4.12",
+    "vite": "^5.0.0",
     "vitest": "^1.0.4"
   },
   "type": "module"
