@@ -11,6 +11,16 @@
   export let data: PageData;
   $: ({ transactions, transactionsByDate } = data);
 
+  // un-select a row if it no longer exists
+  $: Object.keys($selectedRows).forEach((rowID) => {
+    if (!transactions.some((t) => t.id === rowID)) {
+      selectedRows.update((current) => {
+        delete current[rowID];
+        return current;
+      });
+    }
+  });
+
   $: isList =
     $page.url.pathname ===
     withParameter(paths.budget.ledger.base, $page.params);

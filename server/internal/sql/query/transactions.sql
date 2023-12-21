@@ -8,6 +8,14 @@ UPDATE transactions
   SET account_id=$1, category_id=$2, payee_id=$3, date=$4, amount=$5, notes=$6
   WHERE id=$7;
 
+-- name: DeleteTransactions :exec
+DELETE FROM transactions
+  USING accounts
+  WHERE
+    accounts.id = transactions.account_id
+    AND accounts.budget_id=$1
+    AND transactions.id = ANY(sqlc.arg(IDs)::varchar[]);
+
 -- name: GetTransaction :one
 SELECT transactions.*, accounts.name as account_name, accounts.budget_id as budget_id
   FROM transactions

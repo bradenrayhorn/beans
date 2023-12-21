@@ -40,6 +40,25 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
+const deleteTransactions = `-- name: DeleteTransactions :exec
+DELETE FROM transactions
+  USING accounts
+  WHERE
+    accounts.id = transactions.account_id
+    AND accounts.budget_id=$1
+    AND transactions.id = ANY($2::varchar[])
+`
+
+type DeleteTransactionsParams struct {
+	BudgetID string
+	Ids      []string
+}
+
+func (q *Queries) DeleteTransactions(ctx context.Context, arg DeleteTransactionsParams) error {
+	_, err := q.db.Exec(ctx, deleteTransactions, arg.BudgetID, arg.Ids)
+	return err
+}
+
 const getActivityBeforeDateByCategory = `-- name: GetActivityBeforeDateByCategory :many
 SELECT categories.id, sum(transactions.amount)::numeric as activity
   FROM transactions

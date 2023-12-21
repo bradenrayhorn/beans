@@ -38,12 +38,17 @@ type TransactionContract interface {
 
 	// Edits a transaction.
 	Update(ctx context.Context, auth *BudgetAuthContext, params TransactionUpdateParams) error
+
+	// Deletes transactions.
+	Delete(ctx context.Context, auth *BudgetAuthContext, transactionIDs []ID) error
 }
 
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) error
 
 	Update(ctx context.Context, transaction *Transaction) error
+
+	Delete(ctx context.Context, budgetID ID, transactionIDs []ID) error
 
 	// Attaches Account, CategoryName, PayeeName fields to Transactions.
 	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)

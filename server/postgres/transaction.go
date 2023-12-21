@@ -40,6 +40,15 @@ func (r *TransactionRepository) Update(ctx context.Context, transaction *beans.T
 	})
 }
 
+func (r *TransactionRepository) Delete(ctx context.Context, budgetID beans.ID, transactionIDs []beans.ID) error {
+	return r.DB(nil).DeleteTransactions(ctx, db.DeleteTransactionsParams{
+		BudgetID: budgetID.String(),
+		Ids: mapper.MapSliceNoErr(transactionIDs, func(id beans.ID) string {
+			return id.String()
+		}),
+	})
+}
+
 func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (*beans.Transaction, error) {
 	t, err := r.DB(nil).GetTransaction(ctx, id.String())
 	if err != nil {
