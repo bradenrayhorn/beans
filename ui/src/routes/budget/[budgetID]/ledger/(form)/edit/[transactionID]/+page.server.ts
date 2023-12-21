@@ -19,4 +19,20 @@ export const actions: Actions = {
 
     redirect(302, withParameter(paths.budget.ledger.base, params));
   },
+
+  delete: async ({ fetch, request, params }) => {
+    const res = await doRequest({
+      method: "POST",
+      path: `/v1/transactions/delete`,
+      request,
+      fetch,
+      params,
+    });
+
+    if (!res.ok) {
+      return await getErrorForAction(res);
+    }
+
+    redirect(302, withParameter(paths.budget.ledger.base, params));
+  },
 };

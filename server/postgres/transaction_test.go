@@ -113,6 +113,56 @@ func TestTransactions(t *testing.T) {
 		assert.True(t, reflect.DeepEqual(transaction, dbTransaction))
 	})
 
+	t.Run("can delete", func(t *testing.T) {
+		defer cleanup()
+		transaction := beans.Transaction{
+			AccountID:    account.ID,
+			CategoryID:   categoryID,
+			PayeeID:      payee.ID,
+			Amount:       beans.NewAmount(5, 0),
+			Date:         testutils.NewDate(t, "2022-08-28"),
+			Notes:        beans.NewTransactionNotes("notes"),
+			Account:      account,
+			CategoryName: beans.NewNullString("category"),
+			PayeeName:    beans.NewNullString("payee"),
+		}
+		transaction1 := transaction
+		transaction1.ID = beans.NewBeansID()
+
+		transaction2 := transaction
+		transaction2.ID = beans.NewBeansID()
+
+		transaction3 := transaction
+		transaction2.ID = beans.NewBeansID()
+
+		transaction4 := transaction
+		transaction4.ID = beans.NewBeansID()
+		transaction4.AccountID = budget2Account1.ID
+
+		require.Nil(t, transactionRepository.Create(context.Background(), &transaction1))
+		require.Nil(t, transactionRepository.Create(context.Background(), &transaction2))
+		require.Nil(t, transactionRepository.Create(context.Background(), &transaction3))
+		require.Nil(t, transactionRepository.Create(context.Background(), &transaction4))
+
+		err := transactionRepository.Delete(context.Background(), budgetID, []beans.ID{transaction1.ID, transaction2.ID, transaction4.ID})
+		require.Nil(t, err)
+
+		// transaction1 and transaction2 should be deleted, they are passed in and part of budget 1.
+		// transaction3 should not be deleted, it is not passed in.
+		// transaction4 should not be deleted, it is passed in but not part of budget 1.
+		_, err = transactionRepository.Get(context.Background(), transaction1.ID)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		_, err = transactionRepository.Get(context.Background(), transaction2.ID)
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+		_, err = transactionRepository.Get(context.Background(), transaction3.ID)
+		assert.Nil(t, err)
+
+		_, err = transactionRepository.Get(context.Background(), transaction4.ID)
+		assert.Nil(t, err)
+	})
+
 	t.Run("can get all", func(t *testing.T) {
 		defer cleanup()
 		transaction1 := &beans.Transaction{

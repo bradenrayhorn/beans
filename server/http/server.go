@@ -114,6 +114,7 @@ func NewServer(
 				r.Get("/", s.handleTransactionGetAll())
 				r.Post("/", s.handleTransactionCreate())
 				r.Put("/{transactionID}", s.handleTransactionUpdate())
+				r.Post("/delete", s.handleTransactionDelete())
 			})
 
 		})

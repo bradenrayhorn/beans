@@ -6078,6 +6078,9 @@ type MockTransactionContract struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *TransactionContractCreateFunc
+	// DeleteFunc is an instance of a mock function object controlling the
+	// behavior of the method Delete.
+	DeleteFunc *TransactionContractDeleteFunc
 	// GetAllFunc is an instance of a mock function object controlling the
 	// behavior of the method GetAll.
 	GetAllFunc *TransactionContractGetAllFunc
@@ -6093,6 +6096,11 @@ func NewMockTransactionContract() *MockTransactionContract {
 	return &MockTransactionContract{
 		CreateFunc: &TransactionContractCreateFunc{
 			defaultHook: func(context.Context, *beans.BudgetAuthContext, beans.TransactionCreateParams) (r0 *beans.Transaction, r1 error) {
+				return
+			},
+		},
+		DeleteFunc: &TransactionContractDeleteFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, []beans.ID) (r0 error) {
 				return
 			},
 		},
@@ -6119,6 +6127,11 @@ func NewStrictMockTransactionContract() *MockTransactionContract {
 				panic("unexpected invocation of MockTransactionContract.Create")
 			},
 		},
+		DeleteFunc: &TransactionContractDeleteFunc{
+			defaultHook: func(context.Context, *beans.BudgetAuthContext, []beans.ID) error {
+				panic("unexpected invocation of MockTransactionContract.Delete")
+			},
+		},
 		GetAllFunc: &TransactionContractGetAllFunc{
 			defaultHook: func(context.Context, *beans.BudgetAuthContext) ([]*beans.Transaction, error) {
 				panic("unexpected invocation of MockTransactionContract.GetAll")
@@ -6139,6 +6152,9 @@ func NewMockTransactionContractFrom(i beans.TransactionContract) *MockTransactio
 	return &MockTransactionContract{
 		CreateFunc: &TransactionContractCreateFunc{
 			defaultHook: i.Create,
+		},
+		DeleteFunc: &TransactionContractDeleteFunc{
+			defaultHook: i.Delete,
 		},
 		GetAllFunc: &TransactionContractGetAllFunc{
 			defaultHook: i.GetAll,
@@ -6258,6 +6274,114 @@ func (c TransactionContractCreateFuncCall) Args() []interface{} {
 // invocation.
 func (c TransactionContractCreateFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
+}
+
+// TransactionContractDeleteFunc describes the behavior when the Delete
+// method of the parent MockTransactionContract instance is invoked.
+type TransactionContractDeleteFunc struct {
+	defaultHook func(context.Context, *beans.BudgetAuthContext, []beans.ID) error
+	hooks       []func(context.Context, *beans.BudgetAuthContext, []beans.ID) error
+	history     []TransactionContractDeleteFuncCall
+	mutex       sync.Mutex
+}
+
+// Delete delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTransactionContract) Delete(v0 context.Context, v1 *beans.BudgetAuthContext, v2 []beans.ID) error {
+	r0 := m.DeleteFunc.nextHook()(v0, v1, v2)
+	m.DeleteFunc.appendCall(TransactionContractDeleteFuncCall{v0, v1, v2, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Delete method of the
+// parent MockTransactionContract instance is invoked and the hook queue is
+// empty.
+func (f *TransactionContractDeleteFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext, []beans.ID) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Delete method of the parent MockTransactionContract instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *TransactionContractDeleteFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext, []beans.ID) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TransactionContractDeleteFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext, []beans.ID) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TransactionContractDeleteFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, *beans.BudgetAuthContext, []beans.ID) error {
+		return r0
+	})
+}
+
+func (f *TransactionContractDeleteFunc) nextHook() func(context.Context, *beans.BudgetAuthContext, []beans.ID) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TransactionContractDeleteFunc) appendCall(r0 TransactionContractDeleteFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TransactionContractDeleteFuncCall objects
+// describing the invocations of this function.
+func (f *TransactionContractDeleteFunc) History() []TransactionContractDeleteFuncCall {
+	f.mutex.Lock()
+	history := make([]TransactionContractDeleteFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TransactionContractDeleteFuncCall is an object that describes an
+// invocation of method Delete on an instance of MockTransactionContract.
+type TransactionContractDeleteFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *beans.BudgetAuthContext
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 []beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TransactionContractDeleteFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TransactionContractDeleteFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
 }
 
 // TransactionContractGetAllFunc describes the behavior when the GetAll
@@ -6483,6 +6607,9 @@ type MockTransactionRepository struct {
 	// CreateFunc is an instance of a mock function object controlling the
 	// behavior of the method Create.
 	CreateFunc *TransactionRepositoryCreateFunc
+	// DeleteFunc is an instance of a mock function object controlling the
+	// behavior of the method Delete.
+	DeleteFunc *TransactionRepositoryDeleteFunc
 	// GetFunc is an instance of a mock function object controlling the
 	// behavior of the method Get.
 	GetFunc *TransactionRepositoryGetFunc
@@ -6504,6 +6631,11 @@ func NewMockTransactionRepository() *MockTransactionRepository {
 	return &MockTransactionRepository{
 		CreateFunc: &TransactionRepositoryCreateFunc{
 			defaultHook: func(context.Context, *beans.Transaction) (r0 error) {
+				return
+			},
+		},
+		DeleteFunc: &TransactionRepositoryDeleteFunc{
+			defaultHook: func(context.Context, beans.ID, []beans.ID) (r0 error) {
 				return
 			},
 		},
@@ -6540,6 +6672,11 @@ func NewStrictMockTransactionRepository() *MockTransactionRepository {
 				panic("unexpected invocation of MockTransactionRepository.Create")
 			},
 		},
+		DeleteFunc: &TransactionRepositoryDeleteFunc{
+			defaultHook: func(context.Context, beans.ID, []beans.ID) error {
+				panic("unexpected invocation of MockTransactionRepository.Delete")
+			},
+		},
 		GetFunc: &TransactionRepositoryGetFunc{
 			defaultHook: func(context.Context, beans.ID) (*beans.Transaction, error) {
 				panic("unexpected invocation of MockTransactionRepository.Get")
@@ -6570,6 +6707,9 @@ func NewMockTransactionRepositoryFrom(i beans.TransactionRepository) *MockTransa
 	return &MockTransactionRepository{
 		CreateFunc: &TransactionRepositoryCreateFunc{
 			defaultHook: i.Create,
+		},
+		DeleteFunc: &TransactionRepositoryDeleteFunc{
+			defaultHook: i.Delete,
 		},
 		GetFunc: &TransactionRepositoryGetFunc{
 			defaultHook: i.Get,
@@ -6688,6 +6828,114 @@ func (c TransactionRepositoryCreateFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c TransactionRepositoryCreateFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// TransactionRepositoryDeleteFunc describes the behavior when the Delete
+// method of the parent MockTransactionRepository instance is invoked.
+type TransactionRepositoryDeleteFunc struct {
+	defaultHook func(context.Context, beans.ID, []beans.ID) error
+	hooks       []func(context.Context, beans.ID, []beans.ID) error
+	history     []TransactionRepositoryDeleteFuncCall
+	mutex       sync.Mutex
+}
+
+// Delete delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockTransactionRepository) Delete(v0 context.Context, v1 beans.ID, v2 []beans.ID) error {
+	r0 := m.DeleteFunc.nextHook()(v0, v1, v2)
+	m.DeleteFunc.appendCall(TransactionRepositoryDeleteFuncCall{v0, v1, v2, r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the Delete method of the
+// parent MockTransactionRepository instance is invoked and the hook queue
+// is empty.
+func (f *TransactionRepositoryDeleteFunc) SetDefaultHook(hook func(context.Context, beans.ID, []beans.ID) error) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// Delete method of the parent MockTransactionRepository instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *TransactionRepositoryDeleteFunc) PushHook(hook func(context.Context, beans.ID, []beans.ID) error) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *TransactionRepositoryDeleteFunc) SetDefaultReturn(r0 error) {
+	f.SetDefaultHook(func(context.Context, beans.ID, []beans.ID) error {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *TransactionRepositoryDeleteFunc) PushReturn(r0 error) {
+	f.PushHook(func(context.Context, beans.ID, []beans.ID) error {
+		return r0
+	})
+}
+
+func (f *TransactionRepositoryDeleteFunc) nextHook() func(context.Context, beans.ID, []beans.ID) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *TransactionRepositoryDeleteFunc) appendCall(r0 TransactionRepositoryDeleteFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of TransactionRepositoryDeleteFuncCall objects
+// describing the invocations of this function.
+func (f *TransactionRepositoryDeleteFunc) History() []TransactionRepositoryDeleteFuncCall {
+	f.mutex.Lock()
+	history := make([]TransactionRepositoryDeleteFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// TransactionRepositoryDeleteFuncCall is an object that describes an
+// invocation of method Delete on an instance of MockTransactionRepository.
+type TransactionRepositoryDeleteFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 beans.ID
+	// Arg2 is the value of the 3rd argument passed to this method
+	// invocation.
+	Arg2 []beans.ID
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c TransactionRepositoryDeleteFuncCall) Args() []interface{} {
+	return []interface{}{c.Arg0, c.Arg1, c.Arg2}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c TransactionRepositoryDeleteFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 

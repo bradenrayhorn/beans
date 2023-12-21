@@ -110,6 +110,35 @@ func TestTransaction(t *testing.T) {
 		}, params.Arg2)
 	})
 
+	t.Run("delete", func(t *testing.T) {
+		test := newHttpTest(t)
+		defer test.Stop(t)
+
+		id1 := beans.NewBeansID()
+		id2 := beans.NewBeansID()
+
+		test.transactionContract.DeleteFunc.PushReturn(nil)
+
+		res := test.DoRequest(t, HTTPRequest{
+			method: "POST",
+			path:   "/api/v1/transactions/delete",
+			body: fmt.Sprintf(`{
+				"ids":["%s","%s"]
+			}`, id1, id2),
+			user:   user,
+			budget: budget,
+		})
+
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Empty(t, res.body)
+
+		params := test.transactionContract.DeleteFunc.History()[0]
+		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
+		assert.Equal(t, []beans.ID{
+			id1, id2,
+		}, params.Arg2)
+	})
+
 	t.Run("get", func(t *testing.T) {
 		test := newHttpTest(t)
 		defer test.Stop(t)

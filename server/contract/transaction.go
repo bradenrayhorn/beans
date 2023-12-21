@@ -154,6 +154,10 @@ func (c *TransactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 	return nil
 }
 
+func (c *TransactionContract) Delete(ctx context.Context, auth *beans.BudgetAuthContext, transactionIDs []beans.ID) error {
+	return c.transactionRepository.Delete(ctx, auth.BudgetID(), transactionIDs)
+}
+
 func (c *TransactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.Transaction, error) {
 	return c.transactionRepository.GetForBudget(ctx, auth.BudgetID())
 }

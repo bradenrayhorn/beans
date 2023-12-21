@@ -17,14 +17,18 @@ export const doRequest = async ({
   fetch: typeof fetch;
   params?: { [key: string]: string | undefined };
 }): Promise<Response> => {
-  let obj: null | { [key: string]: string } = null;
+  let obj: null | { [key: string]: unknown } = null;
 
   if (request) {
     obj = {};
     const data = await request.formData();
     data.forEach((value, key) => {
       if (obj) {
-        obj[key] = value.toString();
+        if (key.endsWith("[]")) {
+          obj[key.slice(0, key.length - 2)] = data.getAll(key);
+        } else {
+          obj[key] = value.toString();
+        }
       }
     });
   }

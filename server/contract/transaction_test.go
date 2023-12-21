@@ -677,6 +677,41 @@ func TestTransaction(t *testing.T) {
 		})
 	})
 
+	t.Run("delete", func(t *testing.T) {
+		t.Run("can delete", func(t *testing.T) {
+			defer cleanup()
+
+			userID := testutils.MakeUser(t, pool, "user")
+			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			auth := testutils.BudgetAuthContext(t, userID, budget)
+			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
+			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
+			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
+
+			transaction := &beans.Transaction{
+				ID:         beans.NewBeansID(),
+				AccountID:  account.ID,
+				CategoryID: category.ID,
+				PayeeID:    payee.ID,
+				Amount:     beans.NewAmount(5, 0),
+				Date:       testutils.NewDate(t, "2023-01-09"),
+				Notes:      beans.NewTransactionNotes("hi there"),
+
+				Account:      account,
+				CategoryName: beans.NewNullString("category"),
+				PayeeName:    beans.NewNullString("payee"),
+			}
+			require.Nil(t, transactionRepository.Create(context.Background(), transaction))
+
+			require.Nil(t, c.Delete(context.Background(), auth, []beans.ID{transaction.ID}))
+
+			transactions, err := c.GetAll(context.Background(), auth)
+			require.Nil(t, err)
+			require.Len(t, transactions, 0)
+		})
+	})
+
 	t.Run("get all", func(t *testing.T) {
 		t.Run("can get all", func(t *testing.T) {
 			defer cleanup()
