@@ -11,7 +11,7 @@ require github.com/go-chi/chi/v5 v5.0.11
 require (
 	github.com/cockroachdb/apd/v3 v3.2.1
 	github.com/go-chi/cors v1.2.1
-	github.com/golang-migrate/migrate/v4 v4.16.2
+	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/orlangure/gnomock v0.30.0
