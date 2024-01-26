@@ -3,12 +3,13 @@
   import { navigating } from "$app/stores";
   import FormError from "$lib/components/FormError.svelte";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
+  import CategorySelect from "$lib/components/form/CategorySelect.svelte";
   import type { Account } from "$lib/types/account";
-  import type { Category } from "$lib/types/category";
+  import type { CategoryGroup } from "$lib/types/category";
   import type { Payee } from "$lib/types/payee";
   import type { Transaction } from "$lib/types/transaction";
 
-  export let categories: Array<Category>;
+  export let categoryGroups: Array<CategoryGroup>;
   export let accounts: Array<Account>;
   export let payees: Array<Payee>;
   export let transaction: Transaction | undefined = undefined;
@@ -55,19 +56,7 @@
     </select>
   </label>
 
-  <label>
-    <span class="label label-text">Category</span>
-    <select name="category_id" class="select select-bordered select-sm w-full">
-      {#each categories as category (category.id)}
-        <option
-          value={category.id}
-          selected={category.id === transaction?.category?.id}
-        >
-          {category.name}
-        </option>
-      {/each}
-    </select>
-  </label>
+  <CategorySelect {categoryGroups} defaultCategory={transaction?.category} />
 
   <label>
     <span class="label label-text">Account</span>

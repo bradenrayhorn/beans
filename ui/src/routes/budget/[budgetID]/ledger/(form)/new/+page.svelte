@@ -24,7 +24,7 @@
 </div>
 
 <TransactionForm
-  categories={data.categories}
+  categoryGroups={data.categoryGroups}
   accounts={data.accounts}
   payees={data.payees}
 />
