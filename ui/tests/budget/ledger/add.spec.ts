@@ -4,6 +4,7 @@ import {
   createCategory,
   createCategoryGroup,
   createPayee,
+  selectOption,
   test,
 } from "../../setup";
 
@@ -29,9 +30,7 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await page
     .getByRole("combobox", { name: "Account" })
     .selectOption("Checking");
-  await page
-    .getByRole("combobox", { name: "Category" })
-    .selectOption("Electric");
+  await selectOption(page, "Category", "Electric");
   await page.getByLabel("Amount").locator("visible=true").fill("10.78");
   await page.getByLabel("Notes").locator("visible=true").fill("Test notes");
   await page.getByRole("button", { name: "Save" }).click();

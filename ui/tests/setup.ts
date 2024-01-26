@@ -1,4 +1,9 @@
-import { expect, test as base, type APIRequestContext } from "@playwright/test";
+import {
+  expect,
+  test as base,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 export type RegisterFixture = {
   username: string;
@@ -152,4 +157,13 @@ export const createPayee = async (
 
   const data = await response.json();
   return data.data?.id;
+};
+
+export const selectOption = async (
+  page: Page,
+  label: string,
+  option: string,
+) => {
+  await page.getByRole("combobox", { name: label }).click();
+  await page.getByRole("option", { name: option }).click();
 };

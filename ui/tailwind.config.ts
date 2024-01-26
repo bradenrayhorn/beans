@@ -3,7 +3,11 @@ import type { Config } from "tailwindcss";
 const config = {
   content: ["./src/**/*.{html,js,svelte,ts}"],
   theme: {
-    extend: {},
+    extend: {
+      maxHeight: {
+        select: "18rem",
+      },
+    },
   },
   plugins: [require("@tailwindcss/typography"), require("daisyui")],
   daisyui: {

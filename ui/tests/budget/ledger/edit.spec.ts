@@ -5,6 +5,7 @@ import {
   createCategoryGroup,
   createPayee,
   createTransaction,
+  selectOption,
   test,
 } from "../../setup";
 
@@ -49,7 +50,7 @@ test("can edit transaction", async ({ budget: { id }, page }) => {
     .getByRole("combobox", { name: "Account" })
     .selectOption("Checking");
   await page.getByRole("combobox", { name: "Payee" }).selectOption("Workplace");
-  await page.getByRole("combobox", { name: "Category" }).selectOption("Home");
+  await selectOption(page, "Category", "Home");
   await page.getByRole("textbox", { name: "Amount" }).fill("15");
   await page.getByRole("textbox", { name: "Notes" }).fill("hi there");
   await page.getByRole("button", { name: "Save" }).click();
