@@ -4,6 +4,7 @@
   import FormError from "$lib/components/FormError.svelte";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
   import AccountCombobox from "$lib/components/form/AccountCombobox.svelte";
+  import AmountInput from "$lib/components/form/AmountInput.svelte";
   import CategoryCombobox from "$lib/components/form/CategoryCombobox.svelte";
   import PayeeCombobox from "$lib/components/form/PayeeCombobox.svelte";
   import type { Account } from "$lib/types/account";
@@ -62,17 +63,11 @@
     />
   </label>
 
-  <label>
-    <span class="label label-text">Amount</span>
-    <input
-      name="amount"
-      type="text"
-      class="input input-sm input-bordered w-full"
-      value={transaction?.amount?.rawDisplay ?? ""}
-    />
-  </label>
+  <AmountInput defaultAmount={transaction?.amount?.rawDisplay} />
+
+  <div class="divider"></div>
 
   <div class="w-full flex flex-row justify-between">
-    <SubmitButton class="btn btn-success btn-sm" {isLoading}>Save</SubmitButton>
+    <SubmitButton class="btn btn-primary btn-sm" {isLoading}>Save</SubmitButton>
   </div>
 </form>

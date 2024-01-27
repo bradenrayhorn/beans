@@ -1,3 +1,4 @@
+import { formatAmount } from "$lib/amount";
 import Fraction from "fraction.js";
 
 export type APIAmount = {
@@ -17,10 +18,6 @@ export class Amount {
 
     this.rawDisplay = this.fraction.valueOf().toString();
 
-    this.display = this.fraction.valueOf().toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      style: "currency",
-      currency: "USD",
-    });
+    this.display = formatAmount(this.fraction.valueOf());
   }
 }
