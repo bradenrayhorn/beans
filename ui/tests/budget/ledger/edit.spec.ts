@@ -46,10 +46,8 @@ test("can edit transaction", async ({ budget: { id }, page }) => {
   await page.getByRole("link", { name: "edit" }).click();
 
   await page.getByRole("textbox", { name: "Date" }).fill("2023-01-23");
-  await page
-    .getByRole("combobox", { name: "Account" })
-    .selectOption("Checking");
-  await page.getByRole("combobox", { name: "Payee" }).selectOption("Workplace");
+  await selectOption(page, "Account", "Checking");
+  await selectOption(page, "Payee", "Workplace");
   await selectOption(page, "Category", "Home");
   await page.getByRole("textbox", { name: "Amount" }).fill("15");
   await page.getByRole("textbox", { name: "Notes" }).fill("hi there");
@@ -100,7 +98,7 @@ test("can edit payee to blank", async ({ budget: { id }, page }) => {
   await page.getByRole("row").nth(1).getByRole("checkbox").press("Space");
   await page.getByRole("link", { name: "edit" }).click();
 
-  await page.getByRole("combobox", { name: "Payee" }).selectOption("");
+  await selectOption(page, "Payee", "None");
   await page.getByRole("button", { name: "Save" }).click();
 
   // check that payee is now blank

@@ -26,10 +26,8 @@ test("can add transaction", async ({ budget: { id }, page }) => {
   await page.getByRole("link", { name: "Add" }).click();
 
   await page.getByLabel("Date").locator("visible=true").fill("2022-10-14");
-  await page.getByRole("combobox", { name: "Payee" }).selectOption("Workplace");
-  await page
-    .getByRole("combobox", { name: "Account" })
-    .selectOption("Checking");
+  await selectOption(page, "Payee", "Workplace");
+  await selectOption(page, "Account", "Checking");
   await selectOption(page, "Category", "Electric");
   await page.getByLabel("Amount").locator("visible=true").fill("10.78");
   await page.getByLabel("Notes").locator("visible=true").fill("Test notes");
