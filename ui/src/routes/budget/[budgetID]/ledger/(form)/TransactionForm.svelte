@@ -3,7 +3,9 @@
   import { navigating } from "$app/stores";
   import FormError from "$lib/components/FormError.svelte";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
-  import CategorySelect from "$lib/components/form/CategorySelect.svelte";
+  import AccountCombobox from "$lib/components/form/AccountCombobox.svelte";
+  import CategoryCombobox from "$lib/components/form/CategoryCombobox.svelte";
+  import PayeeCombobox from "$lib/components/form/PayeeCombobox.svelte";
   import type { Account } from "$lib/types/account";
   import type { CategoryGroup } from "$lib/types/category";
   import type { Payee } from "$lib/types/payee";
@@ -44,33 +46,11 @@
     />
   </label>
 
-  <label>
-    <span class="label label-text">Payee</span>
-    <select name="payee_id" class="select select-bordered select-sm w-full">
-      <option value> </option>
-      {#each payees as payee (payee.id)}
-        <option value={payee.id} selected={payee.id === transaction?.payee?.id}>
-          {payee.name}
-        </option>
-      {/each}
-    </select>
-  </label>
+  <PayeeCombobox {payees} defaultPayee={transaction?.payee} />
 
-  <CategorySelect {categoryGroups} defaultCategory={transaction?.category} />
+  <CategoryCombobox {categoryGroups} defaultCategory={transaction?.category} />
 
-  <label>
-    <span class="label label-text">Account</span>
-    <select name="account_id" class="select select-bordered select-sm w-full">
-      {#each accounts as account (account.id)}
-        <option
-          value={account.id}
-          selected={account.id === transaction?.account?.id}
-        >
-          {account.name}
-        </option>
-      {/each}
-    </select>
-  </label>
+  <AccountCombobox {accounts} defaultAccount={transaction?.account} />
 
   <label>
     <span class="label label-text">Notes</span>

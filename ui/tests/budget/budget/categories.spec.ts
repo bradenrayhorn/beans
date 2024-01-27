@@ -42,9 +42,7 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
 
   await page.getByRole("link", { name: "Add" }).click();
   await page.getByRole("textbox", { name: "Date" }).fill(currentDate);
-  await page
-    .getByRole("combobox", { name: "Account" })
-    .selectOption("Checking");
+  await selectOption(page, "Account", "Checking");
   await selectOption(page, "Category", "Income");
   await page.getByRole("textbox", { name: "Amount" }).fill("100");
   await page.getByRole("button", { name: "Save" }).click();
