@@ -16,7 +16,7 @@ import (
 
 func TestTransaction(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -42,8 +42,8 @@ func TestTransaction(t *testing.T) {
 		t.Run("fields are required", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			_, err := c.Create(context.Background(), auth, beans.TransactionCreateParams{})
@@ -53,10 +53,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create transaction with amount more than 2 decimals", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -72,13 +72,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("can create full", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget.ID)
+			category := factory.MakeCategory("category", group.ID, budget.ID)
+			payee := factory.MakePayee("payee", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -130,10 +130,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("can create minimum", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -170,8 +170,8 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with missing account", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			params := beans.TransactionCreateParams{
@@ -190,12 +190,12 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with account from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			budget2 := testutils.MakeBudget(t, pool, "budget", userID)
-			account2 := testutils.MakeAccount(t, pool, "account", budget2.ID)
+			budget2 := factory.MakeBudget("budget", userID)
+			account2 := factory.MakeAccount("account", budget2.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -213,10 +213,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with non existent category", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -235,13 +235,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with category from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
+			budget2 := factory.MakeBudget("budget2", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget2.ID)
-			category := testutils.MakeCategory(t, pool, "name", group.ID, budget2.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget2.ID)
+			category := factory.MakeCategory("name", group.ID, budget2.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -260,10 +260,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with non existent payee", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -282,12 +282,12 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot create with payee from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
+			budget2 := factory.MakeBudget("budget2", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget2.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			payee := factory.MakePayee("payee", budget2.ID)
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
@@ -308,8 +308,8 @@ func TestTransaction(t *testing.T) {
 		t.Run("fields are required", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			err := c.Update(context.Background(), auth, beans.TransactionUpdateParams{ID: beans.NewBeansID()})
@@ -319,10 +319,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update non existent transaction", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionUpdateParams{
 				ID: beans.NewBeansID(),
@@ -340,13 +340,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update transaction for wrong budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 
-			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			budget2 := factory.MakeBudget("budget2", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget2)
 
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -372,14 +372,14 @@ func TestTransaction(t *testing.T) {
 		t.Run("can update full", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			account2 := testutils.MakeAccount(t, pool, "account2", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			account2 := factory.MakeAccount("account2", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget.ID)
+			category := factory.MakeCategory("category", group.ID, budget.ID)
+			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -438,11 +438,11 @@ func TestTransaction(t *testing.T) {
 		t.Run("can update minimum", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			account2 := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			account2 := factory.MakeAccount("account", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -485,11 +485,11 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with missing account", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -516,14 +516,14 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with account from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
-			budget2 := testutils.MakeBudget(t, pool, "budget", userID)
-			account2 := testutils.MakeAccount(t, pool, "account", budget2.ID)
+			budget2 := factory.MakeBudget("budget", userID)
+			account2 := factory.MakeAccount("account", budget2.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -550,10 +550,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with nonexistent category", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -581,13 +581,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with category from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
+			budget2 := factory.MakeBudget("budget2", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget2.ID)
-			category := testutils.MakeCategory(t, pool, "name", group.ID, budget2.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget2.ID)
+			category := factory.MakeCategory("name", group.ID, budget2.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -615,10 +615,10 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with nonexistent payee", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -646,12 +646,12 @@ func TestTransaction(t *testing.T) {
 		t.Run("cannot update with payee from other budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "budget2", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
+			budget2 := factory.MakeBudget("budget2", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget2.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			payee := factory.MakePayee("payee", budget2.ID)
 
 			transaction := &beans.Transaction{
 				ID:        beans.NewBeansID(),
@@ -681,13 +681,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("can delete", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget.ID)
+			category := factory.MakeCategory("category", group.ID, budget.ID)
+			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:         beans.NewBeansID(),
@@ -716,13 +716,13 @@ func TestTransaction(t *testing.T) {
 		t.Run("can get all", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "category", group.ID, budget.ID)
-			payee := testutils.MakePayee(t, pool, "payee", budget.ID)
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("group", budget.ID)
+			category := factory.MakeCategory("category", group.ID, budget.ID)
+			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := &beans.Transaction{
 				ID:         beans.NewBeansID(),

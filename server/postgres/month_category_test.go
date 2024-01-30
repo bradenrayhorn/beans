@@ -17,26 +17,28 @@ func TestMonthCategory(t *testing.T) {
 	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
 
 	txManager := postgres.NewTxManager(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
-	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	budgetID2 := testutils.MakeBudget(t, pool, "budget2", userID).ID
-	account := testutils.MakeAccount(t, pool, "account", budgetID)
-	groupID := testutils.MakeCategoryGroup(t, pool, "group", budgetID).ID
-	categoryID := testutils.MakeCategory(t, pool, "group", groupID, budgetID).ID
-	categoryID2 := testutils.MakeCategory(t, pool, "group", groupID, budgetID).ID
-	monthMarch := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-03-01"))
-	monthApril := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-04-01"))
-	monthMay := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-05-01"))
-	monthJune := testutils.MakeMonth(t, pool, budgetID, testutils.NewDate(t, "2022-06-01"))
+	userID := factory.MakeUser("user")
+	budgetID := factory.MakeBudget("budget", userID).ID
+	budgetID2 := factory.MakeBudget("budget2", userID).ID
+	account := factory.MakeAccount("account", budgetID)
+	groupID := factory.MakeCategoryGroup("group", budgetID).ID
+	categoryID := factory.MakeCategory("group", groupID, budgetID).ID
+	categoryID2 := factory.MakeCategory("group", groupID, budgetID).ID
+	monthMarch := factory.MakeMonth(budgetID, testutils.NewDate(t, "2022-03-01"))
+	monthApril := factory.MakeMonth(budgetID, testutils.NewDate(t, "2022-04-01"))
+	monthMay := factory.MakeMonth(budgetID, testutils.NewDate(t, "2022-05-01"))
+	monthJune := factory.MakeMonth(budgetID, testutils.NewDate(t, "2022-06-01"))
 
-	budget2Month := testutils.MakeMonth(t, pool, budgetID2, testutils.NewDate(t, "2022-05-01"))
-	budget2GroupID := testutils.MakeCategoryGroup(t, pool, "group", budgetID2).ID
-	budget2CategoryID := testutils.MakeCategory(t, pool, "group", budget2GroupID, budgetID2).ID
-	budget2Account := testutils.MakeAccount(t, pool, "account", budgetID2)
+	budget2Month := factory.MakeMonth(budgetID2, testutils.NewDate(t, "2022-05-01"))
+	budget2GroupID := factory.MakeCategoryGroup("group", budgetID2).ID
+	budget2CategoryID := factory.MakeCategory("group", budget2GroupID, budgetID2).ID
+	budget2Account := factory.MakeAccount("account", budgetID2)
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate month_categories cascade; truncate transactions cascade;")

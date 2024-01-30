@@ -18,15 +18,18 @@ func TestAccounts(t *testing.T) {
 	pool, stop := testutils.StartPool(t)
 	defer stop()
 
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
+
 	accountRepository := postgres.NewAccountRepository(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
-	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	budgetID2 := testutils.MakeBudget(t, pool, "budget", userID).ID
+	userID := factory.MakeUser("user")
+	budgetID := factory.MakeBudget("budget", userID).ID
+	budgetID2 := factory.MakeBudget("budget", userID).ID
 
-	categoryGroup := testutils.MakeCategoryGroup(t, pool, "group", budgetID)
-	category1 := testutils.MakeCategory(t, pool, "cat1", categoryGroup.ID, budgetID)
-	category2 := testutils.MakeCategory(t, pool, "cat2", categoryGroup.ID, budgetID)
+	categoryGroup := factory.MakeCategoryGroup("group", budgetID)
+	category1 := factory.MakeCategory("cat1", categoryGroup.ID, budgetID)
+	category2 := factory.MakeCategory("cat2", categoryGroup.ID, budgetID)
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate accounts cascade;")

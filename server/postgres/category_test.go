@@ -17,12 +17,14 @@ func TestCategories(t *testing.T) {
 	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
 
 	txManager := postgres.NewTxManager(pool)
 	categoryRepository := postgres.NewCategoryRepository(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
-	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
+	userID := factory.MakeUser("user")
+	budgetID := factory.MakeBudget("budget", userID).ID
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate categories, category_groups cascade;")

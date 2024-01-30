@@ -17,24 +17,26 @@ func TestTransactions(t *testing.T) {
 	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
 
 	transactionRepository := postgres.NewTransactionRepository(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
-	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	budgetID2 := testutils.MakeBudget(t, pool, "budget", userID).ID
-	account := testutils.MakeAccount(t, pool, "account", budgetID)
-	account2 := testutils.MakeAccount(t, pool, "account2", budgetID)
-	budget2Account1 := testutils.MakeAccount(t, pool, "account2", budgetID2)
-	categoryGroupID := testutils.MakeCategoryGroup(t, pool, "group1", budgetID).ID
-	incomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID)
-	budget2IncomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "group2", budgetID2)
-	payee := testutils.MakePayee(t, pool, "payee", budgetID)
-	payee2 := testutils.MakePayee(t, pool, "payee2", budgetID)
-	categoryID := testutils.MakeCategory(t, pool, "category", categoryGroupID, budgetID).ID
-	categoryID2 := testutils.MakeCategory(t, pool, "category2", categoryGroupID, budgetID).ID
-	incomeCategory := testutils.MakeCategory(t, pool, "category", incomeGroup.ID, budgetID)
-	budget2IncomeCategory := testutils.MakeCategory(t, pool, "category", budget2IncomeGroup.ID, budgetID2)
+	userID := factory.MakeUser("user")
+	budgetID := factory.MakeBudget("budget", userID).ID
+	budgetID2 := factory.MakeBudget("budget", userID).ID
+	account := factory.MakeAccount("account", budgetID)
+	account2 := factory.MakeAccount("account2", budgetID)
+	budget2Account1 := factory.MakeAccount("account2", budgetID2)
+	categoryGroupID := factory.MakeCategoryGroup("group1", budgetID).ID
+	incomeGroup := factory.MakeIncomeCategoryGroup("group2", budgetID)
+	budget2IncomeGroup := factory.MakeIncomeCategoryGroup("group2", budgetID2)
+	payee := factory.MakePayee("payee", budgetID)
+	payee2 := factory.MakePayee("payee2", budgetID)
+	categoryID := factory.MakeCategory("category", categoryGroupID, budgetID).ID
+	categoryID2 := factory.MakeCategory("category2", categoryGroupID, budgetID).ID
+	incomeCategory := factory.MakeCategory("category", incomeGroup.ID, budgetID)
+	budget2IncomeCategory := factory.MakeCategory("category", budget2IncomeGroup.ID, budgetID2)
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate transactions;")

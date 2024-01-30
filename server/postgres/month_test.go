@@ -18,13 +18,15 @@ func TestMonth(t *testing.T) {
 	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
 
 	txManager := postgres.NewTxManager(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
-	budgetID := testutils.MakeBudget(t, pool, "budget", userID).ID
-	budgetID2 := testutils.MakeBudget(t, pool, "budget2", userID).ID
+	userID := factory.MakeUser("user")
+	budgetID := factory.MakeBudget("budget", userID).ID
+	budgetID2 := factory.MakeBudget("budget2", userID).ID
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate months cascade;")

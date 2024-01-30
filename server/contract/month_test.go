@@ -15,7 +15,7 @@ import (
 
 func TestMonth(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -33,8 +33,8 @@ func TestMonth(t *testing.T) {
 		t.Run("creates new month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			date := testutils.NewMonthDate(t, "2022-05-01")
@@ -60,10 +60,10 @@ func TestMonth(t *testing.T) {
 		t.Run("uses existing month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			month.CarriedOver = beans.NewAmount(0, 0)
 			month.Income = beans.NewAmount(0, 0)
@@ -81,12 +81,12 @@ func TestMonth(t *testing.T) {
 
 			date := testutils.NewDate(t, "2022-05-01")
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, date)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, date)
 
-			budget2 := testutils.MakeBudget(t, pool, "Budget2", userID)
-			testutils.MakeMonth(t, pool, budget2.ID, date)
+			budget2 := factory.MakeBudget("Budget2", userID)
+			factory.MakeMonth(budget2.ID, date)
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -98,11 +98,11 @@ func TestMonth(t *testing.T) {
 		t.Run("creates existing month categories when creating month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Electric", group.ID, budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Electric", group.ID, budget.ID)
 
 			date := testutils.NewMonthDate(t, "2022-05-01")
 
@@ -118,25 +118,25 @@ func TestMonth(t *testing.T) {
 		t.Run("can get month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			monthApril := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-04-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			monthApril := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-04-01"))
 			monthApril.Carryover = beans.NewAmount(67, -1)
 			require.Nil(t, monthRepository.Update(context.Background(), monthApril))
 
-			monthMay := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			monthMay := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 			monthMay.Carryover = beans.NewAmount(4, -1)
 			require.Nil(t, monthRepository.Update(context.Background(), monthMay))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			account := testutils.MakeAccount(t, pool, "account", budget.ID)
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			incomeGroup := testutils.MakeIncomeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
-			incomeCategory := testutils.MakeCategory(t, pool, "Income", incomeGroup.ID, budget.ID)
-			monthCategory := testutils.MakeMonthCategory(t, pool, monthMay.ID, category.ID, beans.NewAmount(34, -1))
-			testutils.MakeMonthCategory(t, pool, monthApril.ID, category.ID, beans.NewAmount(34, -1))
+			account := factory.MakeAccount("account", budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			incomeGroup := factory.MakeIncomeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Category", group.ID, budget.ID)
+			incomeCategory := factory.MakeCategory("Income", incomeGroup.ID, budget.ID)
+			monthCategory := factory.MakeMonthCategory(monthMay.ID, category.ID, beans.NewAmount(34, -1))
+			factory.MakeMonthCategory(monthApril.ID, category.ID, beans.NewAmount(34, -1))
 
 			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
 				ID:         beans.NewBeansID(),
@@ -196,8 +196,8 @@ func TestMonth(t *testing.T) {
 		t.Run("cannot update non existant month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			err := c.Update(context.Background(), auth, beans.NewBeansID(), beans.NewAmount(0, 0))
@@ -207,10 +207,10 @@ func TestMonth(t *testing.T) {
 		t.Run("must have access to month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "Budget2", userID)
-			month := testutils.MakeMonth(t, pool, budget2.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			budget2 := factory.MakeBudget("Budget2", userID)
+			month := factory.MakeMonth(budget2.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -221,9 +221,9 @@ func TestMonth(t *testing.T) {
 		t.Run("cannot add negative carryover", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(-5, 0))
@@ -233,9 +233,9 @@ func TestMonth(t *testing.T) {
 		t.Run("cannot add blank carryover", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			err := c.Update(context.Background(), auth, month.ID, beans.NewEmptyAmount())
@@ -245,9 +245,9 @@ func TestMonth(t *testing.T) {
 		t.Run("can update carryover", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -262,9 +262,9 @@ func TestMonth(t *testing.T) {
 		t.Run("can update carryover to zero", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
@@ -281,8 +281,8 @@ func TestMonth(t *testing.T) {
 		t.Run("amount must be not be zero", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 			month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID}
 
@@ -293,8 +293,8 @@ func TestMonth(t *testing.T) {
 		t.Run("amount must be not be negative", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 			month := &beans.Month{ID: beans.NewBeansID(), BudgetID: budget.ID}
 
@@ -305,15 +305,15 @@ func TestMonth(t *testing.T) {
 		t.Run("must have access to month", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			budget2 := testutils.MakeBudget(t, pool, "Budget2", userID)
-			month := testutils.MakeMonth(t, pool, budget2.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			budget2 := factory.MakeBudget("Budget2", userID)
+			month := factory.MakeMonth(budget2.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Category", group.ID, budget.ID)
 
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			testutils.AssertErrorCode(t, err, beans.EFORBIDDEN)
@@ -322,14 +322,14 @@ func TestMonth(t *testing.T) {
 		t.Run("creates new month category", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Category", group.ID, budget.ID)
 
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
@@ -351,15 +351,15 @@ func TestMonth(t *testing.T) {
 		t.Run("uses existing month category", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
-			monthCategory := testutils.MakeMonthCategory(t, pool, month.ID, category.ID, beans.NewAmount(4, 0))
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Category", group.ID, budget.ID)
+			monthCategory := factory.MakeMonthCategory(month.ID, category.ID, beans.NewAmount(4, 0))
 
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)

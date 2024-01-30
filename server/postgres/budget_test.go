@@ -15,11 +15,13 @@ func TestBudgets(t *testing.T) {
 	t.Parallel()
 	pool, stop := testutils.StartPool(t)
 	defer stop()
+	ds := postgres.NewDataSource(pool)
+	factory := testutils.Factory(t, ds)
 
 	budgetRepository := postgres.NewBudgetRepository(pool)
 	txManager := postgres.NewTxManager(pool)
 
-	userID := testutils.MakeUser(t, pool, "user")
+	userID := factory.MakeUser("user")
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate budgets cascade")

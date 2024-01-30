@@ -15,7 +15,7 @@ import (
 
 func TestCategory(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -37,8 +37,8 @@ func TestCategory(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			_, err := c.CreateGroup(context.Background(), auth, beans.Name(""))
@@ -48,8 +48,8 @@ func TestCategory(t *testing.T) {
 		t.Run("can create", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			group, err := c.CreateGroup(context.Background(), auth, beans.Name("Group"))
@@ -72,8 +72,8 @@ func TestCategory(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			_, err := c.CreateCategory(context.Background(), auth, beans.NewBeansID(), beans.Name(""))
@@ -83,8 +83,8 @@ func TestCategory(t *testing.T) {
 		t.Run("cannot create if group does not exist", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			_, err := c.CreateCategory(context.Background(), auth, beans.NewBeansID(), beans.Name("Category"))
@@ -94,10 +94,10 @@ func TestCategory(t *testing.T) {
 		t.Run("can create category", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
 
 			category, err := c.CreateCategory(context.Background(), auth, group.ID, beans.Name("Category"))
 			require.Nil(t, err)
@@ -116,11 +116,11 @@ func TestCategory(t *testing.T) {
 		t.Run("creates category for existing months", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			month := testutils.MakeMonth(t, pool, budget.ID, testutils.NewDate(t, "2022-05-01"))
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
 			category, err := c.CreateCategory(context.Background(), auth, group.ID, beans.Name("Category"))
 			require.Nil(t, err)
@@ -136,15 +136,15 @@ func TestCategory(t *testing.T) {
 		t.Run("can get all categories and groups", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			group := testutils.MakeCategoryGroup(t, pool, "Group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "Category", group.ID, budget.ID)
+			group := factory.MakeCategoryGroup("Group", budget.ID)
+			category := factory.MakeCategory("Category", group.ID, budget.ID)
 
-			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
-			_ = testutils.MakeCategoryGroup(t, pool, "Group", budget2.ID)
-			_ = testutils.MakeCategory(t, pool, "Category", group.ID, budget2.ID)
+			budget2 := factory.MakeBudget("Budget", userID)
+			_ = factory.MakeCategoryGroup("Group", budget2.ID)
+			_ = factory.MakeCategory("Category", group.ID, budget2.ID)
 
 			groups, categories, err := c.GetAll(context.Background(), auth)
 			require.Nil(t, err)
