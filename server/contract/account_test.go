@@ -15,7 +15,7 @@ import (
 
 func TestAccount(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -30,8 +30,8 @@ func TestAccount(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 
 			_, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name(""))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
@@ -40,8 +40,8 @@ func TestAccount(t *testing.T) {
 		t.Run("can create account", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 
 			account, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name("Account"))
 			require.Nil(t, err)
@@ -61,12 +61,12 @@ func TestAccount(t *testing.T) {
 	t.Run("get all", func(t *testing.T) {
 		t.Run("can get all accounts", func(t *testing.T) {
 			defer cleanup()
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
-			account := testutils.MakeAccount(t, pool, "Account", budget.ID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
+			account := factory.MakeAccount("Account", budget.ID)
 
-			categoryGroup := testutils.MakeCategoryGroup(t, pool, "group", budget.ID)
-			category := testutils.MakeCategory(t, pool, "cat1", categoryGroup.ID, budget.ID)
+			categoryGroup := factory.MakeCategoryGroup("group", budget.ID)
+			category := factory.MakeCategory("cat1", categoryGroup.ID, budget.ID)
 
 			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
 				ID:         beans.NewBeansID(),
@@ -76,8 +76,8 @@ func TestAccount(t *testing.T) {
 				CategoryID: category.ID,
 			}))
 
-			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
-			_ = testutils.MakeAccount(t, pool, "Account", budget2.ID)
+			budget2 := factory.MakeBudget("Budget", userID)
+			_ = factory.MakeAccount("Account", budget2.ID)
 
 			accounts, err := c.GetAll(context.Background(), testutils.BudgetAuthContext(t, userID, budget))
 			require.Nil(t, err)

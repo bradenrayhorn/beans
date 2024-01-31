@@ -15,7 +15,7 @@ import (
 
 func TestPayee(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -31,8 +31,8 @@ func TestPayee(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			_, err := c.CreatePayee(context.Background(), auth, beans.Name(""))
@@ -42,8 +42,8 @@ func TestPayee(t *testing.T) {
 		t.Run("can create", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			payee, err := c.CreatePayee(context.Background(), auth, beans.Name("Payee"))
@@ -65,13 +65,13 @@ func TestPayee(t *testing.T) {
 		t.Run("can get all payees", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
-			payee := testutils.MakePayee(t, pool, "Payee1", budget.ID)
+			payee := factory.MakePayee("Payee1", budget.ID)
 
-			budget2 := testutils.MakeBudget(t, pool, "Budget", userID)
-			_ = testutils.MakePayee(t, pool, "Payee2", budget2.ID)
+			budget2 := factory.MakeBudget("Budget", userID)
+			_ = factory.MakePayee("Payee2", budget2.ID)
 
 			payees, err := c.GetAll(context.Background(), auth)
 			require.Nil(t, err)

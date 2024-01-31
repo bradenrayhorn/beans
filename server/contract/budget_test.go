@@ -15,7 +15,7 @@ import (
 
 func TestBudget(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -45,7 +45,7 @@ func TestBudget(t *testing.T) {
 		t.Run("can create budget", func(t *testing.T) {
 			defer cleanup()
 
-			userID := testutils.MakeUser(t, pool, "user")
+			userID := factory.MakeUser("user")
 
 			budget, err := c.Create(context.Background(), beans.NewAuthContext(userID, sessionID), beans.Name("Test"))
 			require.Nil(t, err)
@@ -82,7 +82,7 @@ func TestBudget(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
 		t.Run("cannot get nonexistant budget", func(t *testing.T) {
 			defer cleanup()
-			userID := testutils.MakeUser(t, pool, "user")
+			userID := factory.MakeUser("user")
 
 			_, err := c.Get(context.Background(), beans.NewAuthContext(userID, sessionID), beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
@@ -90,10 +90,10 @@ func TestBudget(t *testing.T) {
 
 		t.Run("cannot get budget for wrong user", func(t *testing.T) {
 			defer cleanup()
-			userID1 := testutils.MakeUser(t, pool, "user1")
-			userID2 := testutils.MakeUser(t, pool, "user2")
+			userID1 := factory.MakeUser("user1")
+			userID2 := factory.MakeUser("user2")
 
-			budget := testutils.MakeBudget(t, pool, "Budget", userID1)
+			budget := factory.MakeBudget("Budget", userID1)
 
 			_, err := c.Get(context.Background(), beans.NewAuthContext(userID2, sessionID), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
@@ -101,8 +101,8 @@ func TestBudget(t *testing.T) {
 
 		t.Run("can get budget", func(t *testing.T) {
 			defer cleanup()
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 
 			rBudget, err := c.Get(context.Background(), beans.NewAuthContext(userID, sessionID), budget.ID)
 			require.Nil(t, err)
@@ -113,11 +113,11 @@ func TestBudget(t *testing.T) {
 	t.Run("get all", func(t *testing.T) {
 		t.Run("can get all budgets", func(t *testing.T) {
 			defer cleanup()
-			userID := testutils.MakeUser(t, pool, "user")
-			budget := testutils.MakeBudget(t, pool, "Budget", userID)
+			userID := factory.MakeUser("user")
+			budget := factory.MakeBudget("Budget", userID)
 
-			userID2 := testutils.MakeUser(t, pool, "user")
-			_ = testutils.MakeBudget(t, pool, "Budget", userID2)
+			userID2 := factory.MakeUser("user")
+			_ = factory.MakeBudget("Budget", userID2)
 
 			budgets, err := c.GetAll(context.Background(), beans.NewAuthContext(userID, sessionID))
 			require.Nil(t, err)

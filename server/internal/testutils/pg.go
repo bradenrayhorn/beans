@@ -49,6 +49,13 @@ func StartPool(tb testing.TB) (*postgres.DbPool, func()) {
 	}
 }
 
+func StartPoolWithDataSource(tb testing.TB) (*postgres.DbPool, beans.DataSource, *factory, func()) {
+	pool, stop := StartPool(tb)
+	ds := postgres.NewDataSource(pool)
+	factory := Factory(tb, ds)
+	return pool, ds, factory, stop
+}
+
 func getMigrationQueries(tb testing.TB) string {
 	queries := ""
 
