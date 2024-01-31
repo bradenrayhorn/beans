@@ -44,6 +44,10 @@ func (d MonthDate) Previous() MonthDate {
 	return NewMonthDate(NewDate(d.FirstDay().AddDate(0, -1, 0)))
 }
 
+func (d MonthDate) Empty() bool {
+	return d.date.Empty()
+}
+
 // Creates a new MonthDate and normalizes the date.
 func NewMonthDate(date Date) MonthDate {
 	return MonthDate{date: NewDate(normalizeMonth(date.Time))}

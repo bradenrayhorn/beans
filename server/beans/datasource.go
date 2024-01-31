@@ -10,4 +10,6 @@ type DataSource interface {
 	PayeeRepository() PayeeRepository
 	TransactionRepository() TransactionRepository
 	UserRepository() UserRepository
+
+	TxManager() TxManager
 }

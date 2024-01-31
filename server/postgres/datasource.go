@@ -13,6 +13,8 @@ type datasource struct {
 	payeeRepository         beans.PayeeRepository
 	transactionRepository   beans.TransactionRepository
 	userRepository          beans.UserRepository
+
+	txManager beans.TxManager
 }
 
 func (ds *datasource) AccountRepository() beans.AccountRepository {
@@ -47,6 +49,10 @@ func (ds *datasource) UserRepository() beans.UserRepository {
 	return ds.userRepository
 }
 
+func (ds *datasource) TxManager() beans.TxManager {
+	return ds.txManager
+}
+
 func NewDataSource(pool *DbPool) *datasource {
 	return &datasource{
 		accountRepository:       NewAccountRepository(pool),
@@ -57,5 +63,7 @@ func NewDataSource(pool *DbPool) *datasource {
 		payeeRepository:         NewPayeeRepository(pool),
 		transactionRepository:   NewTransactionRepository(pool),
 		userRepository:          NewUserRepository(pool),
+
+		txManager: NewTxManager(pool),
 	}
 }
