@@ -4,44 +4,33 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/go-chi/chi/v5"
 )
 
-type transactionPayee struct {
-	ID   beans.ID   `json:"id"`
-	Name beans.Name `json:"name"`
-}
-
-type transactionResponse struct {
-	ID       string                 `json:"id"`
-	Account  responseAccount        `json:"account"`
-	Category *listCategoryResponse  `json:"category"`
-	Payee    *transactionPayee      `json:"payee"`
-	Amount   beans.Amount           `json:"amount"`
-	Date     string                 `json:"date"`
-	Notes    beans.TransactionNotes `json:"notes"`
-}
-
-func responseFromTransaction(transaction *beans.Transaction) transactionResponse {
-	var category *listCategoryResponse
+func responseFromTransaction(transaction *beans.Transaction) response.Transaction {
+	var category *response.AssociatedCategory
 	if !transaction.CategoryID.Empty() && !transaction.CategoryName.Empty() {
-		category = &listCategoryResponse{
+		category = &response.AssociatedCategory{
 			ID:   transaction.CategoryID,
 			Name: beans.Name(transaction.CategoryName.String()),
 		}
 	}
 
-	var payee *transactionPayee
+	var payee *response.AssociatedPayee
 	if !transaction.PayeeID.Empty() && !transaction.PayeeName.Empty() {
-		payee = &transactionPayee{
+		payee = &response.AssociatedPayee{
 			ID:   transaction.PayeeID,
 			Name: beans.Name(transaction.PayeeName.String()),
 		}
 	}
 
-	return transactionResponse{
-		ID:       transaction.ID.String(),
-		Account:  responseFromAccount(transaction.Account),
+	return response.Transaction{
+		ID: transaction.ID.String(),
+		Account: response.AssociatedAccount{
+			ID:   transaction.AccountID,
+			Name: transaction.Account.Name,
+		},
 		Category: category,
 		Payee:    payee,
 		Amount:   transaction.Amount,
@@ -58,10 +47,6 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 		Amount     beans.Amount           `json:"amount"`
 		Date       beans.Date             `json:"date"`
 		Notes      beans.TransactionNotes `json:"notes"`
-	}
-
-	type response struct {
-		ID beans.ID `json:"transaction_id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -87,10 +72,8 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, struct {
-			Data response `json:"data"`
-		}{
-			Data: response{ID: transaction.ID},
+		jsonResponse(w, response.CreateTransactionResponse{
+			Data: response.ID{ID: transaction.ID},
 		}, http.StatusOK)
 	}
 }
@@ -158,10 +141,6 @@ func (s *Server) handleTransactionDelete() http.HandlerFunc {
 }
 
 func (s *Server) handleTransactionGetAll() http.HandlerFunc {
-	type response struct {
-		Data []transactionResponse `json:"data"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		transactions, err := s.transactionContract.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
@@ -169,7 +148,7 @@ func (s *Server) handleTransactionGetAll() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: make([]transactionResponse, len(transactions))}
+		res := response.ListTransactionsResponse{Data: make([]response.Transaction, len(transactions))}
 		for i, t := range transactions {
 			res.Data[i] = responseFromTransaction(t)
 		}

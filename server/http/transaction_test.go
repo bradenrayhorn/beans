@@ -54,7 +54,7 @@ func TestTransaction(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.JSONEq(t, fmt.Sprintf(
-			`{"data":{"transaction_id":"%s"}}`, transaction.ID,
+			`{"data":{"id":"%s"}}`, transaction.ID,
 		), res.body)
 
 		params := test.transactionContract.CreateFunc.History()[0]
