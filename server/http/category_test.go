@@ -68,7 +68,12 @@ func TestCategory(t *testing.T) {
 		test := newHttpTest(t)
 		defer test.Stop(t)
 
-		test.categoryContract.GetAllFunc.PushReturn([]*beans.CategoryGroup{group}, []*beans.Category{category}, nil)
+		test.categoryContract.GetAllFunc.PushReturn([]beans.CategoryGroupWithCategories{
+			{
+				CategoryGroup: *group,
+				Categories:    []beans.Category{*category},
+			},
+		}, nil)
 
 		res := test.DoRequest(t, HTTPRequest{
 			method: "GET",

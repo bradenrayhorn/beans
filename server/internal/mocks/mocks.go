@@ -1543,7 +1543,7 @@ func NewMockCategoryContract() *MockCategoryContract {
 			},
 		},
 		GetAllFunc: &CategoryContractGetAllFunc{
-			defaultHook: func(context.Context, *beans.BudgetAuthContext) (r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
+			defaultHook: func(context.Context, *beans.BudgetAuthContext) (r0 []beans.CategoryGroupWithCategories, r1 error) {
 				return
 			},
 		},
@@ -1565,7 +1565,7 @@ func NewStrictMockCategoryContract() *MockCategoryContract {
 			},
 		},
 		GetAllFunc: &CategoryContractGetAllFunc{
-			defaultHook: func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
+			defaultHook: func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
 				panic("unexpected invocation of MockCategoryContract.GetAll")
 			},
 		},
@@ -1820,24 +1820,24 @@ func (c CategoryContractCreateGroupFuncCall) Results() []interface{} {
 // CategoryContractGetAllFunc describes the behavior when the GetAll method
 // of the parent MockCategoryContract instance is invoked.
 type CategoryContractGetAllFunc struct {
-	defaultHook func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error)
-	hooks       []func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error)
+	defaultHook func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error)
+	hooks       []func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error)
 	history     []CategoryContractGetAllFuncCall
 	mutex       sync.Mutex
 }
 
 // GetAll delegates to the next hook function in the queue and stores the
 // parameter and result values of this invocation.
-func (m *MockCategoryContract) GetAll(v0 context.Context, v1 *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
-	r0, r1, r2 := m.GetAllFunc.nextHook()(v0, v1)
-	m.GetAllFunc.appendCall(CategoryContractGetAllFuncCall{v0, v1, r0, r1, r2})
-	return r0, r1, r2
+func (m *MockCategoryContract) GetAll(v0 context.Context, v1 *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
+	r0, r1 := m.GetAllFunc.nextHook()(v0, v1)
+	m.GetAllFunc.appendCall(CategoryContractGetAllFuncCall{v0, v1, r0, r1})
+	return r0, r1
 }
 
 // SetDefaultHook sets function that is called when the GetAll method of the
 // parent MockCategoryContract instance is invoked and the hook queue is
 // empty.
-func (f *CategoryContractGetAllFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error)) {
+func (f *CategoryContractGetAllFunc) SetDefaultHook(hook func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error)) {
 	f.defaultHook = hook
 }
 
@@ -1845,7 +1845,7 @@ func (f *CategoryContractGetAllFunc) SetDefaultHook(hook func(context.Context, *
 // GetAll method of the parent MockCategoryContract instance invokes the
 // hook at the front of the queue and discards it. After the queue is empty,
 // the default hook function is invoked for any future action.
-func (f *CategoryContractGetAllFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error)) {
+func (f *CategoryContractGetAllFunc) PushHook(hook func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error)) {
 	f.mutex.Lock()
 	f.hooks = append(f.hooks, hook)
 	f.mutex.Unlock()
@@ -1853,20 +1853,20 @@ func (f *CategoryContractGetAllFunc) PushHook(hook func(context.Context, *beans.
 
 // SetDefaultReturn calls SetDefaultHook with a function that returns the
 // given values.
-func (f *CategoryContractGetAllFunc) SetDefaultReturn(r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
-	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
-		return r0, r1, r2
+func (f *CategoryContractGetAllFunc) SetDefaultReturn(r0 []beans.CategoryGroupWithCategories, r1 error) {
+	f.SetDefaultHook(func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
+		return r0, r1
 	})
 }
 
 // PushReturn calls PushHook with a function that returns the given values.
-func (f *CategoryContractGetAllFunc) PushReturn(r0 []*beans.CategoryGroup, r1 []*beans.Category, r2 error) {
-	f.PushHook(func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
-		return r0, r1, r2
+func (f *CategoryContractGetAllFunc) PushReturn(r0 []beans.CategoryGroupWithCategories, r1 error) {
+	f.PushHook(func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
+		return r0, r1
 	})
 }
 
-func (f *CategoryContractGetAllFunc) nextHook() func(context.Context, *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
+func (f *CategoryContractGetAllFunc) nextHook() func(context.Context, *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -1907,13 +1907,10 @@ type CategoryContractGetAllFuncCall struct {
 	Arg1 *beans.BudgetAuthContext
 	// Result0 is the value of the 1st result returned from this method
 	// invocation.
-	Result0 []*beans.CategoryGroup
+	Result0 []beans.CategoryGroupWithCategories
 	// Result1 is the value of the 2nd result returned from this method
 	// invocation.
-	Result1 []*beans.Category
-	// Result2 is the value of the 3rd result returned from this method
-	// invocation.
-	Result2 error
+	Result1 error
 }
 
 // Args returns an interface slice containing the arguments of this
@@ -1925,7 +1922,7 @@ func (c CategoryContractGetAllFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c CategoryContractGetAllFuncCall) Results() []interface{} {
-	return []interface{}{c.Result0, c.Result1, c.Result2}
+	return []interface{}{c.Result0, c.Result1}
 }
 
 // MockCategoryRepository is a mock implementation of the CategoryRepository
@@ -2860,6 +2857,1076 @@ func (c CountableLengthFuncCall) Args() []interface{} {
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c CountableLengthFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// MockDataSource is a mock implementation of the DataSource interface (from
+// the package github.com/bradenrayhorn/beans/server/beans) used for unit
+// testing.
+type MockDataSource struct {
+	// AccountRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method AccountRepository.
+	AccountRepositoryFunc *DataSourceAccountRepositoryFunc
+	// BudgetRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method BudgetRepository.
+	BudgetRepositoryFunc *DataSourceBudgetRepositoryFunc
+	// CategoryRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method CategoryRepository.
+	CategoryRepositoryFunc *DataSourceCategoryRepositoryFunc
+	// MonthCategoryRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method MonthCategoryRepository.
+	MonthCategoryRepositoryFunc *DataSourceMonthCategoryRepositoryFunc
+	// MonthRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method MonthRepository.
+	MonthRepositoryFunc *DataSourceMonthRepositoryFunc
+	// PayeeRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method PayeeRepository.
+	PayeeRepositoryFunc *DataSourcePayeeRepositoryFunc
+	// TransactionRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method TransactionRepository.
+	TransactionRepositoryFunc *DataSourceTransactionRepositoryFunc
+	// TxManagerFunc is an instance of a mock function object controlling
+	// the behavior of the method TxManager.
+	TxManagerFunc *DataSourceTxManagerFunc
+	// UserRepositoryFunc is an instance of a mock function object
+	// controlling the behavior of the method UserRepository.
+	UserRepositoryFunc *DataSourceUserRepositoryFunc
+}
+
+// NewMockDataSource creates a new mock of the DataSource interface. All
+// methods return zero values for all results, unless overwritten.
+func NewMockDataSource() *MockDataSource {
+	return &MockDataSource{
+		AccountRepositoryFunc: &DataSourceAccountRepositoryFunc{
+			defaultHook: func() (r0 beans.AccountRepository) {
+				return
+			},
+		},
+		BudgetRepositoryFunc: &DataSourceBudgetRepositoryFunc{
+			defaultHook: func() (r0 beans.BudgetRepository) {
+				return
+			},
+		},
+		CategoryRepositoryFunc: &DataSourceCategoryRepositoryFunc{
+			defaultHook: func() (r0 beans.CategoryRepository) {
+				return
+			},
+		},
+		MonthCategoryRepositoryFunc: &DataSourceMonthCategoryRepositoryFunc{
+			defaultHook: func() (r0 beans.MonthCategoryRepository) {
+				return
+			},
+		},
+		MonthRepositoryFunc: &DataSourceMonthRepositoryFunc{
+			defaultHook: func() (r0 beans.MonthRepository) {
+				return
+			},
+		},
+		PayeeRepositoryFunc: &DataSourcePayeeRepositoryFunc{
+			defaultHook: func() (r0 beans.PayeeRepository) {
+				return
+			},
+		},
+		TransactionRepositoryFunc: &DataSourceTransactionRepositoryFunc{
+			defaultHook: func() (r0 beans.TransactionRepository) {
+				return
+			},
+		},
+		TxManagerFunc: &DataSourceTxManagerFunc{
+			defaultHook: func() (r0 beans.TxManager) {
+				return
+			},
+		},
+		UserRepositoryFunc: &DataSourceUserRepositoryFunc{
+			defaultHook: func() (r0 beans.UserRepository) {
+				return
+			},
+		},
+	}
+}
+
+// NewStrictMockDataSource creates a new mock of the DataSource interface.
+// All methods panic on invocation, unless overwritten.
+func NewStrictMockDataSource() *MockDataSource {
+	return &MockDataSource{
+		AccountRepositoryFunc: &DataSourceAccountRepositoryFunc{
+			defaultHook: func() beans.AccountRepository {
+				panic("unexpected invocation of MockDataSource.AccountRepository")
+			},
+		},
+		BudgetRepositoryFunc: &DataSourceBudgetRepositoryFunc{
+			defaultHook: func() beans.BudgetRepository {
+				panic("unexpected invocation of MockDataSource.BudgetRepository")
+			},
+		},
+		CategoryRepositoryFunc: &DataSourceCategoryRepositoryFunc{
+			defaultHook: func() beans.CategoryRepository {
+				panic("unexpected invocation of MockDataSource.CategoryRepository")
+			},
+		},
+		MonthCategoryRepositoryFunc: &DataSourceMonthCategoryRepositoryFunc{
+			defaultHook: func() beans.MonthCategoryRepository {
+				panic("unexpected invocation of MockDataSource.MonthCategoryRepository")
+			},
+		},
+		MonthRepositoryFunc: &DataSourceMonthRepositoryFunc{
+			defaultHook: func() beans.MonthRepository {
+				panic("unexpected invocation of MockDataSource.MonthRepository")
+			},
+		},
+		PayeeRepositoryFunc: &DataSourcePayeeRepositoryFunc{
+			defaultHook: func() beans.PayeeRepository {
+				panic("unexpected invocation of MockDataSource.PayeeRepository")
+			},
+		},
+		TransactionRepositoryFunc: &DataSourceTransactionRepositoryFunc{
+			defaultHook: func() beans.TransactionRepository {
+				panic("unexpected invocation of MockDataSource.TransactionRepository")
+			},
+		},
+		TxManagerFunc: &DataSourceTxManagerFunc{
+			defaultHook: func() beans.TxManager {
+				panic("unexpected invocation of MockDataSource.TxManager")
+			},
+		},
+		UserRepositoryFunc: &DataSourceUserRepositoryFunc{
+			defaultHook: func() beans.UserRepository {
+				panic("unexpected invocation of MockDataSource.UserRepository")
+			},
+		},
+	}
+}
+
+// NewMockDataSourceFrom creates a new mock of the MockDataSource interface.
+// All methods delegate to the given implementation, unless overwritten.
+func NewMockDataSourceFrom(i beans.DataSource) *MockDataSource {
+	return &MockDataSource{
+		AccountRepositoryFunc: &DataSourceAccountRepositoryFunc{
+			defaultHook: i.AccountRepository,
+		},
+		BudgetRepositoryFunc: &DataSourceBudgetRepositoryFunc{
+			defaultHook: i.BudgetRepository,
+		},
+		CategoryRepositoryFunc: &DataSourceCategoryRepositoryFunc{
+			defaultHook: i.CategoryRepository,
+		},
+		MonthCategoryRepositoryFunc: &DataSourceMonthCategoryRepositoryFunc{
+			defaultHook: i.MonthCategoryRepository,
+		},
+		MonthRepositoryFunc: &DataSourceMonthRepositoryFunc{
+			defaultHook: i.MonthRepository,
+		},
+		PayeeRepositoryFunc: &DataSourcePayeeRepositoryFunc{
+			defaultHook: i.PayeeRepository,
+		},
+		TransactionRepositoryFunc: &DataSourceTransactionRepositoryFunc{
+			defaultHook: i.TransactionRepository,
+		},
+		TxManagerFunc: &DataSourceTxManagerFunc{
+			defaultHook: i.TxManager,
+		},
+		UserRepositoryFunc: &DataSourceUserRepositoryFunc{
+			defaultHook: i.UserRepository,
+		},
+	}
+}
+
+// DataSourceAccountRepositoryFunc describes the behavior when the
+// AccountRepository method of the parent MockDataSource instance is
+// invoked.
+type DataSourceAccountRepositoryFunc struct {
+	defaultHook func() beans.AccountRepository
+	hooks       []func() beans.AccountRepository
+	history     []DataSourceAccountRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// AccountRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) AccountRepository() beans.AccountRepository {
+	r0 := m.AccountRepositoryFunc.nextHook()()
+	m.AccountRepositoryFunc.appendCall(DataSourceAccountRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the AccountRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourceAccountRepositoryFunc) SetDefaultHook(hook func() beans.AccountRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// AccountRepository method of the parent MockDataSource instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *DataSourceAccountRepositoryFunc) PushHook(hook func() beans.AccountRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceAccountRepositoryFunc) SetDefaultReturn(r0 beans.AccountRepository) {
+	f.SetDefaultHook(func() beans.AccountRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceAccountRepositoryFunc) PushReturn(r0 beans.AccountRepository) {
+	f.PushHook(func() beans.AccountRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceAccountRepositoryFunc) nextHook() func() beans.AccountRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceAccountRepositoryFunc) appendCall(r0 DataSourceAccountRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceAccountRepositoryFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourceAccountRepositoryFunc) History() []DataSourceAccountRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceAccountRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceAccountRepositoryFuncCall is an object that describes an
+// invocation of method AccountRepository on an instance of MockDataSource.
+type DataSourceAccountRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.AccountRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceAccountRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceAccountRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceBudgetRepositoryFunc describes the behavior when the
+// BudgetRepository method of the parent MockDataSource instance is invoked.
+type DataSourceBudgetRepositoryFunc struct {
+	defaultHook func() beans.BudgetRepository
+	hooks       []func() beans.BudgetRepository
+	history     []DataSourceBudgetRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// BudgetRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) BudgetRepository() beans.BudgetRepository {
+	r0 := m.BudgetRepositoryFunc.nextHook()()
+	m.BudgetRepositoryFunc.appendCall(DataSourceBudgetRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the BudgetRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourceBudgetRepositoryFunc) SetDefaultHook(hook func() beans.BudgetRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// BudgetRepository method of the parent MockDataSource instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *DataSourceBudgetRepositoryFunc) PushHook(hook func() beans.BudgetRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceBudgetRepositoryFunc) SetDefaultReturn(r0 beans.BudgetRepository) {
+	f.SetDefaultHook(func() beans.BudgetRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceBudgetRepositoryFunc) PushReturn(r0 beans.BudgetRepository) {
+	f.PushHook(func() beans.BudgetRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceBudgetRepositoryFunc) nextHook() func() beans.BudgetRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceBudgetRepositoryFunc) appendCall(r0 DataSourceBudgetRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceBudgetRepositoryFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourceBudgetRepositoryFunc) History() []DataSourceBudgetRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceBudgetRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceBudgetRepositoryFuncCall is an object that describes an
+// invocation of method BudgetRepository on an instance of MockDataSource.
+type DataSourceBudgetRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.BudgetRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceBudgetRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceBudgetRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceCategoryRepositoryFunc describes the behavior when the
+// CategoryRepository method of the parent MockDataSource instance is
+// invoked.
+type DataSourceCategoryRepositoryFunc struct {
+	defaultHook func() beans.CategoryRepository
+	hooks       []func() beans.CategoryRepository
+	history     []DataSourceCategoryRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// CategoryRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) CategoryRepository() beans.CategoryRepository {
+	r0 := m.CategoryRepositoryFunc.nextHook()()
+	m.CategoryRepositoryFunc.appendCall(DataSourceCategoryRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the CategoryRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourceCategoryRepositoryFunc) SetDefaultHook(hook func() beans.CategoryRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CategoryRepository method of the parent MockDataSource instance invokes
+// the hook at the front of the queue and discards it. After the queue is
+// empty, the default hook function is invoked for any future action.
+func (f *DataSourceCategoryRepositoryFunc) PushHook(hook func() beans.CategoryRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceCategoryRepositoryFunc) SetDefaultReturn(r0 beans.CategoryRepository) {
+	f.SetDefaultHook(func() beans.CategoryRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceCategoryRepositoryFunc) PushReturn(r0 beans.CategoryRepository) {
+	f.PushHook(func() beans.CategoryRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceCategoryRepositoryFunc) nextHook() func() beans.CategoryRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceCategoryRepositoryFunc) appendCall(r0 DataSourceCategoryRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceCategoryRepositoryFuncCall
+// objects describing the invocations of this function.
+func (f *DataSourceCategoryRepositoryFunc) History() []DataSourceCategoryRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceCategoryRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceCategoryRepositoryFuncCall is an object that describes an
+// invocation of method CategoryRepository on an instance of MockDataSource.
+type DataSourceCategoryRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.CategoryRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceCategoryRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceCategoryRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceMonthCategoryRepositoryFunc describes the behavior when the
+// MonthCategoryRepository method of the parent MockDataSource instance is
+// invoked.
+type DataSourceMonthCategoryRepositoryFunc struct {
+	defaultHook func() beans.MonthCategoryRepository
+	hooks       []func() beans.MonthCategoryRepository
+	history     []DataSourceMonthCategoryRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// MonthCategoryRepository delegates to the next hook function in the queue
+// and stores the parameter and result values of this invocation.
+func (m *MockDataSource) MonthCategoryRepository() beans.MonthCategoryRepository {
+	r0 := m.MonthCategoryRepositoryFunc.nextHook()()
+	m.MonthCategoryRepositoryFunc.appendCall(DataSourceMonthCategoryRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the
+// MonthCategoryRepository method of the parent MockDataSource instance is
+// invoked and the hook queue is empty.
+func (f *DataSourceMonthCategoryRepositoryFunc) SetDefaultHook(hook func() beans.MonthCategoryRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// MonthCategoryRepository method of the parent MockDataSource instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *DataSourceMonthCategoryRepositoryFunc) PushHook(hook func() beans.MonthCategoryRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceMonthCategoryRepositoryFunc) SetDefaultReturn(r0 beans.MonthCategoryRepository) {
+	f.SetDefaultHook(func() beans.MonthCategoryRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceMonthCategoryRepositoryFunc) PushReturn(r0 beans.MonthCategoryRepository) {
+	f.PushHook(func() beans.MonthCategoryRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceMonthCategoryRepositoryFunc) nextHook() func() beans.MonthCategoryRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceMonthCategoryRepositoryFunc) appendCall(r0 DataSourceMonthCategoryRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceMonthCategoryRepositoryFuncCall
+// objects describing the invocations of this function.
+func (f *DataSourceMonthCategoryRepositoryFunc) History() []DataSourceMonthCategoryRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceMonthCategoryRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceMonthCategoryRepositoryFuncCall is an object that describes an
+// invocation of method MonthCategoryRepository on an instance of
+// MockDataSource.
+type DataSourceMonthCategoryRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.MonthCategoryRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceMonthCategoryRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceMonthCategoryRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceMonthRepositoryFunc describes the behavior when the
+// MonthRepository method of the parent MockDataSource instance is invoked.
+type DataSourceMonthRepositoryFunc struct {
+	defaultHook func() beans.MonthRepository
+	hooks       []func() beans.MonthRepository
+	history     []DataSourceMonthRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// MonthRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) MonthRepository() beans.MonthRepository {
+	r0 := m.MonthRepositoryFunc.nextHook()()
+	m.MonthRepositoryFunc.appendCall(DataSourceMonthRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the MonthRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourceMonthRepositoryFunc) SetDefaultHook(hook func() beans.MonthRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// MonthRepository method of the parent MockDataSource instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *DataSourceMonthRepositoryFunc) PushHook(hook func() beans.MonthRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceMonthRepositoryFunc) SetDefaultReturn(r0 beans.MonthRepository) {
+	f.SetDefaultHook(func() beans.MonthRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceMonthRepositoryFunc) PushReturn(r0 beans.MonthRepository) {
+	f.PushHook(func() beans.MonthRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceMonthRepositoryFunc) nextHook() func() beans.MonthRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceMonthRepositoryFunc) appendCall(r0 DataSourceMonthRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceMonthRepositoryFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourceMonthRepositoryFunc) History() []DataSourceMonthRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceMonthRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceMonthRepositoryFuncCall is an object that describes an
+// invocation of method MonthRepository on an instance of MockDataSource.
+type DataSourceMonthRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.MonthRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceMonthRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceMonthRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourcePayeeRepositoryFunc describes the behavior when the
+// PayeeRepository method of the parent MockDataSource instance is invoked.
+type DataSourcePayeeRepositoryFunc struct {
+	defaultHook func() beans.PayeeRepository
+	hooks       []func() beans.PayeeRepository
+	history     []DataSourcePayeeRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// PayeeRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) PayeeRepository() beans.PayeeRepository {
+	r0 := m.PayeeRepositoryFunc.nextHook()()
+	m.PayeeRepositoryFunc.appendCall(DataSourcePayeeRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the PayeeRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourcePayeeRepositoryFunc) SetDefaultHook(hook func() beans.PayeeRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// PayeeRepository method of the parent MockDataSource instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *DataSourcePayeeRepositoryFunc) PushHook(hook func() beans.PayeeRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourcePayeeRepositoryFunc) SetDefaultReturn(r0 beans.PayeeRepository) {
+	f.SetDefaultHook(func() beans.PayeeRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourcePayeeRepositoryFunc) PushReturn(r0 beans.PayeeRepository) {
+	f.PushHook(func() beans.PayeeRepository {
+		return r0
+	})
+}
+
+func (f *DataSourcePayeeRepositoryFunc) nextHook() func() beans.PayeeRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourcePayeeRepositoryFunc) appendCall(r0 DataSourcePayeeRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourcePayeeRepositoryFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourcePayeeRepositoryFunc) History() []DataSourcePayeeRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourcePayeeRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourcePayeeRepositoryFuncCall is an object that describes an
+// invocation of method PayeeRepository on an instance of MockDataSource.
+type DataSourcePayeeRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.PayeeRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourcePayeeRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourcePayeeRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceTransactionRepositoryFunc describes the behavior when the
+// TransactionRepository method of the parent MockDataSource instance is
+// invoked.
+type DataSourceTransactionRepositoryFunc struct {
+	defaultHook func() beans.TransactionRepository
+	hooks       []func() beans.TransactionRepository
+	history     []DataSourceTransactionRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// TransactionRepository delegates to the next hook function in the queue
+// and stores the parameter and result values of this invocation.
+func (m *MockDataSource) TransactionRepository() beans.TransactionRepository {
+	r0 := m.TransactionRepositoryFunc.nextHook()()
+	m.TransactionRepositoryFunc.appendCall(DataSourceTransactionRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the
+// TransactionRepository method of the parent MockDataSource instance is
+// invoked and the hook queue is empty.
+func (f *DataSourceTransactionRepositoryFunc) SetDefaultHook(hook func() beans.TransactionRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// TransactionRepository method of the parent MockDataSource instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *DataSourceTransactionRepositoryFunc) PushHook(hook func() beans.TransactionRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceTransactionRepositoryFunc) SetDefaultReturn(r0 beans.TransactionRepository) {
+	f.SetDefaultHook(func() beans.TransactionRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceTransactionRepositoryFunc) PushReturn(r0 beans.TransactionRepository) {
+	f.PushHook(func() beans.TransactionRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceTransactionRepositoryFunc) nextHook() func() beans.TransactionRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceTransactionRepositoryFunc) appendCall(r0 DataSourceTransactionRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceTransactionRepositoryFuncCall
+// objects describing the invocations of this function.
+func (f *DataSourceTransactionRepositoryFunc) History() []DataSourceTransactionRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceTransactionRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceTransactionRepositoryFuncCall is an object that describes an
+// invocation of method TransactionRepository on an instance of
+// MockDataSource.
+type DataSourceTransactionRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.TransactionRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceTransactionRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceTransactionRepositoryFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceTxManagerFunc describes the behavior when the TxManager method
+// of the parent MockDataSource instance is invoked.
+type DataSourceTxManagerFunc struct {
+	defaultHook func() beans.TxManager
+	hooks       []func() beans.TxManager
+	history     []DataSourceTxManagerFuncCall
+	mutex       sync.Mutex
+}
+
+// TxManager delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockDataSource) TxManager() beans.TxManager {
+	r0 := m.TxManagerFunc.nextHook()()
+	m.TxManagerFunc.appendCall(DataSourceTxManagerFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the TxManager method of
+// the parent MockDataSource instance is invoked and the hook queue is
+// empty.
+func (f *DataSourceTxManagerFunc) SetDefaultHook(hook func() beans.TxManager) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// TxManager method of the parent MockDataSource instance invokes the hook
+// at the front of the queue and discards it. After the queue is empty, the
+// default hook function is invoked for any future action.
+func (f *DataSourceTxManagerFunc) PushHook(hook func() beans.TxManager) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceTxManagerFunc) SetDefaultReturn(r0 beans.TxManager) {
+	f.SetDefaultHook(func() beans.TxManager {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceTxManagerFunc) PushReturn(r0 beans.TxManager) {
+	f.PushHook(func() beans.TxManager {
+		return r0
+	})
+}
+
+func (f *DataSourceTxManagerFunc) nextHook() func() beans.TxManager {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceTxManagerFunc) appendCall(r0 DataSourceTxManagerFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceTxManagerFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourceTxManagerFunc) History() []DataSourceTxManagerFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceTxManagerFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceTxManagerFuncCall is an object that describes an invocation of
+// method TxManager on an instance of MockDataSource.
+type DataSourceTxManagerFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.TxManager
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceTxManagerFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceTxManagerFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0}
+}
+
+// DataSourceUserRepositoryFunc describes the behavior when the
+// UserRepository method of the parent MockDataSource instance is invoked.
+type DataSourceUserRepositoryFunc struct {
+	defaultHook func() beans.UserRepository
+	hooks       []func() beans.UserRepository
+	history     []DataSourceUserRepositoryFuncCall
+	mutex       sync.Mutex
+}
+
+// UserRepository delegates to the next hook function in the queue and
+// stores the parameter and result values of this invocation.
+func (m *MockDataSource) UserRepository() beans.UserRepository {
+	r0 := m.UserRepositoryFunc.nextHook()()
+	m.UserRepositoryFunc.appendCall(DataSourceUserRepositoryFuncCall{r0})
+	return r0
+}
+
+// SetDefaultHook sets function that is called when the UserRepository
+// method of the parent MockDataSource instance is invoked and the hook
+// queue is empty.
+func (f *DataSourceUserRepositoryFunc) SetDefaultHook(hook func() beans.UserRepository) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// UserRepository method of the parent MockDataSource instance invokes the
+// hook at the front of the queue and discards it. After the queue is empty,
+// the default hook function is invoked for any future action.
+func (f *DataSourceUserRepositoryFunc) PushHook(hook func() beans.UserRepository) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *DataSourceUserRepositoryFunc) SetDefaultReturn(r0 beans.UserRepository) {
+	f.SetDefaultHook(func() beans.UserRepository {
+		return r0
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *DataSourceUserRepositoryFunc) PushReturn(r0 beans.UserRepository) {
+	f.PushHook(func() beans.UserRepository {
+		return r0
+	})
+}
+
+func (f *DataSourceUserRepositoryFunc) nextHook() func() beans.UserRepository {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *DataSourceUserRepositoryFunc) appendCall(r0 DataSourceUserRepositoryFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of DataSourceUserRepositoryFuncCall objects
+// describing the invocations of this function.
+func (f *DataSourceUserRepositoryFunc) History() []DataSourceUserRepositoryFuncCall {
+	f.mutex.Lock()
+	history := make([]DataSourceUserRepositoryFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// DataSourceUserRepositoryFuncCall is an object that describes an
+// invocation of method UserRepository on an instance of MockDataSource.
+type DataSourceUserRepositoryFuncCall struct {
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 beans.UserRepository
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation.
+func (c DataSourceUserRepositoryFuncCall) Args() []interface{} {
+	return []interface{}{}
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c DataSourceUserRepositoryFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0}
 }
 
