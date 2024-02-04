@@ -104,16 +104,35 @@ func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAu
 	return group, nil
 }
 
-func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.CategoryGroup, []*beans.Category, error) {
+func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
 	groups, err := c.categoryRepository.GetGroupsForBudget(ctx, auth.BudgetID())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return groups, categories, nil
+	// group categories by group
+	categoriesByGroup := make(map[string][]beans.Category)
+	for _, group := range groups {
+		categoriesByGroup[group.ID.String()] = make([]beans.Category, 0)
+	}
+	for _, category := range categories {
+		groupID := category.GroupID.String()
+		categoriesByGroup[groupID] = append(categoriesByGroup[groupID], *category)
+	}
+
+	// associate categories with their groups
+	groupsWithCategories := make([]beans.CategoryGroupWithCategories, len(groups))
+	for i, group := range groups {
+		groupsWithCategories[i] = beans.CategoryGroupWithCategories{
+			CategoryGroup: *group,
+			Categories:    categoriesByGroup[group.ID.String()],
+		}
+	}
+
+	return groupsWithCategories, nil
 }

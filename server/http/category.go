@@ -58,28 +58,25 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 
 func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		groups, categories, err := s.categoryContract.GetAll(r.Context(), getBudgetAuth(r))
+		groups, err := s.categoryContract.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return
 		}
 
-		categoriesMap := make(map[string][]response.Category)
-		for _, group := range groups {
-			categoriesMap[group.ID.String()] = make([]response.Category, 0)
-		}
-		for _, category := range categories {
-			groupID := category.GroupID.String()
-			categoriesMap[groupID] = append(categoriesMap[groupID], response.Category{ID: category.ID, Name: category.Name})
-		}
-
 		res := response.GetCategoriesResponse{Data: make([]response.CategoryGroup, len(groups))}
 		for i, group := range groups {
+			categories := []response.Category{}
+
+			for _, category := range group.Categories {
+				categories = append(categories, response.Category{ID: category.ID, Name: category.Name})
+			}
+
 			res.Data[i] = response.CategoryGroup{
 				ID:         group.ID,
 				Name:       group.Name,
 				IsIncome:   group.IsIncome,
-				Categories: categoriesMap[group.ID.String()],
+				Categories: categories,
 			}
 		}
 

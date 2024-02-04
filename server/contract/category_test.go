@@ -146,13 +146,15 @@ func TestCategory(t *testing.T) {
 			_ = factory.MakeCategoryGroup("Group", budget2.ID)
 			_ = factory.MakeCategory("Category", group.ID, budget2.ID)
 
-			groups, categories, err := c.GetAll(context.Background(), auth)
+			result, err := c.GetAll(context.Background(), auth)
 			require.Nil(t, err)
-			require.Len(t, groups, 1)
-			require.Len(t, categories, 1)
 
-			assert.True(t, reflect.DeepEqual(group, groups[0]))
-			assert.True(t, reflect.DeepEqual(category, categories[0]))
+			assert.True(t, reflect.DeepEqual(result, []beans.CategoryGroupWithCategories{
+				{
+					CategoryGroup: *group,
+					Categories:    []beans.Category{*category},
+				},
+			}))
 		})
 	})
 }
