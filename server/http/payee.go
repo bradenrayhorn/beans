@@ -4,19 +4,12 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/response"
 )
-
-type payeeResponse struct {
-	ID   beans.ID   `json:"id"`
-	Name beans.Name `json:"name"`
-}
 
 func (s *Server) handlePayeeCreate() http.HandlerFunc {
 	type request struct {
 		Name beans.Name `json:"name"`
-	}
-	type response struct {
-		ID beans.ID `json:"id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -32,10 +25,8 @@ func (s *Server) handlePayeeCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, struct {
-			Data response `json:"data"`
-		}{
-			Data: response{ID: payee.ID},
+		jsonResponse(w, response.CreatePayeeResponse{
+			Data: response.ID{ID: payee.ID},
 		}, http.StatusOK)
 	}
 }
@@ -48,17 +39,15 @@ func (s *Server) handlePayeeGetAll() http.HandlerFunc {
 			return
 		}
 
-		res := make([]payeeResponse, len(payees))
+		res := make([]response.Payee, len(payees))
 		for i, payee := range payees {
-			res[i] = payeeResponse{
+			res[i] = response.Payee{
 				ID:   payee.ID,
 				Name: payee.Name,
 			}
 		}
 
-		jsonResponse(w, struct {
-			Data []payeeResponse `json:"data"`
-		}{
+		jsonResponse(w, response.ListPayeesResponse{
 			Data: res,
 		}, http.StatusOK)
 	}

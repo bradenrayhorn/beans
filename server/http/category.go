@@ -4,27 +4,13 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/response"
 )
-
-type listCategoryResponse struct {
-	ID   beans.ID   `json:"id"`
-	Name beans.Name `json:"name"`
-}
-
-type categoryGroupResponse struct {
-	ID         beans.ID               `json:"id"`
-	Name       beans.Name             `json:"name"`
-	IsIncome   bool                   `json:"is_income"`
-	Categories []listCategoryResponse `json:"categories"`
-}
 
 func (s *Server) handleCategoryCreate() http.HandlerFunc {
 	type request struct {
 		GroupID beans.ID   `json:"group_id"`
 		Name    beans.Name `json:"name"`
-	}
-	type response struct {
-		ID beans.ID `json:"id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -40,10 +26,8 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, struct {
-			Data response `json:"data"`
-		}{
-			Data: response{ID: category.ID},
+		jsonResponse(w, response.CreateCategoryResponse{
+			Data: response.ID{ID: category.ID},
 		}, http.StatusOK)
 	}
 }
@@ -51,9 +35,6 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 	type request struct {
 		Name beans.Name `json:"name"`
-	}
-	type response struct {
-		ID beans.ID `json:"id"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -69,19 +50,13 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, struct {
-			Data response `json:"data"`
-		}{
-			Data: response{ID: group.ID},
+		jsonResponse(w, response.CreateCategoryGroupResponse{
+			Data: response.ID{ID: group.ID},
 		}, http.StatusOK)
 	}
 }
 
 func (s *Server) handleCategoryGetAll() http.HandlerFunc {
-	type response struct {
-		Data []categoryGroupResponse `json:"data"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		groups, categories, err := s.categoryContract.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
@@ -89,18 +64,18 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 			return
 		}
 
-		categoriesMap := make(map[string][]listCategoryResponse)
+		categoriesMap := make(map[string][]response.Category)
 		for _, group := range groups {
-			categoriesMap[group.ID.String()] = make([]listCategoryResponse, 0)
+			categoriesMap[group.ID.String()] = make([]response.Category, 0)
 		}
 		for _, category := range categories {
 			groupID := category.GroupID.String()
-			categoriesMap[groupID] = append(categoriesMap[groupID], listCategoryResponse{ID: category.ID, Name: category.Name})
+			categoriesMap[groupID] = append(categoriesMap[groupID], response.Category{ID: category.ID, Name: category.Name})
 		}
 
-		res := response{Data: make([]categoryGroupResponse, len(groups))}
+		res := response.GetCategoriesResponse{Data: make([]response.CategoryGroup, len(groups))}
 		for i, group := range groups {
-			res.Data[i] = categoryGroupResponse{
+			res.Data[i] = response.CategoryGroup{
 				ID:         group.ID,
 				Name:       group.Name,
 				IsIncome:   group.IsIncome,

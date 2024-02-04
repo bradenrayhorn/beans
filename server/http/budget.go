@@ -6,20 +6,13 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/http/httpcontext"
+	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/go-chi/chi/v5"
 )
-
-type responseBudget struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
 
 func (s *Server) handleBudgetCreate() http.HandlerFunc {
 	type request struct {
 		Name beans.Name `json:"name"`
-	}
-	type response struct {
-		Data responseBudget `json:"data"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -35,14 +28,13 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, response{Data: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)}}, http.StatusOK)
+		jsonResponse(w, response.CreateBudgetResponse{
+			Data: response.ID{ID: budget.ID}},
+			http.StatusOK)
 	}
 }
 
 func (s *Server) handleBudgetGetAll() http.HandlerFunc {
-	type response struct {
-		Data []responseBudget `json:"data"`
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		budgets, err := s.budgetContract.GetAll(r.Context(), getAuth(r))
 
@@ -51,9 +43,9 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: []responseBudget{}}
+		res := response.ListBudgetsResposne{Data: []response.Budget{}}
 		for _, b := range budgets {
-			res.Data = append(res.Data, responseBudget{ID: b.ID.String(), Name: string(b.Name)})
+			res.Data = append(res.Data, response.Budget{ID: b.ID, Name: b.Name})
 		}
 
 		jsonResponse(w, res, http.StatusOK)
@@ -61,12 +53,6 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 }
 
 func (s *Server) handleBudgetGet() http.HandlerFunc {
-	type responseData struct {
-		responseBudget
-	}
-	type response struct {
-		Data responseData `json:"data"`
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		budgetID, err := beans.BeansIDFromString(chi.URLParam(r, "budgetID"))
 		if err != nil {
@@ -80,8 +66,8 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		res := response{Data: responseData{
-			responseBudget: responseBudget{ID: budget.ID.String(), Name: string(budget.Name)},
+		res := response.GetBudgetResponse{Data: response.Budget{
+			ID: budget.ID, Name: budget.Name,
 		}}
 
 		jsonResponse(w, res, http.StatusOK)

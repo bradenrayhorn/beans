@@ -28,7 +28,7 @@ func TestBudget(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.JSONEq(t, fmt.Sprintf(
-			`{"data":{"name":"Budget1","id":"%s"}}`, budget.ID,
+			`{"data":{"id":"%s"}}`, budget.ID,
 		), res.body)
 
 		params := test.budgetContract.CreateFunc.History()[0]

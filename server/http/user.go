@@ -5,12 +5,8 @@ import (
 	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/response"
 )
-
-type userResponse struct {
-	UserID   string `json:"id"`
-	Username string `json:"username"`
-}
 
 func (s *Server) handleUserRegister() http.HandlerFunc {
 	type request struct {
@@ -92,7 +88,7 @@ func (s *Server) handleUserMe() http.HandlerFunc {
 			return
 		}
 
-		res := userResponse{UserID: user.ID.String(), Username: string(user.Username)}
+		res := response.GetMeResponse{ID: user.ID, Username: string(user.Username)}
 		jsonResponse(w, res, http.StatusOK)
 	}
 }
