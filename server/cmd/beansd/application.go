@@ -16,17 +16,8 @@ type Application struct {
 
 	config Config
 
-	txManager beans.TxManager
-
-	accountRepository       beans.AccountRepository
-	budgetRepository        beans.BudgetRepository
-	categoryRepository      beans.CategoryRepository
-	monthRepository         beans.MonthRepository
-	monthCategoryRepository beans.MonthCategoryRepository
-	payeeRepository         beans.PayeeRepository
-	sessionRepository       beans.SessionRepository
-	transactionRepository   beans.TransactionRepository
-	userRepository          beans.UserRepository
+	datasource        beans.DataSource
+	sessionRepository beans.SessionRepository
 }
 
 func NewApplication(c Config) *Application {
@@ -49,49 +40,13 @@ func (a *Application) Start() error {
 	}
 	a.pool = pool
 
-	a.txManager = postgres.NewTxManager(pool)
-
+	a.datasource = postgres.NewDataSource(pool)
 	a.sessionRepository = inmem.NewSessionRepository()
 
-	a.accountRepository = postgres.NewAccountRepository(pool)
-	a.budgetRepository = postgres.NewBudgetRepository(pool)
-	a.categoryRepository = postgres.NewCategoryRepository(pool)
-	a.monthRepository = postgres.NewMonthRepository(pool)
-	a.monthCategoryRepository = postgres.NewMonthCategoryRepository(pool)
-	a.payeeRepository = postgres.NewPayeeRepository(pool)
-	a.transactionRepository = postgres.NewTransactionRepository(pool)
-	a.userRepository = postgres.NewUserRepository(pool)
-
-	a.httpServer = http.NewServer(
-		contract.NewAccountContract(a.accountRepository),
-		contract.NewBudgetContract(a.budgetRepository, a.categoryRepository, a.monthRepository, a.txManager),
-		contract.NewCategoryContract(
-			a.categoryRepository,
-			a.monthCategoryRepository,
-			a.monthRepository,
-			a.txManager,
-		),
-		contract.NewMonthContract(
-			a.categoryRepository,
-			a.monthRepository,
-			a.monthCategoryRepository,
-			a.transactionRepository,
-			a.txManager,
-		),
-		contract.NewPayeeContract(a.payeeRepository),
-		contract.NewTransactionContract(
-			a.transactionRepository,
-			a.accountRepository,
-			a.categoryRepository,
-			a.monthCategoryRepository,
-			a.monthRepository,
-			a.payeeRepository,
-		),
-		contract.NewUserContract(
-			a.sessionRepository,
-			a.userRepository,
-		),
-	)
+	a.httpServer = http.NewServer(contract.NewContracts(
+		a.datasource,
+		a.sessionRepository,
+	))
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}
@@ -111,40 +66,4 @@ func (a *Application) Stop() error {
 
 func (a *Application) HttpServer() *http.Server {
 	return a.httpServer
-}
-
-func (a *Application) AccountRepository() beans.AccountRepository {
-	return a.accountRepository
-}
-
-func (a *Application) BudgetRepository() beans.BudgetRepository {
-	return a.budgetRepository
-}
-
-func (a *Application) CategoryRepository() beans.CategoryRepository {
-	return a.categoryRepository
-}
-
-func (a *Application) MonthRepository() beans.MonthRepository {
-	return a.monthRepository
-}
-
-func (a *Application) MonthCategoryRepository() beans.MonthCategoryRepository {
-	return a.monthCategoryRepository
-}
-
-func (a *Application) UserRepository() beans.UserRepository {
-	return a.userRepository
-}
-
-func (a *Application) SessionRepository() beans.SessionRepository {
-	return a.sessionRepository
-}
-
-func (a *Application) TransactionRepository() beans.TransactionRepository {
-	return a.transactionRepository
-}
-
-func (a *Application) TxManager() beans.TxManager {
-	return a.txManager
 }

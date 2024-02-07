@@ -5,6 +5,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/http/response"
+	"github.com/go-chi/chi/v5"
 )
 
 func (s *Server) handleCategoryCreate() http.HandlerFunc {
@@ -20,7 +21,7 @@ func (s *Server) handleCategoryCreate() http.HandlerFunc {
 			return
 		}
 
-		category, err := s.categoryContract.CreateCategory(r.Context(), getBudgetAuth(r), req.GroupID, req.Name)
+		category, err := s.contracts.Category.CreateCategory(r.Context(), getBudgetAuth(r), req.GroupID, req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -44,7 +45,7 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 			return
 		}
 
-		group, err := s.categoryContract.CreateGroup(r.Context(), getBudgetAuth(r), req.Name)
+		group, err := s.contracts.Category.CreateGroup(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -58,7 +59,7 @@ func (s *Server) handleCategoryGroupCreate() http.HandlerFunc {
 
 func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		groups, err := s.categoryContract.GetAll(r.Context(), getBudgetAuth(r))
+		groups, err := s.contracts.Category.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return
@@ -81,5 +82,58 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 		}
 
 		jsonResponse(w, res, http.StatusOK)
+	}
+}
+
+func (s *Server) handleCategoryGetCategory() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := beans.BeansIDFromString(chi.URLParam(r, "categoryID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		category, err := s.contracts.Category.GetCategory(r.Context(), getBudgetAuth(r), id)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		jsonResponse(w, response.GetCategoryResponse{
+			Data: response.Category{
+				ID:   category.ID,
+				Name: category.Name,
+			},
+		}, http.StatusOK)
+	}
+}
+
+func (s *Server) handleCategoryGetCategoryGroup() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := beans.BeansIDFromString(chi.URLParam(r, "categoryGroupID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		group, err := s.contracts.Category.GetGroup(r.Context(), getBudgetAuth(r), id)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		categories := []response.Category{}
+		for _, category := range group.Categories {
+			categories = append(categories, response.Category{ID: category.ID, Name: category.Name})
+		}
+
+		jsonResponse(w, response.GetCategoryGroupResponse{
+			Data: response.CategoryGroup{
+				ID:         group.ID,
+				Name:       group.Name,
+				IsIncome:   group.IsIncome,
+				Categories: categories,
+			},
+		}, http.StatusOK)
 	}
 }

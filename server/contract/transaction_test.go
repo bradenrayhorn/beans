@@ -8,6 +8,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ import (
 
 func TestTransaction(t *testing.T) {
 	t.Parallel()
-	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
+	pool, ds, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -24,19 +25,9 @@ func TestTransaction(t *testing.T) {
 	}
 
 	transactionRepository := postgres.NewTransactionRepository(pool)
-	categoryRepository := postgres.NewCategoryRepository(pool)
-	accountRepository := postgres.NewAccountRepository(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
-	payeeRepository := postgres.NewPayeeRepository(pool)
-	c := contract.NewTransactionContract(
-		transactionRepository,
-		accountRepository,
-		categoryRepository,
-		monthCategoryRepository,
-		monthRepository,
-		payeeRepository,
-	)
+	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Transaction
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("fields are required", func(t *testing.T) {

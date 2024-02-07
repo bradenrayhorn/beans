@@ -19,7 +19,7 @@ func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 			return
 		}
 
-		month, categories, budgetable, err := s.monthContract.GetOrCreate(r.Context(), getBudgetAuth(r), beans.NewMonthDate(date))
+		month, categories, budgetable, err := s.contracts.Month.GetOrCreate(r.Context(), getBudgetAuth(r), beans.NewMonthDate(date))
 		if err != nil {
 			Error(w, err)
 			return
@@ -69,7 +69,7 @@ func (s *Server) handleMonthUpdate() http.HandlerFunc {
 			return
 		}
 
-		if err := s.monthContract.Update(r.Context(), getBudgetAuth(r), monthID, req.Amount); err != nil {
+		if err := s.contracts.Month.Update(r.Context(), getBudgetAuth(r), monthID, req.Amount); err != nil {
 			Error(w, err)
 			return
 		}
@@ -95,7 +95,7 @@ func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
 			return
 		}
 
-		if err := s.monthContract.SetCategoryAmount(r.Context(), getBudgetAuth(r), monthID, req.CategoryID, req.Amount); err != nil {
+		if err := s.contracts.Month.SetCategoryAmount(r.Context(), getBudgetAuth(r), monthID, req.CategoryID, req.Amount); err != nil {
 			Error(w, err)
 			return
 		}

@@ -35,6 +35,13 @@ func (t *Date) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (d Date) MarshalJSON() ([]byte, error) {
+	if !d.set {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(d.String())
+}
+
 func (d Date) Empty() bool {
 	return !d.set
 }

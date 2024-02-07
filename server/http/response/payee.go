@@ -14,3 +14,4 @@ type Payee struct {
 
 type CreatePayeeResponse Data[ID]
 type ListPayeesResponse Data[[]Payee]
+type GetPayeeResponse Data[Payee]

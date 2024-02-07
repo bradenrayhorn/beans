@@ -36,6 +36,30 @@ func (r *categoryRepository) GetSingleForBudget(ctx context.Context, id beans.ID
 	return mapper.Category(res)
 }
 
+func (r *categoryRepository) GetCategoryGroup(ctx context.Context, id beans.ID, budgetID beans.ID) (*beans.CategoryGroup, error) {
+	res, err := r.DB(nil).GetCategoryGroup(ctx, db.GetCategoryGroupParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	return mapper.CategoryGroup(res)
+}
+
+func (r *categoryRepository) GetCategoriesForGroup(ctx context.Context, id beans.ID, budgetID beans.ID) ([]*beans.Category, error) {
+	res, err := r.DB(nil).GetCategoriesForGroup(ctx, db.GetCategoriesForGroupParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+
+	return mapper.MapSlice(res, mapper.Category)
+}
+
 func (r *categoryRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Category, error) {
 	res, err := r.DB(nil).GetCategoriesForBudget(ctx, budgetID.String())
 	if err != nil {

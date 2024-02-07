@@ -5,6 +5,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/http/response"
+	"github.com/go-chi/chi/v5"
 )
 
 func (s *Server) handleAccountCreate() http.HandlerFunc {
@@ -19,21 +20,21 @@ func (s *Server) handleAccountCreate() http.HandlerFunc {
 			return
 		}
 
-		account, err := s.accountContract.Create(r.Context(), getBudgetAuth(r), req.Name)
+		accountID, err := s.contracts.Account.Create(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
 		}
 
 		jsonResponse(w, response.CreateAccountResponse{
-			Data: response.ID{ID: account.ID},
+			Data: response.ID{ID: accountID},
 		}, http.StatusOK)
 	}
 }
 
 func (s *Server) handleAccountsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		accounts, err := s.accountContract.GetAll(r.Context(), getBudgetAuth(r))
+		accounts, err := s.contracts.Account.GetAll(r.Context(), getBudgetAuth(r))
 
 		if err != nil {
 			Error(w, err)
@@ -46,5 +47,28 @@ func (s *Server) handleAccountsGet() http.HandlerFunc {
 		}
 
 		jsonResponse(w, response.ListAccountResponse{Data: res}, http.StatusOK)
+	}
+}
+
+func (s *Server) handleAccountGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		accountID, err := beans.BeansIDFromString(chi.URLParam(r, "accountID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		account, err := s.contracts.Account.Get(r.Context(), getBudgetAuth(r), accountID)
+
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		jsonResponse(w, response.GetAccountResponse{Data: response.ListAccount{
+			ID:      account.ID,
+			Name:    string(account.Name),
+			Balance: account.Balance,
+		}}, http.StatusOK)
 	}
 }

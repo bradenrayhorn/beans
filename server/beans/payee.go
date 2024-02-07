@@ -14,6 +14,9 @@ type PayeeContract interface {
 
 	// Gets all payees for a budget.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Payee, error)
+
+	// Gets a payee details.
+	Get(ctx context.Context, auth *BudgetAuthContext, id ID) (*Payee, error)
 }
 
 type PayeeRepository interface {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 func TestCategory(t *testing.T) {
 	t.Parallel()
-	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
+	pool, ds, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -24,14 +25,7 @@ func TestCategory(t *testing.T) {
 
 	categoryRepository := postgres.NewCategoryRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
-	monthRepository := postgres.NewMonthRepository(pool)
-	txManager := postgres.NewTxManager(pool)
-	c := contract.NewCategoryContract(
-		categoryRepository,
-		monthCategoryRepository,
-		monthRepository,
-		txManager,
-	)
+	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Category
 
 	t.Run("create group", func(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {

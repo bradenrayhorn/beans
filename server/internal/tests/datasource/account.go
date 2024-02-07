@@ -85,7 +85,7 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 		// accounts 1 and 2 should be in the response with a balance
 		account1.Balance = beans.NewAmount(0, 0)
 		account2.Balance = beans.NewAmount(2, 0)
-		expectedAccounts := []*beans.Account{&account1, &account2}
+		expectedAccounts := []beans.Account{account1, account2}
 
 		testutils.IsEqualInAnyOrder(t, res, expectedAccounts, testutils.CmpAccount)
 	})

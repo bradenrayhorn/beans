@@ -14,15 +14,7 @@ var errorInvalidCredentials = beans.NewError(beans.EUNAUTHORIZED, "Invalid usern
 var _ beans.UserContract = (*userContract)(nil)
 
 type userContract struct {
-	sessionRepository beans.SessionRepository
-	userRepository    beans.UserRepository
-}
-
-func NewUserContract(
-	sessionRepository beans.SessionRepository,
-	userRepository beans.UserRepository,
-) *userContract {
-	return &userContract{sessionRepository, userRepository}
+	contract
 }
 
 func (c *userContract) Register(ctx context.Context, username beans.Username, password beans.Password) error {
@@ -37,7 +29,7 @@ func (c *userContract) Register(ctx context.Context, username beans.Username, pa
 		return err
 	}
 
-	usernameTaken, err := c.userRepository.Exists(ctx, username)
+	usernameTaken, err := c.ds().UserRepository().Exists(ctx, username)
 	if err != nil {
 		return err
 	}
@@ -45,7 +37,7 @@ func (c *userContract) Register(ctx context.Context, username beans.Username, pa
 		return beans.WrapError(errors.New("invalid username"), beans.ErrorInvalid)
 	}
 
-	err = c.userRepository.Create(ctx, id, username, beans.PasswordHash(hashedPassword))
+	err = c.ds().UserRepository().Create(ctx, id, username, beans.PasswordHash(hashedPassword))
 	if err != nil {
 		return err
 	}
@@ -58,7 +50,7 @@ func (c *userContract) Login(ctx context.Context, username beans.Username, passw
 		return nil, err
 	}
 
-	user, err := c.userRepository.GetByUsername(ctx, username)
+	user, err := c.ds().UserRepository().GetByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return nil, beans.WrapError(err, errorInvalidCredentials)
@@ -84,7 +76,7 @@ func (c *userContract) Logout(ctx context.Context, auth *beans.AuthContext) erro
 }
 
 func (c *userContract) GetMe(ctx context.Context, auth *beans.AuthContext) (*beans.User, error) {
-	user, err := c.userRepository.Get(ctx, auth.UserID())
+	user, err := c.ds().UserRepository().Get(ctx, auth.UserID())
 	if err != nil {
 		return nil, err
 	}

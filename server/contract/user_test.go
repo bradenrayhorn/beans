@@ -15,7 +15,7 @@ import (
 
 func TestUser(t *testing.T) {
 	t.Parallel()
-	pool, stop := testutils.StartPool(t)
+	pool, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -24,7 +24,7 @@ func TestUser(t *testing.T) {
 
 	userRepository := postgres.NewUserRepository(pool)
 	sessionRepository := inmem.NewSessionRepository()
-	c := contract.NewUserContract(sessionRepository, userRepository)
+	c := contract.NewContracts(ds, sessionRepository).User
 
 	t.Run("register", func(t *testing.T) {
 		t.Run("handles validation error", func(t *testing.T) {

@@ -26,7 +26,7 @@ func IsEqualInAnyOrder[T any](tb testing.TB, sliceA []T, sliceB []T, comp func(a
 
 // Comparison functions
 
-func CmpAccount(a *beans.Account, b *beans.Account) bool {
+func CmpAccount(a beans.Account, b beans.Account) bool {
 	return a.ID.String() < b.ID.String()
 }
 

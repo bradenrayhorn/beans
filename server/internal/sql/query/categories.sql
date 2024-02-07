@@ -6,6 +6,15 @@ INSERT INTO categories (
 -- name: GetCategoryForBudget :one
 SELECT * FROM categories WHERE id = $1 AND budget_id = $2;
 
+-- name: GetCategoryGroup :one
+SELECT * FROM category_groups WHERE id = $1 AND budget_id = $2;
+
+-- name: GetCategoriesForGroup :many
+SELECT categories.* FROM categories
+JOIN category_groups ON category_groups.id = categories.group_id
+  AND category_groups.id = $1
+  AND category_groups.budget_id = $2;
+
 -- name: GetCategoriesForBudget :many
 SELECT * FROM categories WHERE budget_id = $1;
 
