@@ -7,6 +7,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
@@ -15,19 +16,17 @@ import (
 
 func TestMonth(t *testing.T) {
 	t.Parallel()
-	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
+	pool, ds, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
 		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
-	categoryRepository := postgres.NewCategoryRepository(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
 	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
 	transactionRepository := postgres.NewTransactionRepository(pool)
-	txManager := postgres.NewTxManager(pool)
-	c := contract.NewMonthContract(categoryRepository, monthRepository, monthCategoryRepository, transactionRepository, txManager)
+	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Month
 
 	t.Run("get or create", func(t *testing.T) {
 		t.Run("creates new month", func(t *testing.T) {

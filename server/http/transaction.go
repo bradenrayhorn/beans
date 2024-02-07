@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/request"
 	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/go-chi/chi/v5"
 )
@@ -26,7 +27,7 @@ func responseFromTransaction(transaction *beans.Transaction) response.Transactio
 	}
 
 	return response.Transaction{
-		ID: transaction.ID.String(),
+		ID: transaction.ID,
 		Account: response.AssociatedAccount{
 			ID:   transaction.AccountID,
 			Name: transaction.Account.Name,
@@ -34,29 +35,20 @@ func responseFromTransaction(transaction *beans.Transaction) response.Transactio
 		Category: category,
 		Payee:    payee,
 		Amount:   transaction.Amount,
-		Date:     transaction.Date.String(),
+		Date:     transaction.Date,
 		Notes:    transaction.Notes,
 	}
 }
 
 func (s *Server) handleTransactionCreate() http.HandlerFunc {
-	type request struct {
-		AccountID  beans.ID               `json:"account_id"`
-		CategoryID beans.ID               `json:"category_id"`
-		PayeeID    beans.ID               `json:"payee_id"`
-		Amount     beans.Amount           `json:"amount"`
-		Date       beans.Date             `json:"date"`
-		Notes      beans.TransactionNotes `json:"notes"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
+		var req request.CreateTransactionRequest
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
 		}
 
-		transaction, err := s.transactionContract.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
+		transaction, err := s.contracts.Transaction.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
 				CategoryID: req.CategoryID,
@@ -79,17 +71,8 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 }
 
 func (s *Server) handleTransactionUpdate() http.HandlerFunc {
-	type request struct {
-		AccountID  beans.ID               `json:"account_id"`
-		CategoryID beans.ID               `json:"category_id"`
-		PayeeID    beans.ID               `json:"payee_id"`
-		Amount     beans.Amount           `json:"amount"`
-		Date       beans.Date             `json:"date"`
-		Notes      beans.TransactionNotes `json:"notes"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
+		var req request.UpdateTransactionRequest
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
@@ -101,7 +84,7 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 			return
 		}
 
-		err = s.transactionContract.Update(r.Context(), getBudgetAuth(r), beans.TransactionUpdateParams{
+		err = s.contracts.Transaction.Update(r.Context(), getBudgetAuth(r), beans.TransactionUpdateParams{
 			ID: transactionID,
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
@@ -132,7 +115,7 @@ func (s *Server) handleTransactionDelete() http.HandlerFunc {
 			return
 		}
 
-		err := s.transactionContract.Delete(r.Context(), getBudgetAuth(r), req.TransactionIDs)
+		err := s.contracts.Transaction.Delete(r.Context(), getBudgetAuth(r), req.TransactionIDs)
 		if err != nil {
 			Error(w, err)
 			return
@@ -142,7 +125,7 @@ func (s *Server) handleTransactionDelete() http.HandlerFunc {
 
 func (s *Server) handleTransactionGetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		transactions, err := s.transactionContract.GetAll(r.Context(), getBudgetAuth(r))
+		transactions, err := s.contracts.Transaction.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return
@@ -154,5 +137,23 @@ func (s *Server) handleTransactionGetAll() http.HandlerFunc {
 		}
 
 		jsonResponse(w, res, http.StatusOK)
+	}
+}
+
+func (s *Server) handleTransactionGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := beans.BeansIDFromString(chi.URLParam(r, "transactionID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		transaction, err := s.contracts.Transaction.Get(r.Context(), getBudgetAuth(r), id)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		jsonResponse(w, responseFromTransaction(&transaction), http.StatusOK)
 	}
 }

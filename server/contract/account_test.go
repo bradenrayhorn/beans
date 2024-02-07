@@ -1,90 +1,21 @@
 package contract_test
 
 import (
-	"context"
-	"reflect"
 	"testing"
 
-	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
-	"github.com/bradenrayhorn/beans/server/postgres"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/bradenrayhorn/beans/server/specification"
 )
 
 func TestAccount(t *testing.T) {
 	t.Parallel()
-	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
+	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
-	cleanup := func() {
-		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
-	}
+	contracts := contract.NewContracts(ds, inmem.NewSessionRepository())
+	adapter := ContractsAdapter{contracts}
 
-	accountRepository := postgres.NewAccountRepository(pool)
-	transactionRepository := postgres.NewTransactionRepository(pool)
-	c := contract.NewAccountContract(accountRepository)
-
-	t.Run("create", func(t *testing.T) {
-		t.Run("handles validation error", func(t *testing.T) {
-			defer cleanup()
-
-			userID := factory.MakeUser("user")
-			budget := factory.MakeBudget("Budget", userID)
-
-			_, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name(""))
-			testutils.AssertErrorCode(t, err, beans.EINVALID)
-		})
-
-		t.Run("can create account", func(t *testing.T) {
-			defer cleanup()
-
-			userID := factory.MakeUser("user")
-			budget := factory.MakeBudget("Budget", userID)
-
-			account, err := c.Create(context.Background(), testutils.BudgetAuthContext(t, userID, budget), beans.Name("Account"))
-			require.Nil(t, err)
-
-			// account was returned
-			assert.Equal(t, "Account", string(account.Name))
-			assert.Equal(t, budget.ID, account.BudgetID)
-			assert.False(t, account.ID.Empty())
-
-			// account was saved
-			dbAccount, err := accountRepository.Get(context.Background(), account.ID)
-			require.Nil(t, err)
-			assert.True(t, reflect.DeepEqual(account, dbAccount))
-		})
-	})
-
-	t.Run("get all", func(t *testing.T) {
-		t.Run("can get all accounts", func(t *testing.T) {
-			defer cleanup()
-			userID := factory.MakeUser("user")
-			budget := factory.MakeBudget("Budget", userID)
-			account := factory.MakeAccount("Account", budget.ID)
-
-			categoryGroup := factory.MakeCategoryGroup("group", budget.ID)
-			category := factory.MakeCategory("cat1", categoryGroup.ID, budget.ID)
-
-			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
-				ID:         beans.NewBeansID(),
-				AccountID:  account.ID,
-				Amount:     beans.NewAmount(6, 0),
-				Date:       testutils.NewDate(t, "2022-03-01"),
-				CategoryID: category.ID,
-			}))
-
-			budget2 := factory.MakeBudget("Budget", userID)
-			_ = factory.MakeAccount("Account", budget2.ID)
-
-			accounts, err := c.GetAll(context.Background(), testutils.BudgetAuthContext(t, userID, budget))
-			require.Nil(t, err)
-			require.Len(t, accounts, 1)
-
-			account.Balance = beans.NewAmount(6, 0)
-			assert.True(t, reflect.DeepEqual(account, accounts[0]))
-		})
-	})
+	specification.TestAccounts(t, &adapter)
 }

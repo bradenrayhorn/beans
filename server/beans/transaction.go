@@ -41,6 +41,9 @@ type TransactionContract interface {
 
 	// Deletes transactions.
 	Delete(ctx context.Context, auth *BudgetAuthContext, transactionIDs []ID) error
+
+	// Gets a transaction details. Attaches Account, CategoryName, PayeeName.
+	Get(ctx context.Context, auth *BudgetAuthContext, id ID) (Transaction, error)
 }
 
 type TransactionRepository interface {

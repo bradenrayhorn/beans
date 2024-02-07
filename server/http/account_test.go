@@ -1,61 +1,33 @@
 package http_test
 
 import (
-	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/stretchr/testify/assert"
+	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/http"
+	"github.com/bradenrayhorn/beans/server/inmem"
+	"github.com/bradenrayhorn/beans/server/internal/testutils"
+	"github.com/bradenrayhorn/beans/server/specification"
+	"github.com/bradenrayhorn/beans/server/specification/httpadapter"
 )
 
-func TestAccount(t *testing.T) {
-	user := &beans.User{ID: beans.NewBeansID()}
-	budget := &beans.Budget{ID: beans.NewBeansID(), Name: "Budget1", UserIDs: []beans.ID{user.ID}}
-	account := &beans.Account{ID: beans.NewBeansID(), BudgetID: budget.ID, Name: "Account1", Balance: beans.NewAmount(4, 0)}
+func TestAccounts(t *testing.T) {
+	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
+	defer stop()
+	sessionRepository := inmem.NewSessionRepository()
+	httpServer := http.NewServer(contract.NewContracts(ds, sessionRepository))
 
-	t.Run("create", func(t *testing.T) {
-		test := newHttpTest(t)
-		defer test.Stop(t)
+	if err := httpServer.Open(":0"); err != nil {
+		t.Fatal(err)
+	}
 
-		test.accountContract.CreateFunc.PushReturn(account, nil)
+	defer func() {
+		if err := httpServer.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
-		res := test.DoRequest(t, HTTPRequest{
-			method: "POST",
-			path:   "/api/v1/accounts",
-			body:   `{"name":"Account1"}`,
-			user:   user,
-			budget: budget,
-		})
+	adapter := &httpadapter.HTTPAdapter{BaseURL: "http://" + httpServer.GetBoundAddr()}
 
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.JSONEq(t, fmt.Sprintf(
-			`{"data":{"id":"%s"}}`,
-			account.ID,
-		), res.body)
-
-		params := test.accountContract.CreateFunc.History()[0]
-		assert.Equal(t, budget.ID, params.Arg1.BudgetID())
-		assert.Equal(t, account.Name, params.Arg2)
-	})
-
-	t.Run("get all", func(t *testing.T) {
-		test := newHttpTest(t)
-		defer test.Stop(t)
-
-		test.accountContract.GetAllFunc.PushReturn([]*beans.Account{account}, nil)
-
-		res := test.DoRequest(t, HTTPRequest{
-			method: "GET",
-			path:   "/api/v1/accounts",
-			user:   user,
-			budget: budget,
-		})
-
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.JSONEq(t, fmt.Sprintf(
-			`{"data":[{"name":"Account1","id":"%s","balance":{"coefficient":4,"exponent":0}}]}`,
-			account.ID,
-		), res.body)
-	})
+	specification.TestAccounts(t, adapter)
 }

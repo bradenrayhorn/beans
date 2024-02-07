@@ -21,7 +21,7 @@ func (s *Server) handleUserRegister() http.HandlerFunc {
 			return
 		}
 
-		err := s.userContract.Register(r.Context(), req.Username, req.Password)
+		err := s.contracts.User.Register(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return
@@ -42,7 +42,7 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 			return
 		}
 
-		session, err := s.userContract.Login(r.Context(), req.Username, req.Password)
+		session, err := s.contracts.User.Login(r.Context(), req.Username, req.Password)
 		if err != nil {
 			Error(w, err)
 			return
@@ -63,7 +63,7 @@ func (s *Server) handleUserLogin() http.HandlerFunc {
 
 func (s *Server) handleUserLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := s.userContract.Logout(r.Context(), getAuth(r)); err != nil {
+		if err := s.contracts.User.Logout(r.Context(), getAuth(r)); err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorInternal))
 			return
 		}
@@ -82,7 +82,7 @@ func (s *Server) handleUserLogout() http.HandlerFunc {
 func (s *Server) handleUserMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		user, err := s.userContract.GetMe(r.Context(), getAuth(r))
+		user, err := s.contracts.User.GetMe(r.Context(), getAuth(r))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorInternal))
 			return

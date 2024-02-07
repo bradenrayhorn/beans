@@ -7,6 +7,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 func TestBudget(t *testing.T) {
 	t.Parallel()
-	pool, _, factory, stop := testutils.StartPoolWithDataSource(t)
+	pool, ds, factory, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	cleanup := func() {
@@ -25,12 +26,7 @@ func TestBudget(t *testing.T) {
 	budgetRepository := postgres.NewBudgetRepository(pool)
 	categoryRepository := postgres.NewCategoryRepository(pool)
 	monthRepository := postgres.NewMonthRepository(pool)
-	c := contract.NewBudgetContract(
-		budgetRepository,
-		categoryRepository,
-		monthRepository,
-		postgres.NewTxManager(pool),
-	)
+	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Budget
 
 	sessionID := beans.SessionID("1234")
 

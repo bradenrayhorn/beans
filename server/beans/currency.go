@@ -84,14 +84,10 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 }
 
 func (a Amount) MarshalJSON() ([]byte, error) {
-	type res struct {
-		Coefficient *big.Int `json:"coefficient"`
-		Exponent    int32    `json:"exponent"`
-	}
 	if !a.set {
 		return json.Marshal(nil)
 	}
-	return json.Marshal(res{Coefficient: a.Coefficient(), Exponent: a.Exponent()})
+	return json.Marshal(a.decimal.Text('f'))
 }
 
 // max precision rule

@@ -122,4 +122,65 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 		require.False(t, res)
 	})
+
+	t.Run("get group", func(t *testing.T) {
+		t.Run("cannot get non-existent group", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			_, err := categoryRepository.GetCategoryGroup(ctx, beans.NewBeansID(), budget.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+
+		t.Run("cannot get group for another budget", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
+			group := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget2.ID})
+
+			_, err := categoryRepository.GetCategoryGroup(ctx, group.ID, budget.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+
+		t.Run("can get", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			group := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget.ID})
+
+			res, err := categoryRepository.GetCategoryGroup(ctx, group.ID, budget.ID)
+			require.Nil(t, err)
+
+			assert.Equal(t, &group, res)
+		})
+	})
+
+	t.Run("get categories for group", func(t *testing.T) {
+		t.Run("empty for non-existent group", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			res, err := categoryRepository.GetCategoriesForGroup(ctx, beans.NewBeansID(), budget.ID)
+			require.Nil(t, err)
+			assert.Empty(t, res)
+		})
+
+		t.Run("empty for group of another budget", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
+			category := factory.Category(beans.Category{BudgetID: budget2.ID})
+
+			res, err := categoryRepository.GetCategoriesForGroup(ctx, category.GroupID, budget.ID)
+			require.Nil(t, err)
+			assert.Empty(t, res)
+		})
+
+		t.Run("can get", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			category := factory.Category(beans.Category{BudgetID: budget.ID})
+
+			// this category belongs to a different group and should not be returned
+			factory.Category(beans.Category{BudgetID: budget.ID})
+
+			res, err := categoryRepository.GetCategoriesForGroup(ctx, category.GroupID, budget.ID)
+			require.Nil(t, err)
+
+			testutils.IsEqualInAnyOrder(t, []*beans.Category{&category}, res, testutils.CmpCategory)
+		})
+	})
 }

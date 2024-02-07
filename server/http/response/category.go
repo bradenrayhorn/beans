@@ -22,3 +22,5 @@ type CategoryGroup struct {
 type CreateCategoryResponse Data[ID]
 type CreateCategoryGroupResponse Data[ID]
 type GetCategoriesResponse Data[[]CategoryGroup]
+type GetCategoryResponse Data[Category]
+type GetCategoryGroupResponse Data[CategoryGroup]

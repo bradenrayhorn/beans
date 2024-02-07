@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
@@ -18,35 +18,17 @@ type Server struct {
 	sv        *http.Server
 	boundAddr string
 
-	accountContract     beans.AccountContract
-	budgetContract      beans.BudgetContract
-	categoryContract    beans.CategoryContract
-	monthContract       beans.MonthContract
-	payeeContract       beans.PayeeContract
-	transactionContract beans.TransactionContract
-	userContract        beans.UserContract
+	contracts *contract.Contracts
 }
 
 func NewServer(
-	accountContract beans.AccountContract,
-	budgetContract beans.BudgetContract,
-	categoryContract beans.CategoryContract,
-	monthContract beans.MonthContract,
-	payeeContract beans.PayeeContract,
-	transactionContract beans.TransactionContract,
-	userContract beans.UserContract,
+	contracts *contract.Contracts,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		sv:     &http.Server{},
 
-		accountContract:     accountContract,
-		budgetContract:      budgetContract,
-		categoryContract:    categoryContract,
-		monthContract:       monthContract,
-		payeeContract:       payeeContract,
-		transactionContract: transactionContract,
-		userContract:        userContract,
+		contracts: contracts,
 	}
 
 	s.sv.Handler = s.router
@@ -85,14 +67,17 @@ func NewServer(
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/", s.handleAccountsGet())
 				r.Post("/", s.handleAccountCreate())
+				r.Get("/{accountID}", s.handleAccountGet())
 			})
 
 			r.Route("/categories", func(r chi.Router) {
 				r.Get("/", s.handleCategoryGetAll())
 				r.Post("/", s.handleCategoryCreate())
+				r.Get("/{categoryID}", s.handleCategoryGetCategory())
 
 				r.Route("/groups", func(r chi.Router) {
 					r.Post("/", s.handleCategoryGroupCreate())
+					r.Get("/{categoryGroupID}", s.handleCategoryGetCategoryGroup())
 				})
 			})
 
@@ -108,13 +93,15 @@ func NewServer(
 			r.Route("/payees", func(r chi.Router) {
 				r.Get("/", s.handlePayeeGetAll())
 				r.Post("/", s.handlePayeeCreate())
+				r.Get("/{payeeID}", s.handlePayeeGet())
 			})
 
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", s.handleTransactionGetAll())
 				r.Post("/", s.handleTransactionCreate())
-				r.Put("/{transactionID}", s.handleTransactionUpdate())
 				r.Post("/delete", s.handleTransactionDelete())
+				r.Put("/{transactionID}", s.handleTransactionUpdate())
+				r.Get("/{transactionID}", s.handleTransactionGet())
 			})
 
 		})

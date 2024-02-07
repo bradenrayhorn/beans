@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/response"
 )
 
 var codeToHTTPStatus = map[string]int{
@@ -19,11 +20,6 @@ var codeToHTTPStatus = map[string]int{
 }
 
 func Error(w http.ResponseWriter, err error) {
-	type errorResponse struct {
-		Error string `json:"error"`
-		Code  string `json:"code"`
-	}
-
 	var code = beans.EINTERNAL
 	var msg = beans.ErrorInternal.Error()
 	var beansError beans.Error
@@ -37,5 +33,5 @@ func Error(w http.ResponseWriter, err error) {
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(codeToHTTPStatus[code])
-	_ = json.NewEncoder(w).Encode(&errorResponse{Code: code, Error: msg})
+	_ = json.NewEncoder(w).Encode(response.ErrorResponse{Code: code, Error: msg})
 }

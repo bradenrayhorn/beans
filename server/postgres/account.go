@@ -20,24 +20,24 @@ func (r *AccountRepository) Create(ctx context.Context, id beans.ID, name beans.
 	return r.DB(nil).CreateAccount(ctx, db.CreateAccountParams{ID: id.String(), Name: string(name), BudgetID: budgetID.String()})
 }
 
-func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (*beans.Account, error) {
+func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (beans.Account, error) {
 	account, err := r.DB(nil).GetAccount(ctx, id.String())
 	if err != nil {
-		return nil, mapPostgresError(err)
+		return beans.Account{}, mapPostgresError(err)
 	}
 	budgetID, err := beans.BeansIDFromString(account.BudgetID)
 	if err != nil {
-		return nil, err
+		return beans.Account{}, err
 	}
-	return &beans.Account{
+	return beans.Account{
 		ID:       id,
 		Name:     beans.Name(account.Name),
 		BudgetID: budgetID,
 	}, nil
 }
 
-func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Account, error) {
-	accounts := []*beans.Account{}
+func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.Account, error) {
+	accounts := []beans.Account{}
 	dbAccounts, err := r.DB(nil).GetAccountsForBudget(ctx, budgetID.String())
 	if err != nil {
 		return accounts, err
@@ -62,7 +62,7 @@ func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 			balance = beans.NewAmount(0, 0)
 		}
 
-		accounts = append(accounts, &beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID, Balance: balance})
+		accounts = append(accounts, beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID, Balance: balance})
 	}
 
 	return accounts, nil

@@ -5,6 +5,7 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/http/response"
+	"github.com/go-chi/chi/v5"
 )
 
 func (s *Server) handlePayeeCreate() http.HandlerFunc {
@@ -19,7 +20,7 @@ func (s *Server) handlePayeeCreate() http.HandlerFunc {
 			return
 		}
 
-		payee, err := s.payeeContract.CreatePayee(r.Context(), getBudgetAuth(r), req.Name)
+		payee, err := s.contracts.Payee.CreatePayee(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -33,7 +34,7 @@ func (s *Server) handlePayeeCreate() http.HandlerFunc {
 
 func (s *Server) handlePayeeGetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payees, err := s.payeeContract.GetAll(r.Context(), getBudgetAuth(r))
+		payees, err := s.contracts.Payee.GetAll(r.Context(), getBudgetAuth(r))
 		if err != nil {
 			Error(w, err)
 			return
@@ -49,6 +50,29 @@ func (s *Server) handlePayeeGetAll() http.HandlerFunc {
 
 		jsonResponse(w, response.ListPayeesResponse{
 			Data: res,
+		}, http.StatusOK)
+	}
+}
+
+func (s *Server) handlePayeeGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := beans.BeansIDFromString(chi.URLParam(r, "payeeID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		payee, err := s.contracts.Payee.Get(r.Context(), getBudgetAuth(r), id)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		jsonResponse(w, response.GetPayeeResponse{
+			Data: response.Payee{
+				ID:   payee.ID,
+				Name: payee.Name,
+			},
 		}, http.StatusOK)
 	}
 }

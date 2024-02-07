@@ -22,7 +22,7 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 			return
 		}
 
-		budget, err := s.budgetContract.Create(r.Context(), getAuth(r), req.Name)
+		budget, err := s.contracts.Budget.Create(r.Context(), getAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
@@ -36,7 +36,7 @@ func (s *Server) handleBudgetCreate() http.HandlerFunc {
 
 func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		budgets, err := s.budgetContract.GetAll(r.Context(), getAuth(r))
+		budgets, err := s.contracts.Budget.GetAll(r.Context(), getAuth(r))
 
 		if err != nil {
 			Error(w, err)
@@ -60,7 +60,7 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 			return
 		}
 
-		budget, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
+		budget, err := s.contracts.Budget.Get(r.Context(), getAuth(r), budgetID)
 		if err != nil {
 			Error(w, err)
 			return
@@ -84,7 +84,7 @@ func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 			return
 		}
 
-		budget, err := s.budgetContract.Get(r.Context(), getAuth(r), budgetID)
+		budget, err := s.contracts.Budget.Get(r.Context(), getAuth(r), budgetID)
 		if err != nil {
 			Error(w, err)
 			return

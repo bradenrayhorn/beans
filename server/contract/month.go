@@ -7,27 +7,7 @@ import (
 )
 
 type monthContract struct {
-	categoryRepository      beans.CategoryRepository
-	monthRepository         beans.MonthRepository
-	monthCategoryRepository beans.MonthCategoryRepository
-	transactionRepository   beans.TransactionRepository
-	txManager               beans.TxManager
-}
-
-func NewMonthContract(
-	categoryRepository beans.CategoryRepository,
-	monthRepository beans.MonthRepository,
-	monthCategoryRepository beans.MonthCategoryRepository,
-	transactionRepository beans.TransactionRepository,
-	txManager beans.TxManager,
-) *monthContract {
-	return &monthContract{
-		categoryRepository,
-		monthRepository,
-		monthCategoryRepository,
-		transactionRepository,
-		txManager,
-	}
+	contract
 }
 
 func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, []*beans.MonthCategory, beans.Amount, error) {
@@ -36,7 +16,7 @@ func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthC
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	pastMonth, err := c.monthRepository.GetOrCreate(
+	pastMonth, err := c.ds().MonthRepository().GetOrCreate(
 		ctx,
 		nil,
 		auth.BudgetID(),
@@ -46,17 +26,17 @@ func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthC
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	categories, err := c.monthCategoryRepository.GetForMonth(ctx, month)
+	categories, err := c.ds().MonthCategoryRepository().GetForMonth(ctx, month)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	income, err := c.transactionRepository.GetIncomeBetween(ctx, auth.BudgetID(), month.Date.FirstDay(), month.Date.LastDay())
+	income, err := c.ds().TransactionRepository().GetIncomeBetween(ctx, auth.BudgetID(), month.Date.FirstDay(), month.Date.LastDay())
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
 
-	assignedInMonth, err := c.monthCategoryRepository.GetAssignedInMonth(ctx, month.ID)
+	assignedInMonth, err := c.ds().MonthCategoryRepository().GetAssignedInMonth(ctx, month.ID)
 	if err != nil {
 		return nil, nil, beans.NewEmptyAmount(), err
 	}
@@ -79,19 +59,19 @@ func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthC
 }
 
 func (c *monthContract) createMonth(ctx context.Context, auth *beans.BudgetAuthContext, date beans.MonthDate) (*beans.Month, error) {
-	return beans.ExecTx(ctx, c.txManager, func(tx beans.Tx) (*beans.Month, error) {
-		month, err := c.monthRepository.GetOrCreate(ctx, tx, auth.BudgetID(), date)
+	return beans.ExecTx(ctx, c.ds().TxManager(), func(tx beans.Tx) (*beans.Month, error) {
+		month, err := c.ds().MonthRepository().GetOrCreate(ctx, tx, auth.BudgetID(), date)
 		if err != nil {
 			return nil, err
 		}
 
-		categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
+		categories, err := c.ds().CategoryRepository().GetForBudget(ctx, auth.BudgetID())
 		if err != nil {
 			return nil, err
 		}
 
 		for _, category := range categories {
-			if _, err := c.monthCategoryRepository.GetOrCreate(ctx, tx, month.ID, category.ID); err != nil {
+			if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, tx, month.ID, category.ID); err != nil {
 				return nil, err
 			}
 		}
@@ -113,7 +93,7 @@ func (c *monthContract) Update(ctx context.Context, auth *beans.BudgetAuthContex
 
 	month.Carryover = carryover
 
-	return c.monthRepository.Update(ctx, month)
+	return c.ds().MonthRepository().Update(ctx, month)
 }
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {
@@ -128,16 +108,16 @@ func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.Budge
 		return err
 	}
 
-	monthCategory, err := c.monthCategoryRepository.GetOrCreate(ctx, nil, monthID, categoryID)
+	monthCategory, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, monthID, categoryID)
 	if err != nil {
 		return err
 	}
 
-	return c.monthCategoryRepository.UpdateAmount(ctx, monthCategory.ID, amount)
+	return c.ds().MonthCategoryRepository().UpdateAmount(ctx, monthCategory.ID, amount)
 }
 
 func (c *monthContract) getAndVerifyMonth(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID) (*beans.Month, error) {
-	month, err := c.monthRepository.Get(ctx, monthID)
+	month, err := c.ds().MonthRepository().Get(ctx, monthID)
 	if err != nil {
 		return nil, err
 	}

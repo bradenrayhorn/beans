@@ -7,24 +7,7 @@ import (
 )
 
 type categoryContract struct {
-	categoryRepository      beans.CategoryRepository
-	monthCategoryRepository beans.MonthCategoryRepository
-	monthRepository         beans.MonthRepository
-	txManager               beans.TxManager
-}
-
-func NewCategoryContract(
-	categoryRepository beans.CategoryRepository,
-	monthCategoryRepository beans.MonthCategoryRepository,
-	monthRepository beans.MonthRepository,
-	txManager beans.TxManager,
-) *categoryContract {
-	return &categoryContract{
-		categoryRepository,
-		monthCategoryRepository,
-		monthRepository,
-		txManager,
-	}
+	contract
 }
 
 func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.BudgetAuthContext, groupID beans.ID, name beans.Name) (*beans.Category, error) {
@@ -42,8 +25,8 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 		Name:     name,
 	}
 
-	err := beans.ExecTxNil(ctx, c.txManager, func(tx beans.Tx) error {
-		groupExists, err := c.categoryRepository.GroupExists(ctx, auth.BudgetID(), groupID)
+	err := beans.ExecTxNil(ctx, c.ds().TxManager(), func(tx beans.Tx) error {
+		groupExists, err := c.ds().CategoryRepository().GroupExists(ctx, auth.BudgetID(), groupID)
 		if err != nil {
 			return err
 		}
@@ -51,18 +34,18 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 			return beans.NewError(beans.EINVALID, "Invalid Group ID.")
 		}
 
-		if err := c.categoryRepository.Create(ctx, nil, category); err != nil {
+		if err := c.ds().CategoryRepository().Create(ctx, nil, category); err != nil {
 			return err
 		}
 
 		// create month categories for existing months
-		months, err := c.monthRepository.GetForBudget(ctx, auth.BudgetID())
+		months, err := c.ds().MonthRepository().GetForBudget(ctx, auth.BudgetID())
 		if err != nil {
 			return err
 		}
 
 		for _, month := range months {
-			err = c.monthCategoryRepository.Create(ctx, tx, &beans.MonthCategory{
+			err = c.ds().MonthCategoryRepository().Create(ctx, tx, &beans.MonthCategory{
 				ID:         beans.NewBeansID(),
 				MonthID:    month.ID,
 				CategoryID: category.ID,
@@ -97,7 +80,7 @@ func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAu
 		Name:     name,
 	}
 
-	if err := c.categoryRepository.CreateGroup(ctx, nil, group); err != nil {
+	if err := c.ds().CategoryRepository().CreateGroup(ctx, nil, group); err != nil {
 		return nil, err
 	}
 
@@ -105,12 +88,12 @@ func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAu
 }
 
 func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]beans.CategoryGroupWithCategories, error) {
-	groups, err := c.categoryRepository.GetGroupsForBudget(ctx, auth.BudgetID())
+	groups, err := c.ds().CategoryRepository().GetGroupsForBudget(ctx, auth.BudgetID())
 	if err != nil {
 		return nil, err
 	}
 
-	categories, err := c.categoryRepository.GetForBudget(ctx, auth.BudgetID())
+	categories, err := c.ds().CategoryRepository().GetForBudget(ctx, auth.BudgetID())
 	if err != nil {
 		return nil, err
 	}
@@ -135,4 +118,35 @@ func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthCon
 	}
 
 	return groupsWithCategories, nil
+}
+
+func (c *categoryContract) GetGroup(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.CategoryGroupWithCategories, error) {
+	group, err := c.ds().CategoryRepository().GetCategoryGroup(ctx, id, auth.BudgetID())
+	if err != nil {
+		return beans.CategoryGroupWithCategories{}, err
+	}
+
+	categories, err := c.ds().CategoryRepository().GetCategoriesForGroup(ctx, id, auth.BudgetID())
+	if err != nil {
+		return beans.CategoryGroupWithCategories{}, err
+	}
+
+	categoryValues := make([]beans.Category, len(categories))
+	for i, category := range categories {
+		categoryValues[i] = *category
+	}
+
+	return beans.CategoryGroupWithCategories{
+		CategoryGroup: *group,
+		Categories:    categoryValues,
+	}, nil
+}
+
+func (c *categoryContract) GetCategory(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.Category, error) {
+	category, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, id, auth.BudgetID())
+	if err != nil {
+		return beans.Category{}, err
+	}
+
+	return *category, nil
 }

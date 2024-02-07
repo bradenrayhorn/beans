@@ -32,16 +32,19 @@ func TestAmountJSON(t *testing.T) {
 			expected string
 		}{
 			{"blank", beans.Amount{}, `null`},
-			{"negative", beans.NewAmount(-5, 0), `{"coefficient": -5, "exponent": 0}`},
-			{"positive", beans.NewAmount(5, 0), `{"coefficient": 5, "exponent": 0}`},
-			{"decimal", beans.NewAmount(55, -1), `{"coefficient": 55, "exponent": -1}`},
+			{"negative", beans.NewAmount(-5, 0), `"-5"`},
+			{"positive", beans.NewAmount(5, 0), `"5"`},
+			{"decimal", beans.NewAmount(55, -1), `"5.5"`},
+			{"kind of big", beans.NewAmount(55, 3), `"55000"`},
+			{"really big", beans.NewAmount(55, 10), `"550000000000"`},
+			{"many decimals", beans.NewAmount(817401, -5), `"8.17401"`},
 		}
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
 				r, err := json.Marshal(test.amount)
 				require.Nil(t, err)
-				assert.JSONEq(t, test.expected, string(r))
+				assert.Equal(t, test.expected, string(r))
 			})
 		}
 	})

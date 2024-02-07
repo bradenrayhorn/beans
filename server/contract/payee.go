@@ -7,15 +7,7 @@ import (
 )
 
 type payeeContract struct {
-	payeeRepository beans.PayeeRepository
-}
-
-func NewPayeeContract(
-	payeeRepository beans.PayeeRepository,
-) *payeeContract {
-	return &payeeContract{
-		payeeRepository,
-	}
+	contract
 }
 
 func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (*beans.Payee, error) {
@@ -31,7 +23,7 @@ func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthC
 		Name:     name,
 	}
 
-	err := c.payeeRepository.Create(ctx, payee)
+	err := c.ds().PayeeRepository().Create(ctx, payee)
 	if err != nil {
 		return nil, err
 	}
@@ -40,5 +32,18 @@ func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthC
 }
 
 func (c *payeeContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]*beans.Payee, error) {
-	return c.payeeRepository.GetForBudget(ctx, auth.BudgetID())
+	return c.ds().PayeeRepository().GetForBudget(ctx, auth.BudgetID())
+}
+
+func (c *payeeContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (*beans.Payee, error) {
+	payee, err := c.ds().PayeeRepository().Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if payee.BudgetID != auth.BudgetID() {
+		return nil, beans.NewError(beans.ENOTFOUND, "payee not found")
+	}
+
+	return payee, nil
 }

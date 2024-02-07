@@ -101,6 +101,44 @@ func (q *Queries) GetCategoriesForBudget(ctx context.Context, budgetID string) (
 	return items, nil
 }
 
+const getCategoriesForGroup = `-- name: GetCategoriesForGroup :many
+SELECT categories.id, categories.name, categories.budget_id, categories.group_id, categories.created_at FROM categories
+JOIN category_groups ON category_groups.id = categories.group_id
+  AND category_groups.id = $1
+  AND category_groups.budget_id = $2
+`
+
+type GetCategoriesForGroupParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetCategoriesForGroup(ctx context.Context, arg GetCategoriesForGroupParams) ([]Category, error) {
+	rows, err := q.db.Query(ctx, getCategoriesForGroup, arg.ID, arg.BudgetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Category
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.BudgetID,
+			&i.GroupID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCategoryForBudget = `-- name: GetCategoryForBudget :one
 SELECT id, name, budget_id, group_id, created_at FROM categories WHERE id = $1 AND budget_id = $2
 `
@@ -118,6 +156,28 @@ func (q *Queries) GetCategoryForBudget(ctx context.Context, arg GetCategoryForBu
 		&i.Name,
 		&i.BudgetID,
 		&i.GroupID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getCategoryGroup = `-- name: GetCategoryGroup :one
+SELECT id, name, is_income, budget_id, created_at FROM category_groups WHERE id = $1 AND budget_id = $2
+`
+
+type GetCategoryGroupParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetCategoryGroup(ctx context.Context, arg GetCategoryGroupParams) (CategoryGroup, error) {
+	row := q.db.QueryRow(ctx, getCategoryGroup, arg.ID, arg.BudgetID)
+	var i CategoryGroup
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsIncome,
+		&i.BudgetID,
 		&i.CreatedAt,
 	)
 	return i, err
