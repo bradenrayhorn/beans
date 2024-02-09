@@ -57,7 +57,7 @@ type TransactionRepository interface {
 	GetForBudget(ctx context.Context, budgetID ID) ([]TransactionWithRelations, error)
 
 	// Get transaction.
-	Get(ctx context.Context, id ID) (Transaction, error)
+	Get(ctx context.Context, budgetID ID, id ID) (Transaction, error)
 
 	// Gets sum of all income transactions between the dates.
 	GetIncomeBetween(ctx context.Context, budgetID ID, begin Date, end Date) (Amount, error)

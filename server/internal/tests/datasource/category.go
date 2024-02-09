@@ -99,30 +99,6 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		assert.NotNil(t, categoryRepository.Create(ctx, nil, category))
 	})
 
-	t.Run("group exists", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-
-		group := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
-		res, err := categoryRepository.GroupExists(ctx, budget.ID, group.ID)
-		require.Nil(t, err)
-		require.False(t, res)
-
-		require.Nil(t, categoryRepository.CreateGroup(ctx, nil, group))
-
-		res, err = categoryRepository.GroupExists(ctx, budget.ID, group.ID)
-		require.Nil(t, err)
-		require.True(t, res)
-	})
-
-	t.Run("group exists checks budget id", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-
-		group := &beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
-		res, err := categoryRepository.GroupExists(ctx, beans.NewBeansID(), group.ID)
-		require.Nil(t, err)
-		require.False(t, res)
-	})
-
 	t.Run("get group", func(t *testing.T) {
 		t.Run("cannot get non-existent group", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()

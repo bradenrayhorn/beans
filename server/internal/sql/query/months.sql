@@ -4,7 +4,7 @@ INSERT INTO months (
 ) VALUES ($1, $2, $3, $4);
 
 -- name: GetMonthByID :one
-SELECT * FROM months WHERE id = $1;
+SELECT * FROM months WHERE id = $1 AND budget_id = $2;
 
 -- name: GetMonthByDate :one
 SELECT * FROM months WHERE budget_id = $1 AND date = $2;

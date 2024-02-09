@@ -22,10 +22,10 @@ func (r *monthCategoryRepository) Create(ctx context.Context, tx beans.Tx, month
 	})
 }
 
-func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategoryID beans.ID, amount beans.Amount) error {
+func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategory beans.MonthCategory) error {
 	return r.DB(nil).UpdateMonthCategoryAmount(ctx, db.UpdateMonthCategoryAmountParams{
-		ID:     monthCategoryID.String(),
-		Amount: mapper.AmountToNumeric(amount),
+		ID:     monthCategory.ID.String(),
+		Amount: mapper.AmountToNumeric(monthCategory.Amount),
 	})
 }
 
@@ -102,9 +102,9 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.M
 	return monthCategories, nil
 }
 
-func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, monthID beans.ID, categoryID beans.ID) (beans.MonthCategory, error) {
+func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, month beans.Month, categoryID beans.ID) (beans.MonthCategory, error) {
 	res, err := r.DB(tx).GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
-		MonthID:    monthID.String(),
+		MonthID:    month.ID.String(),
 		CategoryID: categoryID.String(),
 	})
 
@@ -114,7 +114,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 		if errors.Is(err, beans.ErrorNotFound) {
 			monthCategory := beans.MonthCategory{
 				ID:         beans.NewBeansID(),
-				MonthID:    monthID,
+				MonthID:    month.ID,
 				CategoryID: categoryID,
 				Amount:     beans.NewAmount(0, 0),
 			}
@@ -134,14 +134,14 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 
 	return beans.MonthCategory{
 		ID:         id,
-		MonthID:    monthID,
+		MonthID:    month.ID,
 		CategoryID: categoryID,
 		Amount:     amount,
 	}, nil
 }
 
-func (r *monthCategoryRepository) GetAssignedInMonth(ctx context.Context, monthID beans.ID) (beans.Amount, error) {
-	res, err := r.DB(nil).GetAssignedInMonth(ctx, monthID.String())
+func (r *monthCategoryRepository) GetAssignedInMonth(ctx context.Context, month beans.Month) (beans.Amount, error) {
+	res, err := r.DB(nil).GetAssignedInMonth(ctx, month.ID.String())
 	if err != nil {
 		return beans.NewEmptyAmount(), err
 	}

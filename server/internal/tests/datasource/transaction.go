@@ -61,7 +61,17 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 	})
 
 	t.Run("cannot get nonexistant", func(t *testing.T) {
-		_, err := transactionRepository.Get(ctx, beans.NewBeansID())
+		budget, _ := factory.MakeBudgetAndUser()
+		_, err := transactionRepository.Get(ctx, budget.ID, beans.NewBeansID())
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("cannot get for other budget", func(t *testing.T) {
+		budget, _ := factory.MakeBudgetAndUser()
+		budget2, _ := factory.MakeBudgetAndUser()
+		transaction := factory.Transaction(budget2.ID, beans.Transaction{})
+
+		_, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 
@@ -82,7 +92,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		}
 		require.Nil(t, transactionRepository.Create(ctx, transaction))
 
-		res, err := transactionRepository.Get(ctx, transaction.ID)
+		res, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
 		require.Nil(t, err)
 
 		assert.Equal(t, transaction, res)
@@ -117,7 +127,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 
 		require.Nil(t, transactionRepository.Update(ctx, transaction))
 
-		res, err := transactionRepository.Get(ctx, transaction.ID)
+		res, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
 		require.Nil(t, err)
 
 		assert.True(t, reflect.DeepEqual(transaction, res))
@@ -138,16 +148,16 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		// transaction1 and transaction2 should be deleted, they are passed in and part of budget 1.
 		// transaction3 should not be deleted, it is not passed in.
 		// transaction4 should not be deleted, it is passed in but not part of budget 1.
-		_, err = transactionRepository.Get(ctx, transaction1.ID)
+		_, err = transactionRepository.Get(ctx, budget1.ID, transaction1.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		_, err = transactionRepository.Get(ctx, transaction2.ID)
+		_, err = transactionRepository.Get(ctx, budget1.ID, transaction2.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		_, err = transactionRepository.Get(ctx, transaction3.ID)
+		_, err = transactionRepository.Get(ctx, budget1.ID, transaction3.ID)
 		assert.Nil(t, err)
 
-		_, err = transactionRepository.Get(ctx, transaction4.ID)
+		_, err = transactionRepository.Get(ctx, budget2.ID, transaction4.ID)
 		assert.Nil(t, err)
 	})
 

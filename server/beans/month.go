@@ -80,7 +80,7 @@ type MonthContract interface {
 
 type MonthRepository interface {
 	Create(ctx context.Context, tx Tx, month Month) error
-	Get(ctx context.Context, id ID) (Month, error)
+	Get(ctx context.Context, budgetID ID, id ID) (Month, error)
 	// Only updates the Carryover field.
 	Update(ctx context.Context, month Month) error
 	GetOrCreate(ctx context.Context, tx Tx, budgetID ID, date MonthDate) (Month, error)

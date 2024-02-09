@@ -82,7 +82,3 @@ func (r *categoryRepository) GetGroupsForBudget(ctx context.Context, budgetID be
 
 	return mapper.MapSlice(res, mapper.CategoryGroup)
 }
-
-func (r *categoryRepository) GroupExists(ctx context.Context, budgetID beans.ID, id beans.ID) (bool, error) {
-	return r.DB(nil).CategoryGroupExists(ctx, db.CategoryGroupExistsParams{BudgetID: budgetID.String(), ID: id.String()})
-}

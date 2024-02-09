@@ -9,22 +9,6 @@ import (
 	"context"
 )
 
-const categoryGroupExists = `-- name: CategoryGroupExists :one
-SELECT EXISTS (SELECT id FROM category_groups WHERE id = $1 AND budget_id = $2)
-`
-
-type CategoryGroupExistsParams struct {
-	ID       string
-	BudgetID string
-}
-
-func (q *Queries) CategoryGroupExists(ctx context.Context, arg CategoryGroupExistsParams) (bool, error) {
-	row := q.db.QueryRow(ctx, categoryGroupExists, arg.ID, arg.BudgetID)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const createCategory = `-- name: CreateCategory :exec
 INSERT INTO categories (
   id, budget_id, group_id, name 

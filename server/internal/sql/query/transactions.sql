@@ -19,7 +19,10 @@ DELETE FROM transactions
 -- name: GetTransaction :one
 SELECT transactions.*
   FROM transactions
-  WHERE transactions.id = $1;
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+    AND accounts.budget_id = @budget_id
+  WHERE transactions.id = @id;
 
 -- name: GetTransactionsForBudget :many
 SELECT

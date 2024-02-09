@@ -20,8 +20,11 @@ func (r *payeeRepository) Create(ctx context.Context, payee beans.Payee) error {
 	})
 }
 
-func (r *payeeRepository) Get(ctx context.Context, id beans.ID) (beans.Payee, error) {
-	res, err := r.DB(nil).GetPayee(ctx, id.String())
+func (r *payeeRepository) Get(ctx context.Context, budgetID beans.ID, id beans.ID) (beans.Payee, error) {
+	res, err := r.DB(nil).GetPayee(ctx, db.GetPayeeParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
 	if err != nil {
 		return beans.Payee{}, mapPostgresError(err)
 	}

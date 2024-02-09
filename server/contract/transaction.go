@@ -17,16 +17,13 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		return beans.EmptyID(), err
 	}
 
-	account, err := c.ds().AccountRepository().Get(ctx, data.AccountID)
+	_, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return beans.EmptyID(), beans.NewError(beans.EINVALID, "Invalid Account ID")
 		} else {
 			return beans.EmptyID(), err
 		}
-	}
-	if account.BudgetID != auth.BudgetID() {
-		return beans.EmptyID(), beans.NewError(beans.EINVALID, "Invalid Account ID")
 	}
 
 	if !data.CategoryID.Empty() {
@@ -43,7 +40,7 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 			return beans.EmptyID(), err
 		}
 
-		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month.ID, data.CategoryID); err != nil {
+		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month, data.CategoryID); err != nil {
 			return beans.EmptyID(), err
 		}
 	}
@@ -74,7 +71,7 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
-	transaction, err := c.ds().TransactionRepository().Get(ctx, data.ID)
+	transaction, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), data.ID)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return beans.NewError(beans.EINVALID, "Invalid Transaction ID")
@@ -83,24 +80,12 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
-	currentAccount, err := c.ds().AccountRepository().Get(ctx, transaction.AccountID)
-	if err != nil {
-		return fmt.Errorf("could not find related account: %w", err)
-	}
-	if currentAccount.BudgetID != auth.BudgetID() {
-		return beans.NewError(beans.EINVALID, "Invalid Transaction ID")
-	}
-
-	account, err := c.ds().AccountRepository().Get(ctx, data.AccountID)
-	if err != nil {
+	if _, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID); err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return beans.NewError(beans.EINVALID, "Invalid Account ID")
 		}
 
 		return err
-	}
-	if account.BudgetID != auth.BudgetID() {
-		return beans.NewError(beans.EINVALID, "Invalid Account ID")
 	}
 
 	if !data.CategoryID.Empty() {
@@ -117,7 +102,7 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 			return err
 		}
 
-		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month.ID, data.CategoryID); err != nil {
+		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month, data.CategoryID); err != nil {
 			return err
 		}
 	}
@@ -150,17 +135,14 @@ func (c *transactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuth
 }
 
 func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.TransactionWithRelations, error) {
-	transaction, err := c.ds().TransactionRepository().Get(ctx, id)
+	transaction, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), id)
 	if err != nil {
 		return beans.TransactionWithRelations{}, err
 	}
 
-	currentAccount, err := c.ds().AccountRepository().Get(ctx, transaction.AccountID)
+	currentAccount, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), transaction.AccountID)
 	if err != nil {
 		return beans.TransactionWithRelations{}, fmt.Errorf("could not find related account: %w", err)
-	}
-	if currentAccount.BudgetID != auth.BudgetID() {
-		return beans.TransactionWithRelations{}, beans.NewError(beans.ENOTFOUND, "transaction not found")
 	}
 
 	fullTransaction := beans.TransactionWithRelations{
@@ -178,7 +160,7 @@ func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthCon
 	}
 
 	if !transaction.PayeeID.Empty() {
-		payee, err := c.ds().PayeeRepository().Get(ctx, transaction.PayeeID)
+		payee, err := c.ds().PayeeRepository().Get(ctx, auth.BudgetID(), transaction.PayeeID)
 		if err != nil {
 			return beans.TransactionWithRelations{}, fmt.Errorf("could not find related payee %s for transaction %s", transaction.PayeeID, id)
 		}
@@ -191,15 +173,14 @@ func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthCon
 
 func (c *transactionContract) validatePayee(ctx context.Context, auth *beans.BudgetAuthContext, payeeID beans.ID) error {
 	if !payeeID.Empty() {
-		payee, err := c.ds().PayeeRepository().Get(ctx, payeeID)
+		if _, err := c.ds().PayeeRepository().Get(ctx, auth.BudgetID(), payeeID); err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Payee ID")
+			}
 
-		if err != nil && errors.Is(err, beans.ErrorNotFound) {
-			return beans.NewError(beans.EINVALID, "Invalid Payee ID")
-		} else if err != nil {
 			return err
-		} else if err == nil && payee.BudgetID != auth.BudgetID() {
-			return beans.NewError(beans.EINVALID, "Invalid Payee ID")
 		}
+
 	}
 
 	return nil

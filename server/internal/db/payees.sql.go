@@ -27,11 +27,16 @@ func (q *Queries) CreatePayee(ctx context.Context, arg CreatePayeeParams) error 
 }
 
 const getPayee = `-- name: GetPayee :one
-SELECT id, name, budget_id, created_at FROM payees WHERE id = $1
+SELECT id, name, budget_id, created_at FROM payees WHERE id = $1 AND budget_id = $2
 `
 
-func (q *Queries) GetPayee(ctx context.Context, id string) (Payee, error) {
-	row := q.db.QueryRow(ctx, getPayee, id)
+type GetPayeeParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetPayee(ctx context.Context, arg GetPayeeParams) (Payee, error) {
+	row := q.db.QueryRow(ctx, getPayee, arg.ID, arg.BudgetID)
 	var i Payee
 	err := row.Scan(
 		&i.ID,

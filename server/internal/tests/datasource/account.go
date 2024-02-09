@@ -27,7 +27,7 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 		)
 		require.Nil(t, err)
 
-		account, err := accountRepository.Get(context.Background(), accountID)
+		account, err := accountRepository.Get(context.Background(), budget.ID, accountID)
 		require.Nil(t, err)
 		assert.Equal(t, accountID, account.ID)
 		assert.Equal(t, "Account1", string(account.Name))
@@ -46,8 +46,20 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 	})
 
 	t.Run("cannot get fictitious account", func(t *testing.T) {
+		budget, _ := factory.MakeBudgetAndUser()
 		accountID := beans.NewBeansID()
-		_, err := accountRepository.Get(ctx, accountID)
+
+		_, err := accountRepository.Get(ctx, accountID, budget.ID)
+
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("cannot get account for other budget", func(t *testing.T) {
+		budget, _ := factory.MakeBudgetAndUser()
+		budget2, _ := factory.MakeBudgetAndUser()
+		account := factory.Account(beans.Account{BudgetID: budget.ID})
+
+		_, err := accountRepository.Get(ctx, account.ID, budget2.ID)
 
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})

@@ -45,8 +45,11 @@ func (r *TransactionRepository) Delete(ctx context.Context, budgetID beans.ID, t
 	})
 }
 
-func (r *TransactionRepository) Get(ctx context.Context, id beans.ID) (beans.Transaction, error) {
-	t, err := r.DB(nil).GetTransaction(ctx, id.String())
+func (r *TransactionRepository) Get(ctx context.Context, budgetID beans.ID, id beans.ID) (beans.Transaction, error) {
+	t, err := r.DB(nil).GetTransaction(ctx, db.GetTransactionParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
 	if err != nil {
 		return beans.Transaction{}, mapPostgresError(err)
 	}

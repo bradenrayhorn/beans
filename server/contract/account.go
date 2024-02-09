@@ -28,14 +28,5 @@ func (c *accountContract) GetAll(ctx context.Context, auth *beans.BudgetAuthCont
 }
 
 func (c *accountContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.Account, error) {
-	account, err := c.ds().AccountRepository().Get(ctx, id)
-	if err != nil {
-		return beans.Account{}, err
-	}
-
-	if account.BudgetID != auth.BudgetID() {
-		return beans.Account{}, beans.NewError(beans.ENOTFOUND, "account not found")
-	}
-
-	return account, nil
+	return c.ds().AccountRepository().Get(ctx, auth.BudgetID(), id)
 }

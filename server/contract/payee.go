@@ -36,14 +36,5 @@ func (c *payeeContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContex
 }
 
 func (c *payeeContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.Payee, error) {
-	payee, err := c.ds().PayeeRepository().Get(ctx, id)
-	if err != nil {
-		return beans.Payee{}, err
-	}
-
-	if payee.BudgetID != auth.BudgetID() {
-		return beans.Payee{}, beans.NewError(beans.ENOTFOUND, "payee not found")
-	}
-
-	return payee, nil
+	return c.ds().PayeeRepository().Get(ctx, auth.BudgetID(), id)
 }
