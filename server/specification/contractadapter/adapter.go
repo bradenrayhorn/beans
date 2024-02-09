@@ -6,7 +6,6 @@ import (
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
-	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/specification"
 	"github.com/stretchr/testify/require"
 )
@@ -21,11 +20,16 @@ func New(contracts *contract.Contracts) specification.Interactor {
 	return &contractsAdapter{contracts}
 }
 
-// budgetAuthContext helper
+// AuthContext helpers
+
+func (a *contractsAdapter) authContext(t *testing.T, ctx specification.Context) *beans.AuthContext {
+	auth, err := a.contracts.User.GetAuth(context.Background(), ctx.SessionID)
+	require.NoError(t, err)
+	return auth
+}
 
 func (a *contractsAdapter) budgetAuthContext(t *testing.T, ctx specification.Context) *beans.BudgetAuthContext {
-	auth, err := a.contracts.User.GetAuth(context.Background(), ctx.SessionID)
-	require.Nil(t, err)
+	auth := a.authContext(t, ctx)
 
 	budget, err := a.contracts.Budget.Get(context.Background(), auth, ctx.BudgetID)
 	require.Nil(t, err)
@@ -33,113 +37,6 @@ func (a *contractsAdapter) budgetAuthContext(t *testing.T, ctx specification.Con
 	budgetAuth, err := beans.NewBudgetAuthContext(auth, budget)
 	require.Nil(t, err)
 	return budgetAuth
-}
-
-// userAndBudget
-
-type userAndBudget struct {
-	t         *testing.T
-	sessionID beans.SessionID
-	budget    beans.Budget
-	context   specification.Context
-
-	contracts  *contract.Contracts
-	budgetAuth *beans.BudgetAuthContext
-}
-
-var _ specification.TestUserAndBudget = (*userAndBudget)(nil)
-
-func (u *userAndBudget) Ctx() specification.Context {
-	return u.context
-}
-
-func (u *userAndBudget) Budget() beans.Budget {
-	return u.budget
-}
-
-func (u *userAndBudget) Account(opt specification.AccountOpts) beans.Account {
-	name := beans.Name(beans.NewBeansID().String())
-	id, err := u.contracts.Account.Create(context.Background(), u.budgetAuth, name)
-	require.Nil(u.t, err)
-	return beans.Account{
-		ID:       id,
-		Name:     name,
-		BudgetID: u.budget.ID,
-	}
-}
-
-func (u *userAndBudget) CategoryGroup(opt specification.CategoryGroupOpts) beans.CategoryGroup {
-	name := beans.Name(beans.NewBeansID().String())
-	group, err := u.contracts.Category.CreateGroup(context.Background(), u.budgetAuth, name)
-	require.Nil(u.t, err)
-	return group
-}
-
-func (u *userAndBudget) Category(opt specification.CategoryOpts) beans.Category {
-	name := beans.Name(beans.NewBeansID().String())
-	category, err := u.contracts.Category.CreateCategory(context.Background(), u.budgetAuth, opt.Group.ID, name)
-	require.Nil(u.t, err)
-	return category
-}
-
-func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Transaction {
-	if opt.Date.Empty() {
-		opt.Date = beans.NewDate(testutils.RandomTime())
-	}
-	id, err := u.contracts.Transaction.Create(context.Background(), u.budgetAuth, beans.TransactionCreateParams{
-		TransactionParams: beans.TransactionParams{
-			AccountID:  opt.Account.ID,
-			CategoryID: opt.Category.ID,
-			Amount:     opt.Amount,
-			Date:       opt.Date,
-		},
-	})
-	require.Nil(u.t, err)
-	transaction, err := u.contracts.Transaction.Get(context.Background(), u.budgetAuth, id)
-	require.NoError(u.t, err)
-
-	return transaction.Transaction
-}
-
-// Test
-
-func (i *contractsAdapter) UserAndBudget(t *testing.T) specification.TestUserAndBudget {
-	// make new user
-	username := beans.NewBeansID().String()
-	err := i.contracts.User.Register(
-		context.Background(),
-		beans.Username(username),
-		beans.Password("password"),
-	)
-	require.Nil(t, err)
-
-	// login as user
-	session, err := i.contracts.User.Login(
-		context.Background(),
-		beans.Username(username),
-		beans.Password("password"),
-	)
-	require.Nil(t, err)
-
-	// get auth context
-	auth, err := i.contracts.User.GetAuth(context.Background(), session.ID)
-	require.Nil(t, err)
-
-	// make budget
-	budget, err := i.contracts.Budget.Create(context.Background(), auth, beans.Name(beans.NewBeansID().String()))
-	require.NoError(t, err)
-
-	ctx := specification.Context{SessionID: session.ID, BudgetID: budget.ID}
-
-	return &userAndBudget{
-		t:         t,
-		sessionID: session.ID,
-		budget:    budget,
-
-		context:    ctx,
-		contracts:  i.contracts,
-		budgetAuth: i.budgetAuthContext(t, ctx),
-	}
 }
 
 // Account
@@ -154,4 +51,74 @@ func (i *contractsAdapter) AccountList(t *testing.T, ctx specification.Context) 
 
 func (i *contractsAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {
 	return i.contracts.Account.Get(context.Background(), i.budgetAuthContext(t, ctx), id)
+}
+
+// Budget
+
+func (i *contractsAdapter) BudgetCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+	b, err := i.contracts.Budget.Create(context.Background(), i.authContext(t, ctx), name)
+	if err != nil {
+		return beans.EmptyID(), err
+	}
+	return b.ID, nil
+}
+
+func (i *contractsAdapter) BudgetGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Budget, error) {
+	return i.contracts.Budget.Get(context.Background(), i.authContext(t, ctx), id)
+}
+
+// CategoryGroup
+
+func (i *contractsAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+	group, err := i.contracts.Category.CreateGroup(context.Background(), i.budgetAuthContext(t, ctx), name)
+	if err != nil {
+		return beans.EmptyID(), err
+	}
+	return group.ID, nil
+}
+
+func (i *contractsAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroup, error) {
+	group, err := i.contracts.Category.GetGroup(context.Background(), i.budgetAuthContext(t, ctx), id)
+	if err != nil {
+		return beans.CategoryGroup{}, err
+	}
+	return group.CategoryGroup, nil
+}
+
+// Category
+
+func (i *contractsAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
+	category, err := i.contracts.Category.CreateCategory(context.Background(), i.budgetAuthContext(t, ctx), groupID, name)
+	if err != nil {
+		return beans.EmptyID(), err
+	}
+	return category.ID, nil
+}
+
+func (i *contractsAdapter) CategoryGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Category, error) {
+	return i.contracts.Category.GetCategory(context.Background(), i.budgetAuthContext(t, ctx), id)
+}
+
+// Transaction
+
+func (i *contractsAdapter) TransactionCreate(t *testing.T, ctx specification.Context, params beans.TransactionCreateParams) (beans.ID, error) {
+	return i.contracts.Transaction.Create(context.Background(), i.budgetAuthContext(t, ctx), params)
+}
+
+func (i *contractsAdapter) TransactionGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.TransactionWithRelations, error) {
+	return i.contracts.Transaction.Get(context.Background(), i.budgetAuthContext(t, ctx), id)
+}
+
+// User
+
+func (i *contractsAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {
+	return i.contracts.User.Register(context.Background(), username, password)
+}
+
+func (i *contractsAdapter) UserLogin(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) (beans.SessionID, error) {
+	session, err := i.contracts.User.Login(context.Background(), username, password)
+	if err != nil {
+		return "", err
+	}
+	return session.ID, nil
 }

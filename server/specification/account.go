@@ -31,21 +31,21 @@ func testAccounts(t *testing.T, interactor Interactor) {
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("cannot create with invalid name", func(t *testing.T) {
-			c := interactor.UserAndBudget(t)
+			c := makeUserAndBudget(t, interactor)
 
-			_, err := interactor.AccountCreate(t, c.Ctx(), "")
+			_, err := interactor.AccountCreate(t, c.ctx, "")
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
 		t.Run("can create and get", func(t *testing.T) {
-			c := interactor.UserAndBudget(t)
+			c := makeUserAndBudget(t, interactor)
 
 			// create account
-			accountID, err := interactor.AccountCreate(t, c.Ctx(), "New Account")
+			accountID, err := interactor.AccountCreate(t, c.ctx, "New Account")
 			require.NoError(t, err)
 
 			// check if account was saved properly
-			account, err := interactor.AccountGet(t, c.Ctx(), accountID)
+			account, err := interactor.AccountGet(t, c.ctx, accountID)
 			require.NoError(t, err)
 
 			assert.Equal(t, beans.Name("New Account"), account.Name)
@@ -54,26 +54,26 @@ func testAccounts(t *testing.T, interactor Interactor) {
 
 	t.Run("get", func(t *testing.T) {
 		t.Run("cannot get a non-existent account", func(t *testing.T) {
-			c := interactor.UserAndBudget(t)
+			c := makeUserAndBudget(t, interactor)
 
-			_, err := interactor.AccountGet(t, c.Ctx(), beans.NewBeansID())
+			_, err := interactor.AccountGet(t, c.ctx, beans.NewBeansID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
 		t.Run("cannot get account from another budget", func(t *testing.T) {
-			c1 := interactor.UserAndBudget(t)
-			c2 := interactor.UserAndBudget(t)
+			c1 := makeUserAndBudget(t, interactor)
+			c2 := makeUserAndBudget(t, interactor)
 
 			// Try and get an account from budget 2 with budget 1
 			account := c2.Account(AccountOpts{})
 
-			_, err := interactor.AccountGet(t, c1.Ctx(), account.ID)
+			_, err := interactor.AccountGet(t, c1.ctx, account.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 	})
 
 	t.Run("get all", func(t *testing.T) {
-		c := interactor.UserAndBudget(t)
+		c := makeUserAndBudget(t, interactor)
 
 		account1 := c.Account(AccountOpts{})
 		account2 := c.Account(AccountOpts{})
@@ -88,7 +88,7 @@ func testAccounts(t *testing.T, interactor Interactor) {
 		})
 
 		// list accounts, check if accounts are proper
-		accounts, err := interactor.AccountList(t, c.Ctx())
+		accounts, err := interactor.AccountList(t, c.ctx)
 		require.NoError(t, err)
 		require.Len(t, accounts, 2)
 
