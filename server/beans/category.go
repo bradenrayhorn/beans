@@ -46,10 +46,11 @@ type CategoryContract interface {
 type CategoryRepository interface {
 	Create(ctx context.Context, tx Tx, category Category) error
 	GetSingleForBudget(ctx context.Context, id ID, budgetID ID) (Category, error)
+
+	CreateGroup(ctx context.Context, tx Tx, categoryGroup CategoryGroup) error
 	GetCategoryGroup(ctx context.Context, id ID, budgetID ID) (CategoryGroup, error)
+
 	GetCategoriesForGroup(ctx context.Context, id ID, budgetID ID) ([]Category, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]Category, error)
-	CreateGroup(ctx context.Context, tx Tx, categoryGroup CategoryGroup) error
 	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]CategoryGroup, error)
-	GroupExists(ctx context.Context, budgetID ID, id ID) (bool, error)
 }

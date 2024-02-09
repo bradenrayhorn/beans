@@ -29,11 +29,16 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) er
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, name, budget_id, created_at from accounts WHERE id = $1
+SELECT id, name, budget_id, created_at from accounts WHERE id = $1 AND budget_id = $2
 `
 
-func (q *Queries) GetAccount(ctx context.Context, id string) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccount, id)
+type GetAccountParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccount, arg.ID, arg.BudgetID)
 	var i Account
 	err := row.Scan(
 		&i.ID,

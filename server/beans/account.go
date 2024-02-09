@@ -32,6 +32,6 @@ type AccountContract interface {
 
 type AccountRepository interface {
 	Create(ctx context.Context, id ID, name Name, budgetID ID) error
-	Get(ctx context.Context, id ID) (Account, error)
+	Get(ctx context.Context, budgetID ID, id ID) (Account, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]AccountWithBalance, error)
 }

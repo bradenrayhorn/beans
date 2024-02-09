@@ -57,11 +57,16 @@ func (q *Queries) GetMonthByDate(ctx context.Context, arg GetMonthByDateParams) 
 }
 
 const getMonthByID = `-- name: GetMonthByID :one
-SELECT id, budget_id, date, carryover, created_at FROM months WHERE id = $1
+SELECT id, budget_id, date, carryover, created_at FROM months WHERE id = $1 AND budget_id = $2
 `
 
-func (q *Queries) GetMonthByID(ctx context.Context, id string) (Month, error) {
-	row := q.db.QueryRow(ctx, getMonthByID, id)
+type GetMonthByIDParams struct {
+	ID       string
+	BudgetID string
+}
+
+func (q *Queries) GetMonthByID(ctx context.Context, arg GetMonthByIDParams) (Month, error) {
+	row := q.db.QueryRow(ctx, getMonthByID, arg.ID, arg.BudgetID)
 	var i Month
 	err := row.Scan(
 		&i.ID,

@@ -26,6 +26,6 @@ type PayeeContract interface {
 
 type PayeeRepository interface {
 	Create(ctx context.Context, payee Payee) error
-	Get(ctx context.Context, id ID) (Payee, error)
+	Get(ctx context.Context, budgetID ID, id ID) (Payee, error)
 	GetForBudget(ctx context.Context, budgetID ID) ([]Payee, error)
 }

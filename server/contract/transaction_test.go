@@ -398,7 +398,7 @@ func TestTransaction(t *testing.T) {
 			require.Nil(t, c.Update(context.Background(), auth, params))
 
 			// transaction was updated
-			res, err := transactionRepository.Get(context.Background(), transaction.ID)
+			res, err := transactionRepository.Get(context.Background(), budget.ID, transaction.ID)
 			require.NoError(t, err)
 			assert.Equal(t, beans.Transaction{
 				ID:         transaction.ID,
@@ -455,7 +455,7 @@ func TestTransaction(t *testing.T) {
 			require.Nil(t, c.Update(context.Background(), auth, params))
 
 			// transaction was updated
-			res, err := transactionRepository.Get(context.Background(), transaction.ID)
+			res, err := transactionRepository.Get(context.Background(), budget.ID, transaction.ID)
 			require.NoError(t, err)
 			assert.Equal(t, beans.Transaction{
 				ID:        transaction.ID,

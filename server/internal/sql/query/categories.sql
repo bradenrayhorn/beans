@@ -26,5 +26,3 @@ INSERT INTO category_groups (
 -- name: GetCategoryGroupsForBudget :many
 SELECT * FROM category_groups WHERE budget_id = $1;
 
--- name: CategoryGroupExists :one
-SELECT EXISTS (SELECT id FROM category_groups WHERE id = $1 AND budget_id = $2);

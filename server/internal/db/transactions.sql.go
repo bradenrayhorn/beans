@@ -135,11 +135,19 @@ func (q *Queries) GetIncomeBetween(ctx context.Context, arg GetIncomeBetweenPara
 const getTransaction = `-- name: GetTransaction :one
 SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at
   FROM transactions
-  WHERE transactions.id = $1
+  JOIN accounts
+    ON accounts.id = transactions.account_id
+    AND accounts.budget_id = $1
+  WHERE transactions.id = $2
 `
 
-func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, error) {
-	row := q.db.QueryRow(ctx, getTransaction, id)
+type GetTransactionParams struct {
+	BudgetID string
+	ID       string
+}
+
+func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (Transaction, error) {
+	row := q.db.QueryRow(ctx, getTransaction, arg.BudgetID, arg.ID)
 	var i Transaction
 	err := row.Scan(
 		&i.ID,

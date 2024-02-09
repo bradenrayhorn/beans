@@ -2,6 +2,7 @@ package contract
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 )
@@ -26,12 +27,12 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 	}
 
 	err := beans.ExecTxNil(ctx, c.ds().TxManager(), func(tx beans.Tx) error {
-		groupExists, err := c.ds().CategoryRepository().GroupExists(ctx, auth.BudgetID(), groupID)
+		_, err := c.ds().CategoryRepository().GetCategoryGroup(ctx, groupID, auth.BudgetID())
 		if err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Group ID.")
+			}
 			return err
-		}
-		if !groupExists {
-			return beans.NewError(beans.EINVALID, "Invalid Group ID.")
 		}
 
 		if err := c.ds().CategoryRepository().Create(ctx, nil, category); err != nil {

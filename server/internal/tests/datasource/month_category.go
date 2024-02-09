@@ -119,7 +119,8 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 		monthCategory := factory.MonthCategory(budget.ID, beans.MonthCategory{MonthID: month.ID})
 
-		require.Nil(t, monthCategoryRepository.UpdateAmount(ctx, monthCategory.ID, beans.NewAmount(5, -1)))
+		monthCategory.Amount = beans.NewAmount(5, -1)
+		require.Nil(t, monthCategoryRepository.UpdateAmount(ctx, monthCategory))
 
 		res, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
@@ -249,7 +250,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		factory.MonthCategory(budget.ID, beans.MonthCategory{MonthID: month1.ID, CategoryID: category2.ID})
 		factory.MonthCategory(budget.ID, beans.MonthCategory{MonthID: month2.ID, CategoryID: category2.ID})
 
-		res, err := monthCategoryRepository.GetOrCreate(ctx, nil, month1.ID, category1.ID)
+		res, err := monthCategoryRepository.GetOrCreate(ctx, nil, month1, category1.ID)
 		require.Nil(t, err)
 		assert.Equal(t, expected.ID, res.ID)
 	})
@@ -269,7 +270,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 
 		existingIDs := []beans.ID{mc1.ID, mc2.ID, mc3.ID}
 
-		monthCategory, err := monthCategoryRepository.GetOrCreate(ctx, nil, month1.ID, category1.ID)
+		monthCategory, err := monthCategoryRepository.GetOrCreate(ctx, nil, month1, category1.ID)
 		require.Nil(t, err)
 
 		assert.NotContains(t, existingIDs, monthCategory.ID)
@@ -297,7 +298,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		defer testutils.MustRollback(t, tx)
 
 		// get or create but do not commit
-		_, err = monthCategoryRepository.GetOrCreate(ctx, tx, month.ID, category.ID)
+		_, err = monthCategoryRepository.GetOrCreate(ctx, tx, month, category.ID)
 		require.Nil(t, err)
 
 		// try to find, should fail
@@ -326,7 +327,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 
 		factory.MonthCategory(budget2.ID, beans.MonthCategory{Amount: beans.NewAmount(9, 0)})
 
-		amount, err := monthCategoryRepository.GetAssignedInMonth(ctx, month2.ID)
+		amount, err := monthCategoryRepository.GetAssignedInMonth(ctx, month2)
 		require.Nil(t, err)
 		assert.Equal(t, beans.NewAmount(11, 0), amount)
 	})
@@ -335,7 +336,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 
-		amount, err := monthCategoryRepository.GetAssignedInMonth(ctx, month.ID)
+		amount, err := monthCategoryRepository.GetAssignedInMonth(ctx, month)
 		require.Nil(t, err)
 		assert.Equal(t, beans.NewAmount(0, 0), amount)
 	})

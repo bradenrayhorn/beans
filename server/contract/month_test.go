@@ -44,7 +44,7 @@ func TestMonth(t *testing.T) {
 			assert.Equal(t, date, month.Date)
 
 			// month was saved
-			res, err := monthRepository.Get(context.Background(), month.ID)
+			res, err := monthRepository.Get(context.Background(), budget.ID, month.ID)
 			require.NoError(t, err)
 
 			assert.Equal(t, month.Month, res)
@@ -213,7 +213,7 @@ func TestMonth(t *testing.T) {
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
 			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(0, 0))
-			testutils.AssertErrorCode(t, err, beans.EFORBIDDEN)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
 		t.Run("cannot add negative carryover", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestMonth(t *testing.T) {
 			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
 
-			res, err := monthRepository.Get(context.Background(), month.ID)
+			res, err := monthRepository.Get(context.Background(), budget.ID, month.ID)
 			require.Nil(t, err)
 			assert.Equal(t, beans.NewAmount(5, 0), res.Carryover)
 		})
@@ -269,7 +269,7 @@ func TestMonth(t *testing.T) {
 			err := c.Update(context.Background(), auth, month.ID, beans.NewAmount(0, 0))
 			require.Nil(t, err)
 
-			res, err := monthRepository.Get(context.Background(), month.ID)
+			res, err := monthRepository.Get(context.Background(), budget.ID, month.ID)
 			require.Nil(t, err)
 			assert.Equal(t, beans.NewAmount(0, 0), res.Carryover)
 		})
@@ -314,7 +314,7 @@ func TestMonth(t *testing.T) {
 			category := factory.MakeCategory("Category", group.ID, budget.ID)
 
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
-			testutils.AssertErrorCode(t, err, beans.EFORBIDDEN)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
 		t.Run("creates new month category", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestMonth(t *testing.T) {
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
 
-			monthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
+			monthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month, category.ID)
 			require.Nil(t, err)
 
 			assert.Equal(t,
@@ -362,7 +362,7 @@ func TestMonth(t *testing.T) {
 			err := c.SetCategoryAmount(context.Background(), auth, month.ID, category.ID, beans.NewAmount(5, 0))
 			require.Nil(t, err)
 
-			dbMonthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
+			dbMonthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month, category.ID)
 			require.Nil(t, err)
 
 			assert.Equal(t,

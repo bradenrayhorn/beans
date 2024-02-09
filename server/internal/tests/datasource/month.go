@@ -29,7 +29,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		}
 		require.Nil(t, monthRepository.Create(ctx, nil, month))
 
-		res, err := monthRepository.Get(ctx, month.ID)
+		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
 		require.Nil(t, err)
 		assert.True(t, reflect.DeepEqual(month, res))
 	})
@@ -44,7 +44,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		}
 		require.Nil(t, monthRepository.Create(ctx, nil, month))
 
-		res, err := monthRepository.Get(ctx, month.ID)
+		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
 		require.Nil(t, err)
 
 		// carryover should have been initialized to 0
@@ -64,12 +64,12 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 
 		require.Nil(t, monthRepository.Create(ctx, tx, month))
 
-		_, err = monthRepository.Get(ctx, month.ID)
+		_, err = monthRepository.Get(ctx, budget.ID, month.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
 		require.Nil(t, tx.Commit(ctx))
 
-		_, err = monthRepository.Get(ctx, month.ID)
+		_, err = monthRepository.Get(ctx, budget.ID, month.ID)
 		require.Nil(t, err)
 	})
 
@@ -99,7 +99,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		month.Carryover = beans.NewAmount(5, 0)
 		require.Nil(t, monthRepository.Update(ctx, month))
 
-		res, err := monthRepository.Get(ctx, month.ID)
+		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
 		require.Nil(t, err)
 		assert.Equal(t, beans.NewAmount(5, 0), res.Carryover)
 	})
@@ -113,7 +113,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, monthRepository.Update(ctx, month))
 
 		// get month, carryover should have been reset to 0
-		res, err := monthRepository.Get(ctx, month.ID)
+		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
 		require.Nil(t, err)
 
 		assert.Equal(t, beans.NewAmount(0, 0), res.Carryover)
@@ -175,19 +175,30 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 
 		// try to find month, should fail
-		_, err = monthRepository.Get(ctx, month1.ID)
+		_, err = monthRepository.Get(ctx, budget.ID, month1.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
 		// commit
 		require.Nil(t, tx.Commit(ctx))
 
 		// try to find month, should succeed
-		_, err = monthRepository.Get(ctx, month1.ID)
+		_, err = monthRepository.Get(ctx, budget.ID, month1.ID)
 		require.Nil(t, err)
 	})
 
 	t.Run("cannot get fictitious month by id", func(t *testing.T) {
-		_, err := monthRepository.Get(ctx, beans.NewBeansID())
+		budget, _ := factory.MakeBudgetAndUser()
+
+		_, err := monthRepository.Get(ctx, budget.ID, beans.NewBeansID())
+		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+	})
+
+	t.Run("cannot get month from other budget", func(t *testing.T) {
+		budget, _ := factory.MakeBudgetAndUser()
+		budget2, _ := factory.MakeBudgetAndUser()
+		month := factory.Month(beans.Month{BudgetID: budget.ID})
+
+		_, err := monthRepository.Get(ctx, budget2.ID, month.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 
