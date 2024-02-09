@@ -39,7 +39,7 @@ func (a *HTTPAdapter) TransactionCreate(t *testing.T, ctx specification.Context,
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) TransactionGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Transaction, error) {
+func (a *HTTPAdapter) TransactionGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.TransactionWithRelations, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/transactions/%s", id),
@@ -47,8 +47,8 @@ func (a *HTTPAdapter) TransactionGet(t *testing.T, ctx specification.Context, id
 	})
 	resp, err := MustParseResponse[response.GetTransactionResponse](t, r.Response)
 	if err != nil {
-		return beans.Transaction{}, err
+		return beans.TransactionWithRelations{}, err
 	}
 
-	return mapTransaction(resp.Data), nil
+	return mapTransactionWithRelations(resp.Data), nil
 }

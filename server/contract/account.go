@@ -23,7 +23,7 @@ func (c *accountContract) Create(ctx context.Context, auth *beans.BudgetAuthCont
 	return accountID, nil
 }
 
-func (c *accountContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]beans.Account, error) {
+func (c *accountContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]beans.AccountWithBalance, error) {
 	return c.ds().AccountRepository().GetForBudget(ctx, auth.BudgetID())
 }
 

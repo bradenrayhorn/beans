@@ -9,6 +9,11 @@ type Category struct {
 	Name     Name
 }
 
+type RelatedCategory struct {
+	ID   ID
+	Name Name
+}
+
 type CategoryGroup struct {
 	ID       ID
 	BudgetID ID
@@ -23,10 +28,10 @@ type CategoryGroupWithCategories struct {
 
 type CategoryContract interface {
 	// Creates a category.
-	CreateCategory(ctx context.Context, auth *BudgetAuthContext, groupID ID, name Name) (*Category, error)
+	CreateCategory(ctx context.Context, auth *BudgetAuthContext, groupID ID, name Name) (Category, error)
 
 	// Creates a category group.
-	CreateGroup(ctx context.Context, auth *BudgetAuthContext, name Name) (*CategoryGroup, error)
+	CreateGroup(ctx context.Context, auth *BudgetAuthContext, name Name) (CategoryGroup, error)
 
 	// Gets all categories and groups for a budget.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]CategoryGroupWithCategories, error)
@@ -39,12 +44,12 @@ type CategoryContract interface {
 }
 
 type CategoryRepository interface {
-	Create(ctx context.Context, tx Tx, category *Category) error
-	GetSingleForBudget(ctx context.Context, id ID, budgetID ID) (*Category, error)
-	GetCategoryGroup(ctx context.Context, id ID, budgetID ID) (*CategoryGroup, error)
-	GetCategoriesForGroup(ctx context.Context, id ID, budgetID ID) ([]*Category, error)
-	GetForBudget(ctx context.Context, budgetID ID) ([]*Category, error)
-	CreateGroup(ctx context.Context, tx Tx, categoryGroup *CategoryGroup) error
-	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]*CategoryGroup, error)
+	Create(ctx context.Context, tx Tx, category Category) error
+	GetSingleForBudget(ctx context.Context, id ID, budgetID ID) (Category, error)
+	GetCategoryGroup(ctx context.Context, id ID, budgetID ID) (CategoryGroup, error)
+	GetCategoriesForGroup(ctx context.Context, id ID, budgetID ID) ([]Category, error)
+	GetForBudget(ctx context.Context, budgetID ID) ([]Category, error)
+	CreateGroup(ctx context.Context, tx Tx, categoryGroup CategoryGroup) error
+	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]CategoryGroup, error)
 	GroupExists(ctx context.Context, budgetID ID, id ID) (bool, error)
 }

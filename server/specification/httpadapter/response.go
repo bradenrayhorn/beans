@@ -38,34 +38,37 @@ func mapCategoryGroup(t response.CategoryGroup) beans.CategoryGroup {
 	}
 }
 
-func mapListAccount(t response.ListAccount) beans.Account {
-	return beans.Account{
-		ID:      t.ID,
-		Name:    beans.Name(t.Name),
+func mapAccount(t response.Account) beans.Account {
+	return beans.Account{ID: t.ID, Name: beans.Name(t.Name)}
+}
+
+func mapListAccount(t response.ListAccount) beans.AccountWithBalance {
+	return beans.AccountWithBalance{
+		Account: beans.Account{ID: t.ID, Name: beans.Name(t.Name)},
 		Balance: t.Balance,
 	}
 }
 
-func mapTransaction(t response.Transaction) beans.Transaction {
-	transaction := beans.Transaction{
-		ID:        t.ID,
-		AccountID: t.Account.ID,
-		Account: &beans.Account{
+func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRelations {
+	transaction := beans.TransactionWithRelations{
+		Transaction: beans.Transaction{
+			ID:        t.ID,
+			AccountID: t.Account.ID,
+			Amount:    t.Amount,
+			Date:      t.Date,
+			Notes:     t.Notes,
+		},
+		Account: beans.RelatedAccount{
 			ID:   t.Account.ID,
 			Name: t.Account.Name,
 		},
-		Amount: t.Amount,
-		Date:   t.Date,
-		Notes:  t.Notes,
 	}
 
 	if t.Category != nil {
-		transaction.CategoryID = t.Category.ID
-		transaction.CategoryName = beans.NewNullString(string(t.Category.Name))
+		transaction.Category = beans.OptionalWrap(beans.RelatedCategory{ID: t.Category.ID, Name: t.Category.Name})
 	}
 	if t.Payee != nil {
-		transaction.PayeeID = t.Payee.ID
-		transaction.PayeeName = beans.NewNullString(string(t.Payee.Name))
+		transaction.Payee = beans.OptionalWrap(beans.RelatedPayee{ID: t.Payee.ID, Name: t.Payee.Name})
 	}
 
 	return transaction

@@ -5,18 +5,18 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/db"
 )
 
-func CategoryGroup(d db.CategoryGroup) (*beans.CategoryGroup, error) {
+func CategoryGroup(d db.CategoryGroup) (beans.CategoryGroup, error) {
 	id, err := beans.BeansIDFromString(d.ID)
 	if err != nil {
-		return nil, err
+		return beans.CategoryGroup{}, err
 	}
 
 	budgetID, err := beans.BeansIDFromString(d.BudgetID)
 	if err != nil {
-		return nil, err
+		return beans.CategoryGroup{}, err
 	}
 
-	return &beans.CategoryGroup{
+	return beans.CategoryGroup{
 		ID:       id,
 		BudgetID: budgetID,
 		Name:     beans.Name(d.Name),
@@ -24,23 +24,23 @@ func CategoryGroup(d db.CategoryGroup) (*beans.CategoryGroup, error) {
 	}, nil
 }
 
-func Category(d db.Category) (*beans.Category, error) {
+func Category(d db.Category) (beans.Category, error) {
 	id, err := beans.BeansIDFromString(d.ID)
 	if err != nil {
-		return nil, err
+		return beans.Category{}, err
 	}
 
 	budgetID, err := beans.BeansIDFromString(d.BudgetID)
 	if err != nil {
-		return nil, err
+		return beans.Category{}, err
 	}
 
 	groupID, err := beans.BeansIDFromString(d.GroupID)
 	if err != nil {
-		return nil, err
+		return beans.Category{}, err
 	}
 
-	return &beans.Category{
+	return beans.Category{
 		ID:       id,
 		BudgetID: budgetID,
 		GroupID:  groupID,

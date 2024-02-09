@@ -3,7 +3,6 @@ package inmem_test
 import (
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/inmem"
@@ -15,26 +14,22 @@ func TestCanCreateAndGetSession(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
 	userID := beans.NewBeansID()
-	sessionTimestamp := time.Now()
 	session, err := r.Create(userID)
 	require.Nil(t, err)
 
 	assert.Equal(t, userID, session.UserID)
-	assert.GreaterOrEqual(t, session.CreatedAt, sessionTimestamp)
 	assert.Greater(t, len(session.ID), 0)
 
 	gotSession, err := r.Get(session.ID)
 	require.Nil(t, err)
 	assert.Equal(t, session.ID, gotSession.ID)
-	assert.Equal(t, session.CreatedAt, gotSession.CreatedAt)
 	assert.Equal(t, session.UserID, gotSession.UserID)
 }
 
 func TestCannotGetNonExistent(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
-	session, err := r.Get(beans.SessionID("blah"))
-	assert.Nil(t, session)
+	_, err := r.Get(beans.SessionID("blah"))
 	assert.ErrorIs(t, err, beans.ErrorNotFound)
 }
 

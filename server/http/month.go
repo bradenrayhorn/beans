@@ -19,14 +19,14 @@ func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 			return
 		}
 
-		month, categories, budgetable, err := s.contracts.Month.GetOrCreate(r.Context(), getBudgetAuth(r), beans.NewMonthDate(date))
+		month, err := s.contracts.Month.GetOrCreate(r.Context(), getBudgetAuth(r), beans.NewMonthDate(date))
 		if err != nil {
 			Error(w, err)
 			return
 		}
 
-		responseCategories := make([]response.MonthCategory, len(categories))
-		for i, category := range categories {
+		responseCategories := make([]response.MonthCategory, len(month.Categories))
+		for i, category := range month.Categories {
 			responseCategories[i] = response.MonthCategory{
 				ID:         category.ID,
 				Assigned:   category.Amount,
@@ -40,7 +40,7 @@ func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 			Data: response.Month{
 				ID:          month.ID,
 				Date:        month.Date.String(),
-				Budgetable:  budgetable,
+				Budgetable:  month.Budgetable,
 				Carryover:   month.Carryover,
 				Income:      month.Income,
 				Assigned:    month.Assigned,

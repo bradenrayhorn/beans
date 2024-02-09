@@ -7,13 +7,9 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/db"
 )
 
-type BudgetRepository struct {
-	repository
-}
+type BudgetRepository struct{ repository }
 
-func NewBudgetRepository(pool *DbPool) *BudgetRepository {
-	return &BudgetRepository{repository{pool}}
-}
+var _ beans.BudgetRepository = (*BudgetRepository)(nil)
 
 func (r *BudgetRepository) Create(ctx context.Context, tx beans.Tx, id beans.ID, name beans.Name, userID beans.ID) error {
 	q := r.DB(tx)
@@ -28,13 +24,38 @@ func (r *BudgetRepository) Create(ctx context.Context, tx beans.Tx, id beans.ID,
 	return nil
 }
 
-func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget, error) {
+func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (beans.Budget, error) {
 	budget, err := r.DB(nil).GetBudget(ctx, id.String())
 	if err != nil {
-		return nil, mapPostgresError(err)
+		return beans.Budget{}, mapPostgresError(err)
 	}
 
-	// load users
+	return beans.Budget{
+		ID:   id,
+		Name: beans.Name(budget.Name),
+	}, nil
+}
+
+func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.ID) ([]beans.Budget, error) {
+	budgets := []beans.Budget{}
+	dbBudgets, err := r.DB(nil).GetBudgetsForUser(ctx, userID.String())
+	if err != nil {
+		return budgets, err
+	}
+
+	for _, b := range dbBudgets {
+		id, err := beans.BeansIDFromString(b.ID)
+		if err != nil {
+			return budgets, err
+		}
+
+		budgets = append(budgets, beans.Budget{ID: id, Name: beans.Name(b.Name)})
+	}
+
+	return budgets, nil
+}
+
+func (r *BudgetRepository) GetBudgetUserIDs(ctx context.Context, id beans.ID) ([]beans.ID, error) {
 	userIDStrings, err := r.DB(nil).GetBudgetUserIDs(ctx, id.String())
 	if err != nil {
 		return nil, err
@@ -48,28 +69,5 @@ func (r *BudgetRepository) Get(ctx context.Context, id beans.ID) (*beans.Budget,
 		userIDs = append(userIDs, userID)
 	}
 
-	return &beans.Budget{
-		ID:      id,
-		Name:    beans.Name(budget.Name),
-		UserIDs: userIDs,
-	}, nil
-}
-
-func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.ID) ([]*beans.Budget, error) {
-	budgets := []*beans.Budget{}
-	dbBudgets, err := r.DB(nil).GetBudgetsForUser(ctx, userID.String())
-	if err != nil {
-		return budgets, err
-	}
-
-	for _, b := range dbBudgets {
-		id, err := beans.BeansIDFromString(b.ID)
-		if err != nil {
-			return budgets, err
-		}
-
-		budgets = append(budgets, &beans.Budget{ID: id, Name: beans.Name(b.Name)})
-	}
-
-	return budgets, nil
+	return userIDs, nil
 }

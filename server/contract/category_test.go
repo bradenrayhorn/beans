@@ -9,7 +9,6 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
-	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,8 +22,8 @@ func TestCategory(t *testing.T) {
 		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
-	categoryRepository := postgres.NewCategoryRepository(pool)
-	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
+	categoryRepository := ds.CategoryRepository()
+	monthCategoryRepository := ds.MonthCategoryRepository()
 	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Category
 
 	t.Run("create group", func(t *testing.T) {
@@ -145,8 +144,8 @@ func TestCategory(t *testing.T) {
 
 			assert.True(t, reflect.DeepEqual(result, []beans.CategoryGroupWithCategories{
 				{
-					CategoryGroup: *group,
-					Categories:    []beans.Category{*category},
+					CategoryGroup: group,
+					Categories:    []beans.Category{category},
 				},
 			}))
 		})

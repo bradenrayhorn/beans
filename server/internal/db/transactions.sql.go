@@ -133,29 +133,14 @@ func (q *Queries) GetIncomeBetween(ctx context.Context, arg GetIncomeBetweenPara
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at, accounts.name as account_name, accounts.budget_id as budget_id
+SELECT transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at
   FROM transactions
-  JOIN accounts
-    ON accounts.id = transactions.account_id
   WHERE transactions.id = $1
 `
 
-type GetTransactionRow struct {
-	ID          string
-	AccountID   string
-	PayeeID     pgtype.Text
-	CategoryID  pgtype.Text
-	Date        pgtype.Date
-	Amount      pgtype.Numeric
-	Notes       pgtype.Text
-	CreatedAt   pgtype.Timestamp
-	AccountName string
-	BudgetID    string
-}
-
-func (q *Queries) GetTransaction(ctx context.Context, id string) (GetTransactionRow, error) {
+func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, error) {
 	row := q.db.QueryRow(ctx, getTransaction, id)
-	var i GetTransactionRow
+	var i Transaction
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
@@ -165,8 +150,6 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (GetTransaction
 		&i.Amount,
 		&i.Notes,
 		&i.CreatedAt,
-		&i.AccountName,
-		&i.BudgetID,
 	)
 	return i, err
 }
@@ -189,14 +172,7 @@ ORDER BY date desc
 `
 
 type GetTransactionsForBudgetRow struct {
-	ID           string
-	AccountID    string
-	PayeeID      pgtype.Text
-	CategoryID   pgtype.Text
-	Date         pgtype.Date
-	Amount       pgtype.Numeric
-	Notes        pgtype.Text
-	CreatedAt    pgtype.Timestamp
+	Transaction  Transaction
 	AccountName  string
 	CategoryName pgtype.Text
 	PayeeName    pgtype.Text
@@ -212,14 +188,14 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 	for rows.Next() {
 		var i GetTransactionsForBudgetRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.AccountID,
-			&i.PayeeID,
-			&i.CategoryID,
-			&i.Date,
-			&i.Amount,
-			&i.Notes,
-			&i.CreatedAt,
+			&i.Transaction.ID,
+			&i.Transaction.AccountID,
+			&i.Transaction.PayeeID,
+			&i.Transaction.CategoryID,
+			&i.Transaction.Date,
+			&i.Transaction.Amount,
+			&i.Transaction.Notes,
+			&i.Transaction.CreatedAt,
 			&i.AccountName,
 			&i.CategoryName,
 			&i.PayeeName,

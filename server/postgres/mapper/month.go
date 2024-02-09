@@ -5,23 +5,23 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/db"
 )
 
-func Month(d db.Month) (*beans.Month, error) {
+func Month(d db.Month) (beans.Month, error) {
 	budgetID, err := beans.BeansIDFromString(d.BudgetID)
 	if err != nil {
-		return nil, err
+		return beans.Month{}, err
 	}
 
 	id, err := beans.BeansIDFromString(d.ID)
 	if err != nil {
-		return nil, err
+		return beans.Month{}, err
 	}
 
 	carryover, err := NumericToAmount(d.Carryover)
 	if err != nil {
-		return nil, err
+		return beans.Month{}, err
 	}
 
-	return &beans.Month{
+	return beans.Month{
 		ID:        id,
 		BudgetID:  budgetID,
 		Date:      PgToMonthDate(d.Date),

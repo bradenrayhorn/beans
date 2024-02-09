@@ -22,8 +22,8 @@ func mustFind[T any](t *testing.T, items []T, matches func(a T) bool) T {
 	return empty
 }
 
-func findAccount(t *testing.T, items []beans.Account, id beans.ID, do func(account beans.Account)) {
-	account := mustFind(t, items, func(a beans.Account) bool { return a.ID == id })
+func findAccount(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(account beans.AccountWithBalance)) {
+	account := mustFind(t, items, func(a beans.AccountWithBalance) bool { return a.ID == id })
 	do(account)
 }
 
@@ -92,11 +92,11 @@ func TestAccounts(t *testing.T, interactor Interactor) {
 		require.NoError(t, err)
 		require.Len(t, accounts, 2)
 
-		findAccount(t, accounts, account1.ID, func(account beans.Account) {
+		findAccount(t, accounts, account1.ID, func(account beans.AccountWithBalance) {
 			assert.Equal(t, account1.Name, account.Name)
 			assert.Equal(t, beans.NewAmount(6, 0), account.Balance)
 		})
-		findAccount(t, accounts, account2.ID, func(account beans.Account) {
+		findAccount(t, accounts, account2.ID, func(account beans.AccountWithBalance) {
 			assert.Equal(t, account2.Name, account.Name)
 			assert.Equal(t, beans.NewAmount(0, 0), account.Balance)
 		})

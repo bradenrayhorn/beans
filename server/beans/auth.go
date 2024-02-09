@@ -17,16 +17,12 @@ func (c *AuthContext) SessionID() SessionID {
 	return c.sessionID
 }
 
-func NewBudgetAuthContext(auth *AuthContext, budget *Budget) (*BudgetAuthContext, error) {
-	if !budget.UserHasAccess(auth.UserID()) {
-		return nil, NewError(EFORBIDDEN, "No access to budget")
-	}
-
+func NewBudgetAuthContext(auth *AuthContext, budget Budget) (*BudgetAuthContext, error) {
 	return &BudgetAuthContext{budget, auth}, nil
 }
 
 type BudgetAuthContext struct {
-	budget *Budget
+	budget Budget
 
 	*AuthContext
 }

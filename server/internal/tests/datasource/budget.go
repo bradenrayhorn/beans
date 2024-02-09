@@ -26,7 +26,6 @@ func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 		assert.Equal(t, budgetID, budget.ID)
 		assert.Equal(t, "Budget1", string(budget.Name))
-		assert.Equal(t, []beans.ID{user1.ID}, budget.UserIDs)
 	})
 
 	t.Run("create respects transaction", func(t *testing.T) {
@@ -47,5 +46,15 @@ func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
 
 		_, err = budgetRepository.Get(context.Background(), budgetID1)
 		require.Nil(t, err)
+	})
+
+	t.Run("can get budget user IDs", func(t *testing.T) {
+		budget, user := factory.MakeBudgetAndUser()
+		factory.MakeBudgetAndUser()
+
+		ids, err := budgetRepository.GetBudgetUserIDs(ctx, budget.ID)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, ids, []beans.ID{user.ID})
 	})
 }

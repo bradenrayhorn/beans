@@ -14,13 +14,14 @@ type Transaction struct {
 	Amount Amount
 	Date   Date
 	Notes  TransactionNotes
+}
 
-	// Must be explicitly loaded.
-	Account *Account
-	// Must be explicitly loaded.
-	CategoryName NullString
-	// Must be explicitly loaded.
-	PayeeName NullString
+type TransactionWithRelations struct {
+	Transaction
+
+	Account  RelatedAccount
+	Category Optional[RelatedCategory]
+	Payee    Optional[RelatedPayee]
 }
 
 type TransactionNotes struct{ NullString }
@@ -30,11 +31,11 @@ func NewTransactionNotes(string string) TransactionNotes {
 }
 
 type TransactionContract interface {
-	// Creates a transaction. Attaches Account field.
-	Create(ctx context.Context, auth *BudgetAuthContext, params TransactionCreateParams) (*Transaction, error)
+	// Creates a transaction.
+	Create(ctx context.Context, auth *BudgetAuthContext, params TransactionCreateParams) (ID, error)
 
-	// Gets all transactions for budget. Attaches Account, CategoryName, PayeeName fields.
-	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]*Transaction, error)
+	// Gets all transactions for budget.
+	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]TransactionWithRelations, error)
 
 	// Edits a transaction.
 	Update(ctx context.Context, auth *BudgetAuthContext, params TransactionUpdateParams) error
@@ -42,22 +43,21 @@ type TransactionContract interface {
 	// Deletes transactions.
 	Delete(ctx context.Context, auth *BudgetAuthContext, transactionIDs []ID) error
 
-	// Gets a transaction details. Attaches Account, CategoryName, PayeeName.
-	Get(ctx context.Context, auth *BudgetAuthContext, id ID) (Transaction, error)
+	// Gets a transaction details.
+	Get(ctx context.Context, auth *BudgetAuthContext, id ID) (TransactionWithRelations, error)
 }
 
 type TransactionRepository interface {
-	Create(ctx context.Context, transaction *Transaction) error
+	Create(ctx context.Context, transaction Transaction) error
 
-	Update(ctx context.Context, transaction *Transaction) error
+	Update(ctx context.Context, transaction Transaction) error
 
 	Delete(ctx context.Context, budgetID ID, transactionIDs []ID) error
 
-	// Attaches Account, CategoryName, PayeeName fields to Transactions.
-	GetForBudget(ctx context.Context, budgetID ID) ([]*Transaction, error)
+	GetForBudget(ctx context.Context, budgetID ID) ([]TransactionWithRelations, error)
 
-	// Get transaction. Attaches Account field to Transaction.
-	Get(ctx context.Context, id ID) (*Transaction, error)
+	// Get transaction.
+	Get(ctx context.Context, id ID) (Transaction, error)
 
 	// Gets sum of all income transactions between the dates.
 	GetIncomeBetween(ctx context.Context, budgetID ID, begin Date, end Date) (Amount, error)

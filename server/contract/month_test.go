@@ -2,14 +2,12 @@ package contract_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
-	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,9 +21,9 @@ func TestMonth(t *testing.T) {
 		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
-	monthRepository := postgres.NewMonthRepository(pool)
-	monthCategoryRepository := postgres.NewMonthCategoryRepository(pool)
-	transactionRepository := postgres.NewTransactionRepository(pool)
+	monthRepository := ds.MonthRepository()
+	monthCategoryRepository := ds.MonthCategoryRepository()
+	transactionRepository := ds.TransactionRepository()
 	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Month
 
 	t.Run("get or create", func(t *testing.T) {
@@ -38,22 +36,18 @@ func TestMonth(t *testing.T) {
 
 			date := testutils.NewMonthDate(t, "2022-05-01")
 
-			month, _, _, err := c.GetOrCreate(context.Background(), auth, date)
+			month, err := c.GetOrCreate(context.Background(), auth, date)
 			require.Nil(t, err)
 
 			// month was returned
-			assert.False(t, month.ID.Empty())
 			assert.Equal(t, budget.ID, month.BudgetID)
 			assert.Equal(t, date, month.Date)
 
 			// month was saved
-			dbMonth, err := monthRepository.Get(context.Background(), month.ID)
-			require.Nil(t, err)
-			dbMonth.CarriedOver = beans.NewAmount(0, 0)
-			dbMonth.Income = beans.NewAmount(0, 0)
-			dbMonth.Assigned = beans.NewAmount(0, 0)
+			res, err := monthRepository.Get(context.Background(), month.ID)
+			require.NoError(t, err)
 
-			assert.True(t, reflect.DeepEqual(month, dbMonth))
+			assert.Equal(t, month.Month, res)
 		})
 
 		t.Run("uses existing month", func(t *testing.T) {
@@ -64,15 +58,18 @@ func TestMonth(t *testing.T) {
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 			month := factory.MakeMonth(budget.ID, testutils.NewDate(t, "2022-05-01"))
 
-			month.CarriedOver = beans.NewAmount(0, 0)
-			month.Income = beans.NewAmount(0, 0)
-			month.Assigned = beans.NewAmount(0, 0)
-
-			dbMonth, _, _, err := c.GetOrCreate(context.Background(), auth, month.Date)
-			require.Nil(t, err)
+			res, err := c.GetOrCreate(context.Background(), auth, month.Date)
+			require.NoError(t, err)
 
 			// month was returned
-			assert.True(t, reflect.DeepEqual(month, dbMonth))
+			assert.Equal(t, beans.MonthWithDetails{
+				Month:       month,
+				CarriedOver: beans.NewAmount(0, 0),
+				Income:      beans.NewAmount(0, 0),
+				Assigned:    beans.NewAmount(0, 0),
+				Budgetable:  beans.NewAmount(0, 0),
+				Categories:  []beans.MonthCategoryWithDetails{},
+			}, res)
 		})
 
 		t.Run("does not use other budget's existing month", func(t *testing.T) {
@@ -89,7 +86,7 @@ func TestMonth(t *testing.T) {
 
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			res, _, _, err := c.GetOrCreate(context.Background(), auth, beans.NewMonthDate(date))
+			res, err := c.GetOrCreate(context.Background(), auth, beans.NewMonthDate(date))
 			require.Nil(t, err)
 			require.Equal(t, month.ID, res.ID)
 		})
@@ -105,10 +102,10 @@ func TestMonth(t *testing.T) {
 
 			date := testutils.NewMonthDate(t, "2022-05-01")
 
-			month, _, _, err := c.GetOrCreate(context.Background(), auth, date)
+			month, err := c.GetOrCreate(context.Background(), auth, date)
 			require.Nil(t, err)
 
-			monthCategories, err := monthCategoryRepository.GetForMonth(context.Background(), month)
+			monthCategories, err := monthCategoryRepository.GetForMonth(context.Background(), month.Month)
 			require.Nil(t, err)
 			require.Len(t, monthCategories, 1)
 			require.Equal(t, category.ID, monthCategories[0].CategoryID)
@@ -137,21 +134,21 @@ func TestMonth(t *testing.T) {
 			monthCategory := factory.MakeMonthCategory(monthMay.ID, category.ID, beans.NewAmount(34, -1))
 			factory.MakeMonthCategory(monthApril.ID, category.ID, beans.NewAmount(34, -1))
 
-			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			require.Nil(t, transactionRepository.Create(context.Background(), beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				Amount:     beans.NewAmount(6, 0),
 				Date:       testutils.NewDate(t, "2022-03-01"),
 				CategoryID: incomeCategory.ID,
 			}))
-			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			require.Nil(t, transactionRepository.Create(context.Background(), beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				Amount:     beans.NewAmount(9, 0),
 				Date:       testutils.NewDate(t, "2022-05-01"),
 				CategoryID: incomeCategory.ID,
 			}))
-			require.Nil(t, transactionRepository.Create(context.Background(), &beans.Transaction{
+			require.Nil(t, transactionRepository.Create(context.Background(), beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				Amount:     beans.NewAmount(3, 0),
@@ -159,18 +156,20 @@ func TestMonth(t *testing.T) {
 				CategoryID: incomeCategory.ID,
 			}))
 
-			dbMonth, dbCategories, available, err := c.GetOrCreate(context.Background(), auth, monthMay.Date)
+			res, err := c.GetOrCreate(context.Background(), auth, monthMay.Date)
 			require.Nil(t, err)
 
-			monthMay.Income = beans.NewAmount(9, 0)
-			monthMay.Assigned = beans.NewAmount(34, -1)
-			monthMay.CarriedOver = beans.NewAmount(67, -1)
-			assert.True(t, reflect.DeepEqual(monthMay, dbMonth))
-			require.Len(t, dbCategories, 2)
+			assert.Equal(t, beans.NewAmount(9, 0), res.Income)
+			assert.Equal(t, beans.NewAmount(34, -1), res.Assigned)
+			assert.Equal(t, beans.NewAmount(67, -1), res.CarriedOver)
+			assert.Equal(t, beans.NewAmount(119, -1), res.Budgetable)
+			assert.Equal(t, monthMay, res.Month)
 
-			var dbExpenseCategory *beans.MonthCategory
-			var dbIncomeCategory *beans.MonthCategory
-			for _, c := range dbCategories {
+			require.Len(t, res.Categories, 2)
+
+			var dbExpenseCategory beans.MonthCategoryWithDetails
+			var dbIncomeCategory beans.MonthCategoryWithDetails
+			for _, c := range res.Categories {
 				if c.CategoryID == category.ID {
 					dbExpenseCategory = c
 				}
@@ -179,15 +178,15 @@ func TestMonth(t *testing.T) {
 				}
 			}
 
-			monthCategory.Activity = beans.NewAmount(0, 0)
-			monthCategory.Available = beans.NewAmount(68, -1)
-			assert.True(t, reflect.DeepEqual(monthCategory, dbExpenseCategory))
+			assert.Equal(t, beans.MonthCategoryWithDetails{
+				MonthCategory: monthCategory,
+				Activity:      beans.NewAmount(0, 0),
+				Available:     beans.NewAmount(68, -1),
+			}, dbExpenseCategory)
 
 			assert.Equal(t, beans.NewAmount(9, 0), dbIncomeCategory.Activity)
 			assert.Equal(t, beans.NewAmount(15, 0), dbIncomeCategory.Available)
 			assert.Equal(t, beans.NewAmount(0, 0), dbIncomeCategory.Amount)
-
-			assert.Equal(t, beans.NewAmount(119, -1), available)
 		})
 	})
 
@@ -336,15 +335,15 @@ func TestMonth(t *testing.T) {
 			monthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
 			require.Nil(t, err)
 
-			assert.True(t, reflect.DeepEqual(
+			assert.Equal(t,
 				monthCategory,
-				&beans.MonthCategory{
+				beans.MonthCategory{
 					ID:         monthCategory.ID,
 					CategoryID: category.ID,
 					MonthID:    month.ID,
 					Amount:     beans.NewAmount(5, 0),
 				},
-			))
+			)
 		})
 
 		t.Run("uses existing month category", func(t *testing.T) {
@@ -366,15 +365,15 @@ func TestMonth(t *testing.T) {
 			dbMonthCategory, err := monthCategoryRepository.GetOrCreate(context.Background(), nil, month.ID, category.ID)
 			require.Nil(t, err)
 
-			assert.True(t, reflect.DeepEqual(
+			assert.Equal(t,
 				dbMonthCategory,
-				&beans.MonthCategory{
+				beans.MonthCategory{
 					ID:         monthCategory.ID,
 					CategoryID: category.ID,
 					MonthID:    month.ID,
 					Amount:     beans.NewAmount(5, 0),
 				},
-			))
+			)
 		})
 
 	})

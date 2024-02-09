@@ -9,20 +9,21 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func responseFromTransaction(transaction *beans.Transaction) response.Transaction {
+func responseFromTransaction(transaction beans.TransactionWithRelations) response.Transaction {
 	var category *response.AssociatedCategory
-	if !transaction.CategoryID.Empty() && !transaction.CategoryName.Empty() {
+	if c, ok := transaction.Category.Value(); ok {
 		category = &response.AssociatedCategory{
-			ID:   transaction.CategoryID,
-			Name: beans.Name(transaction.CategoryName.String()),
+			ID:   c.ID,
+			Name: c.Name,
 		}
+
 	}
 
 	var payee *response.AssociatedPayee
-	if !transaction.PayeeID.Empty() && !transaction.PayeeName.Empty() {
+	if p, ok := transaction.Payee.Value(); ok {
 		payee = &response.AssociatedPayee{
-			ID:   transaction.PayeeID,
-			Name: beans.Name(transaction.PayeeName.String()),
+			ID:   p.ID,
+			Name: p.Name,
 		}
 	}
 
@@ -48,7 +49,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
-		transaction, err := s.contracts.Transaction.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
+		transactionID, err := s.contracts.Transaction.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
 				CategoryID: req.CategoryID,
@@ -65,7 +66,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 		}
 
 		jsonResponse(w, response.CreateTransactionResponse{
-			Data: response.ID{ID: transaction.ID},
+			Data: response.ID{ID: transactionID},
 		}, http.StatusOK)
 	}
 }
@@ -154,6 +155,6 @@ func (s *Server) handleTransactionGet() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, responseFromTransaction(&transaction), http.StatusOK)
+		jsonResponse(w, responseFromTransaction(transaction), http.StatusOK)
 	}
 }
