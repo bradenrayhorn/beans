@@ -4,5 +4,6 @@ import "testing"
 
 func DoTests(t *testing.T, interactor Interactor) {
 
-	t.Run("accounts", func(t *testing.T) { testAccounts(t, interactor) })
+	t.Run("account", func(t *testing.T) { testAccounts(t, interactor) })
+	t.Run("budget", func(t *testing.T) { testBudgets(t, interactor) })
 }

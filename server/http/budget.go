@@ -43,7 +43,7 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 			return
 		}
 
-		res := response.ListBudgetsResposne{Data: []response.Budget{}}
+		res := response.ListBudgetsResponse{Data: []response.Budget{}}
 		for _, b := range budgets {
 			res.Data = append(res.Data, response.Budget{ID: b.ID, Name: b.Name})
 		}

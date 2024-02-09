@@ -67,7 +67,23 @@ func (i *contractsAdapter) BudgetGet(t *testing.T, ctx specification.Context, id
 	return i.contracts.Budget.Get(context.Background(), i.authContext(t, ctx), id)
 }
 
+func (i *contractsAdapter) BudgetGetAll(t *testing.T, ctx specification.Context) ([]beans.Budget, error) {
+	return i.contracts.Budget.GetAll(context.Background(), i.authContext(t, ctx))
+}
+
 // CategoryGroup
+
+func (i *contractsAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
+	category, err := i.contracts.Category.CreateCategory(context.Background(), i.budgetAuthContext(t, ctx), groupID, name)
+	if err != nil {
+		return beans.EmptyID(), err
+	}
+	return category.ID, nil
+}
+
+func (i *contractsAdapter) CategoryGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Category, error) {
+	return i.contracts.Category.GetCategory(context.Background(), i.budgetAuthContext(t, ctx), id)
+}
 
 func (i *contractsAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
 	group, err := i.contracts.Category.CreateGroup(context.Background(), i.budgetAuthContext(t, ctx), name)
@@ -85,18 +101,8 @@ func (i *contractsAdapter) CategoryGroupGet(t *testing.T, ctx specification.Cont
 	return group.CategoryGroup, nil
 }
 
-// Category
-
-func (i *contractsAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
-	category, err := i.contracts.Category.CreateCategory(context.Background(), i.budgetAuthContext(t, ctx), groupID, name)
-	if err != nil {
-		return beans.EmptyID(), err
-	}
-	return category.ID, nil
-}
-
-func (i *contractsAdapter) CategoryGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Category, error) {
-	return i.contracts.Category.GetCategory(context.Background(), i.budgetAuthContext(t, ctx), id)
+func (i *contractsAdapter) CategoryGetAll(t *testing.T, ctx specification.Context) ([]beans.CategoryGroupWithCategories, error) {
+	return i.contracts.Category.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
 }
 
 // Transaction

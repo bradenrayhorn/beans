@@ -36,3 +36,17 @@ func (a *httpAdapter) BudgetGet(t *testing.T, ctx specification.Context, id bean
 
 	return mapBudget(resp.Data), nil
 }
+
+func (a *httpAdapter) BudgetGetAll(t *testing.T, ctx specification.Context) ([]beans.Budget, error) {
+	r := a.Request(t, HTTPRequest{
+		Method:  "GET",
+		Path:    "/api/v1/budgets",
+		Context: ctx,
+	})
+	resp, err := MustParseResponse[response.ListBudgetsResponse](t, r.Response)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAll(resp.Data, mapBudget), nil
+}

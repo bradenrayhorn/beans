@@ -17,14 +17,16 @@ type Interactor interface {
 	// Budget
 	BudgetCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
 	BudgetGet(t *testing.T, ctx Context, id beans.ID) (beans.Budget, error)
+	BudgetGetAll(t *testing.T, ctx Context) ([]beans.Budget, error)
 
 	// Category
 	CategoryCreate(t *testing.T, ctx Context, groupID beans.ID, name beans.Name) (beans.ID, error)
 	CategoryGet(t *testing.T, ctx Context, id beans.ID) (beans.Category, error)
 
-	// CategoryGroup
 	CategoryGroupCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
 	CategoryGroupGet(t *testing.T, ctx Context, id beans.ID) (beans.CategoryGroup, error)
+
+	CategoryGetAll(t *testing.T, ctx Context) ([]beans.CategoryGroupWithCategories, error)
 
 	// Transaction
 	TransactionCreate(t *testing.T, ctx Context, params beans.TransactionCreateParams) (beans.ID, error)

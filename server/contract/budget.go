@@ -2,7 +2,6 @@ package contract
 
 import (
 	"context"
-	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 )
@@ -19,15 +18,6 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 	return beans.ExecTx(ctx, c.ds().TxManager(), func(tx beans.Tx) (beans.Budget, error) {
 		// create budget
 		if err := c.ds().BudgetRepository().Create(ctx, tx, budgetID, name, auth.UserID()); err != nil {
-			return beans.Budget{}, err
-		}
-
-		// create month
-		if err := c.ds().MonthRepository().Create(ctx, tx, beans.Month{
-			ID:       beans.NewBeansID(),
-			BudgetID: budgetID,
-			Date:     beans.NewMonthDate(beans.NewDate(time.Now())),
-		}); err != nil {
 			return beans.Budget{}, err
 		}
 

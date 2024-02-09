@@ -48,6 +48,7 @@ func testAccounts(t *testing.T, interactor Interactor) {
 			account, err := interactor.AccountGet(t, c.ctx, accountID)
 			require.NoError(t, err)
 
+			assert.False(t, account.ID.Empty())
 			assert.Equal(t, beans.Name("New Account"), account.Name)
 		})
 	})
@@ -93,10 +94,12 @@ func testAccounts(t *testing.T, interactor Interactor) {
 		require.Len(t, accounts, 2)
 
 		findAccount(t, accounts, account1.ID, func(account beans.AccountWithBalance) {
+			assert.False(t, account.ID.Empty())
 			assert.Equal(t, account1.Name, account.Name)
 			assert.Equal(t, beans.NewAmount(6, 0), account.Balance)
 		})
 		findAccount(t, accounts, account2.ID, func(account beans.AccountWithBalance) {
+			assert.False(t, account.ID.Empty())
 			assert.Equal(t, account2.Name, account.Name)
 			assert.Equal(t, beans.NewAmount(0, 0), account.Balance)
 		})

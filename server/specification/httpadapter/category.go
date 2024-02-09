@@ -64,3 +64,17 @@ func (a *httpAdapter) CategoryGet(t *testing.T, ctx specification.Context, id be
 
 	return mapCategory(resp.Data), nil
 }
+
+func (a *httpAdapter) CategoryGetAll(t *testing.T, ctx specification.Context) ([]beans.CategoryGroupWithCategories, error) {
+	r := a.Request(t, HTTPRequest{
+		Method:  "GET",
+		Path:    "/api/v1/categories",
+		Context: ctx,
+	})
+	resp, err := MustParseResponse[response.GetCategoriesResponse](t, r.Response)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAll(resp.Data, mapCategoryGroupWithCategories), nil
+}
