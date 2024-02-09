@@ -1,4 +1,4 @@
-package contract_test
+package contractadapter
 
 import (
 	"context"
@@ -11,15 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type ContractsAdapter struct {
+type contractsAdapter struct {
 	contracts *contract.Contracts
 }
 
-var _ specification.Interactor = (*ContractsAdapter)(nil)
+var _ specification.Interactor = (*contractsAdapter)(nil)
+
+func New(contracts *contract.Contracts) specification.Interactor {
+	return &contractsAdapter{contracts}
+}
 
 // budgetAuthContext helper
 
-func (a *ContractsAdapter) budgetAuthContext(t *testing.T, ctx specification.Context) *beans.BudgetAuthContext {
+func (a *contractsAdapter) budgetAuthContext(t *testing.T, ctx specification.Context) *beans.BudgetAuthContext {
 	auth, err := a.contracts.User.GetAuth(context.Background(), ctx.SessionID)
 	require.Nil(t, err)
 
@@ -99,7 +103,7 @@ func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Tra
 
 // Test
 
-func (i *ContractsAdapter) UserAndBudget(t *testing.T) specification.TestUserAndBudget {
+func (i *contractsAdapter) UserAndBudget(t *testing.T) specification.TestUserAndBudget {
 	// make new user
 	username := beans.NewBeansID().String()
 	err := i.contracts.User.Register(
@@ -140,14 +144,14 @@ func (i *ContractsAdapter) UserAndBudget(t *testing.T) specification.TestUserAnd
 
 // Account
 
-func (i *ContractsAdapter) AccountCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+func (i *contractsAdapter) AccountCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
 	return i.contracts.Account.Create(context.Background(), i.budgetAuthContext(t, ctx), name)
 }
 
-func (i *ContractsAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
+func (i *contractsAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
 	return i.contracts.Account.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
 }
 
-func (i *ContractsAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {
+func (i *contractsAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {
 	return i.contracts.Account.Get(context.Background(), i.budgetAuthContext(t, ctx), id)
 }

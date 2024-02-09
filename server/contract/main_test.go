@@ -7,15 +7,16 @@ import (
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/specification"
+	"github.com/bradenrayhorn/beans/server/specification/contractadapter"
 )
 
-func TestAccount(t *testing.T) {
+func TestContracts(t *testing.T) {
 	t.Parallel()
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
 	contracts := contract.NewContracts(ds, inmem.NewSessionRepository())
-	adapter := ContractsAdapter{contracts}
+	adapter := contractadapter.New(contracts)
 
-	specification.TestAccounts(t, &adapter)
+	specification.DoTests(t, adapter)
 }

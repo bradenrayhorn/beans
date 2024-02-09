@@ -16,12 +16,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type HTTPAdapter struct {
+type httpAdapter struct {
 	// Base URL where the HTTP server is. Should not end in a slash.
 	BaseURL string
 }
 
-var _ specification.Interactor = (*HTTPAdapter)(nil)
+var _ specification.Interactor = (*httpAdapter)(nil)
+
+func New(baseURL string) specification.Interactor {
+	return &httpAdapter{BaseURL: baseURL}
+}
 
 // Map HTTP status to bean code
 
@@ -47,7 +51,7 @@ type HTTPResponse struct {
 	*http.Response
 }
 
-func (a *HTTPAdapter) Request(t *testing.T, req HTTPRequest) *HTTPResponse {
+func (a *httpAdapter) Request(t *testing.T, req HTTPRequest) *HTTPResponse {
 	// parse body
 	var body io.Reader
 	switch rawBody := req.Body.(type) {
@@ -129,7 +133,7 @@ type userAndBudget struct {
 	budget    beans.Budget
 	context   specification.Context
 
-	adapter *HTTPAdapter
+	adapter *httpAdapter
 }
 
 var _ specification.TestUserAndBudget = (*userAndBudget)(nil)
@@ -196,7 +200,7 @@ func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Tra
 
 // Test
 
-func (a *HTTPAdapter) UserAndBudget(t *testing.T) specification.TestUserAndBudget {
+func (a *httpAdapter) UserAndBudget(t *testing.T) specification.TestUserAndBudget {
 	ctx := specification.Context{}
 
 	// make new user

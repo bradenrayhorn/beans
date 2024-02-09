@@ -9,7 +9,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/specification"
 )
 
-func (a *HTTPAdapter) AccountCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+func (a *httpAdapter) AccountCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/accounts",
@@ -23,7 +23,7 @@ func (a *HTTPAdapter) AccountCreate(t *testing.T, ctx specification.Context, nam
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
+func (a *httpAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    "/api/v1/accounts",
@@ -36,7 +36,7 @@ func (a *HTTPAdapter) AccountList(t *testing.T, ctx specification.Context) ([]be
 	return mapAll(resp.Data, mapListAccount), nil
 }
 
-func (a *HTTPAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {
+func (a *httpAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/accounts/%s", id),

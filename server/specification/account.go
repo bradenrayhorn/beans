@@ -27,7 +27,7 @@ func findAccount(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do
 	do(account)
 }
 
-func TestAccounts(t *testing.T, interactor Interactor) {
+func testAccounts(t *testing.T, interactor Interactor) {
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("cannot create with invalid name", func(t *testing.T) {

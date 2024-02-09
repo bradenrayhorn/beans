@@ -9,7 +9,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/specification"
 )
 
-func (a *HTTPAdapter) BudgetCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+func (a *httpAdapter) BudgetCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/budgets",
@@ -23,7 +23,7 @@ func (a *HTTPAdapter) BudgetCreate(t *testing.T, ctx specification.Context, name
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) BudgetGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Budget, error) {
+func (a *httpAdapter) BudgetGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Budget, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/budgets/%s", id),
