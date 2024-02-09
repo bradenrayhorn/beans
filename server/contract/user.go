@@ -45,27 +45,27 @@ func (c *userContract) Register(ctx context.Context, username beans.Username, pa
 	return nil
 }
 
-func (c *userContract) Login(ctx context.Context, username beans.Username, password beans.Password) (*beans.Session, error) {
+func (c *userContract) Login(ctx context.Context, username beans.Username, password beans.Password) (beans.Session, error) {
 	if err := beans.ValidateFields(username.ValidatableField(), password.ValidatableField()); err != nil {
-		return nil, err
+		return beans.Session{}, err
 	}
 
 	user, err := c.ds().UserRepository().GetByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
-			return nil, beans.WrapError(err, errorInvalidCredentials)
+			return beans.Session{}, beans.WrapError(err, errorInvalidCredentials)
 		}
-		return nil, err
+		return beans.Session{}, err
 	}
 
 	equal, err := argon2.CompareHashAndPassword(string(user.PasswordHash), string(password))
 	if err != nil || !equal {
-		return nil, beans.WrapError(err, errorInvalidCredentials)
+		return beans.Session{}, beans.WrapError(err, errorInvalidCredentials)
 	}
 
 	session, err := c.sessionRepository.Create(user.ID)
 	if err != nil {
-		return nil, err
+		return beans.Session{}, err
 	}
 
 	return session, nil
@@ -75,10 +75,10 @@ func (c *userContract) Logout(ctx context.Context, auth *beans.AuthContext) erro
 	return c.sessionRepository.Delete(auth.SessionID())
 }
 
-func (c *userContract) GetMe(ctx context.Context, auth *beans.AuthContext) (*beans.User, error) {
+func (c *userContract) GetMe(ctx context.Context, auth *beans.AuthContext) (beans.User, error) {
 	user, err := c.ds().UserRepository().Get(ctx, auth.UserID())
 	if err != nil {
-		return nil, err
+		return beans.User{}, err
 	}
 
 	return user, nil

@@ -9,15 +9,11 @@ import (
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
 )
 
-type monthCategoryRepository struct {
-	repository
-}
+type monthCategoryRepository struct{ repository }
 
-func NewMonthCategoryRepository(pool *DbPool) *monthCategoryRepository {
-	return &monthCategoryRepository{repository: repository{pool}}
-}
+var _ beans.MonthCategoryRepository = (*monthCategoryRepository)(nil)
 
-func (r *monthCategoryRepository) Create(ctx context.Context, tx beans.Tx, monthCategory *beans.MonthCategory) error {
+func (r *monthCategoryRepository) Create(ctx context.Context, tx beans.Tx, monthCategory beans.MonthCategory) error {
 	return r.DB(tx).CreateMonthCategory(ctx, db.CreateMonthCategoryParams{
 		ID:         monthCategory.ID.String(),
 		MonthID:    monthCategory.MonthID.String(),
@@ -33,8 +29,8 @@ func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategor
 	})
 }
 
-func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.Month) ([]*beans.MonthCategory, error) {
-	monthCategories := []*beans.MonthCategory{}
+func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.Month) ([]beans.MonthCategoryWithDetails, error) {
+	monthCategories := []beans.MonthCategoryWithDetails{}
 
 	res, err := r.DB(nil).GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
 		FromDate: mapper.MonthDateToPg(month.Date),
@@ -106,7 +102,7 @@ func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month *beans.
 	return monthCategories, nil
 }
 
-func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, monthID beans.ID, categoryID beans.ID) (*beans.MonthCategory, error) {
+func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, monthID beans.ID, categoryID beans.ID) (beans.MonthCategory, error) {
 	res, err := r.DB(tx).GetMonthCategoryByMonthAndCategory(ctx, db.GetMonthCategoryByMonthAndCategoryParams{
 		MonthID:    monthID.String(),
 		CategoryID: categoryID.String(),
@@ -116,7 +112,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 		err = mapPostgresError(err)
 
 		if errors.Is(err, beans.ErrorNotFound) {
-			monthCategory := &beans.MonthCategory{
+			monthCategory := beans.MonthCategory{
 				ID:         beans.NewBeansID(),
 				MonthID:    monthID,
 				CategoryID: categoryID,
@@ -129,14 +125,14 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 
 	id, err := beans.BeansIDFromString(res.ID)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategory{}, err
 	}
 	amount, err := mapper.NumericToAmount(res.Amount)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategory{}, err
 	}
 
-	return &beans.MonthCategory{
+	return beans.MonthCategory{
 		ID:         id,
 		MonthID:    monthID,
 		CategoryID: categoryID,

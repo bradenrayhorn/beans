@@ -8,7 +8,6 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
-	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +21,7 @@ func TestUser(t *testing.T) {
 		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
-	userRepository := postgres.NewUserRepository(pool)
+	userRepository := ds.UserRepository()
 	sessionRepository := inmem.NewSessionRepository()
 	c := contract.NewContracts(ds, sessionRepository).User
 

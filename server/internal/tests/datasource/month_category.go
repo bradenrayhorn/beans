@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/bradenrayhorn/beans/server/beans"
@@ -22,7 +21,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		monthCategory := &beans.MonthCategory{
+		monthCategory := beans.MonthCategory{
 			ID:         beans.NewBeansID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
@@ -30,15 +29,15 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		}
 		require.Nil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 
-		res, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		res, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 
-		// Values only returned on get
-		monthCategory.Activity = beans.NewAmount(0, 0)
-		monthCategory.Available = beans.NewAmount(1, 0)
-
-		assert.True(t, reflect.DeepEqual(monthCategory, res[0]))
+		assert.Equal(t, beans.MonthCategoryWithDetails{
+			MonthCategory: monthCategory,
+			Activity:      beans.NewAmount(0, 0),
+			Available:     beans.NewAmount(1, 0),
+		}, res[0])
 	})
 
 	t.Run("can create with empty amount", func(t *testing.T) {
@@ -46,7 +45,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		monthCategory := &beans.MonthCategory{
+		monthCategory := beans.MonthCategory{
 			ID:         beans.NewBeansID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
@@ -54,7 +53,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		}
 		require.Nil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 
-		res, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		res, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		assert.Equal(t, monthCategory.ID, res[0].ID)
@@ -65,7 +64,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 		monthCategory := factory.MonthCategory(budget.ID, beans.MonthCategory{})
 
-		assert.NotNil(t, monthCategoryRepository.Create(ctx, nil, &monthCategory))
+		assert.NotNil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 	})
 
 	t.Run("cannot create with duplicate month and category", func(t *testing.T) {
@@ -75,7 +74,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		// try with a new month category id
 		monthCategory.ID = beans.NewBeansID()
 
-		assert.NotNil(t, monthCategoryRepository.Create(ctx, nil, &monthCategory))
+		assert.NotNil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 	})
 
 	t.Run("create respects tx", func(t *testing.T) {
@@ -85,7 +84,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		monthCategory := &beans.MonthCategory{
+		monthCategory := beans.MonthCategory{
 			ID:         beans.NewBeansID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
@@ -101,7 +100,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, monthCategoryRepository.Create(ctx, tx, monthCategory))
 
 		// try to find category, should fail
-		categories, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		categories, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, categories, 0)
 
@@ -109,7 +108,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, tx.Commit(ctx))
 
 		// try to find month, should succeed
-		categories, err = monthCategoryRepository.GetForMonth(ctx, &month)
+		categories, err = monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, categories, 1)
 		require.Equal(t, monthCategory.ID, categories[0].ID)
@@ -122,11 +121,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 
 		require.Nil(t, monthCategoryRepository.UpdateAmount(ctx, monthCategory.ID, beans.NewAmount(5, -1)))
 
-		// Values only returned on get
-		monthCategory.Amount = beans.NewAmount(5, -1)
-		monthCategory.Available = beans.NewAmount(5, -1)
-
-		res, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		res, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		assert.Equal(t, beans.NewAmount(5, -1), res[0].Amount)
@@ -143,7 +138,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		// this month category should not be returned
 		factory.MonthCategory(budget.ID, beans.MonthCategory{MonthID: month2.ID})
 
-		res, err := monthCategoryRepository.GetForMonth(ctx, &month1)
+		res, err := monthCategoryRepository.GetForMonth(ctx, month1)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		assert.Equal(t, monthCategory.ID, res[0].ID)
@@ -211,20 +206,21 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 			Date:       testutils.NewDate(t, "2022-05-01"),
 		})
 
-		res, err := monthCategoryRepository.GetForMonth(ctx, &monthMay)
+		res, err := monthCategoryRepository.GetForMonth(ctx, monthMay)
 		require.Nil(t, err)
 
-		// category 1
-		monthCategoryMay.Activity = beans.NewAmount(-1182, -2) // -5 - 6.82 (2 May transactions)
-		monthCategoryMay.Amount = beans.NewAmount(1, 0)        // 1 (Amount assigned in May)
-		monthCategoryMay.Available = beans.NewAmount(-682, -2) // (5 + 15 + 1) (Assigned) (- 5 - 6) (March Spending) (- 5 - 6.82) (May Spending) - 5 (April Spending)
-
-		// category 2
-		monthCategory2May.Activity = beans.NewAmount(0, 0)
-		monthCategory2May.Amount = beans.NewAmount(5, 0)
-		monthCategory2May.Available = beans.NewAmount(5, 0)
-
-		testutils.IsEqualInAnyOrder(t, []*beans.MonthCategory{&monthCategoryMay, &monthCategory2May}, res, testutils.CmpMonthCategory)
+		testutils.IsEqualInAnyOrder(t, []beans.MonthCategoryWithDetails{
+			beans.MonthCategoryWithDetails{
+				MonthCategory: monthCategoryMay,
+				Activity:      beans.NewAmount(-1182, -2), // -5 - 6.82 (2 May transactions)
+				Available:     beans.NewAmount(-682, -2),  // (5 + 15 + 1) (Assigned) (- 5 - 6) (March Spending) (- 5 - 6.82) (May Spending) - 5 (April Spending)
+			},
+			beans.MonthCategoryWithDetails{
+				MonthCategory: monthCategory2May,
+				Activity:      beans.NewAmount(0, 0),
+				Available:     beans.NewAmount(5, 0),
+			},
+		}, res, testutils.CmpMonthCategoryWithDetails)
 	})
 
 	t.Run("sums spent no transactions to zero", func(t *testing.T) {
@@ -233,7 +229,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
 		factory.MonthCategory(budget.ID, beans.MonthCategory{MonthID: month.ID})
 
-		res, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		res, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Equal(t, beans.NewAmount(0, 0), res[0].Activity)
@@ -277,15 +273,15 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 
 		assert.NotContains(t, existingIDs, monthCategory.ID)
-		assert.True(t, reflect.DeepEqual(
+		assert.Equal(t,
 			monthCategory,
-			&beans.MonthCategory{
+			beans.MonthCategory{
 				ID:         monthCategory.ID,
 				MonthID:    month1.ID,
 				CategoryID: category1.ID,
 				Amount:     beans.NewAmount(0, 0),
 			},
-		))
+		)
 	})
 
 	t.Run("get or create respects tx", func(t *testing.T) {
@@ -305,7 +301,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 
 		// try to find, should fail
-		categories, err := monthCategoryRepository.GetForMonth(ctx, &month)
+		categories, err := monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, categories, 0)
 
@@ -313,7 +309,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, tx.Commit(ctx))
 
 		// try to find, should succeed
-		categories, err = monthCategoryRepository.GetForMonth(ctx, &month)
+		categories, err = monthCategoryRepository.GetForMonth(ctx, month)
 		require.Nil(t, err)
 		require.Len(t, categories, 1)
 	})

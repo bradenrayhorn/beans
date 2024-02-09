@@ -30,14 +30,18 @@ func CmpAccount(a beans.Account, b beans.Account) bool {
 	return a.ID.String() < b.ID.String()
 }
 
-func CmpCategory(a *beans.Category, b *beans.Category) bool {
+func CmpAccountWithBalance(a beans.AccountWithBalance, b beans.AccountWithBalance) bool {
 	return a.ID.String() < b.ID.String()
 }
 
-func CmpCategoryGroup(a *beans.CategoryGroup, b *beans.CategoryGroup) bool {
+func CmpCategory(a beans.Category, b beans.Category) bool {
 	return a.ID.String() < b.ID.String()
 }
 
-func CmpMonthCategory(a *beans.MonthCategory, b *beans.MonthCategory) bool {
+func CmpCategoryGroup(a beans.CategoryGroup, b beans.CategoryGroup) bool {
+	return a.ID.String() < b.ID.String()
+}
+
+func CmpMonthCategoryWithDetails(a beans.MonthCategoryWithDetails, b beans.MonthCategoryWithDetails) bool {
 	return a.ID.String() < b.ID.String()
 }

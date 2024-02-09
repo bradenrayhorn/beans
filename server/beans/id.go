@@ -52,3 +52,7 @@ func BeansIDFromString(id string) (ID, error) {
 func NewBeansID() ID {
 	return ID(ksuid.New())
 }
+
+func EmptyID() ID {
+	return ID(ksuid.Nil)
+}

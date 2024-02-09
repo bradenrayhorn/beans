@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 
 		err := transactionRepository.Create(
 			ctx,
-			&beans.Transaction{
+			beans.Transaction{
 				ID:         beans.NewBeansID(),
 				AccountID:  account.ID,
 				CategoryID: category.ID,
@@ -44,7 +43,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 		account := factory.Account(beans.Account{BudgetID: budget.ID})
 
-		transaction1 := &beans.Transaction{
+		transaction1 := beans.Transaction{
 			ID:        beans.NewBeansID(),
 			AccountID: account.ID,
 			Amount:    beans.NewAmount(5, 0),
@@ -72,7 +71,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		payee := factory.Payee(beans.Payee{BudgetID: budget.ID})
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		transaction := &beans.Transaction{
+		transaction := beans.Transaction{
 			ID:         beans.NewBeansID(),
 			AccountID:  account.ID,
 			CategoryID: category.ID,
@@ -86,9 +85,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		res, err := transactionRepository.Get(ctx, transaction.ID)
 		require.Nil(t, err)
 
-		// Account should have been attached
-		transaction.Account = &account
-		assert.True(t, reflect.DeepEqual(transaction, res))
+		assert.Equal(t, transaction, res)
 	})
 
 	t.Run("can update", func(t *testing.T) {
@@ -100,7 +97,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		category1 := factory.Category(beans.Category{BudgetID: budget.ID})
 		category2 := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		transaction := &beans.Transaction{
+		transaction := beans.Transaction{
 			ID:         beans.NewBeansID(),
 			AccountID:  account1.ID,
 			CategoryID: category1.ID,
@@ -108,7 +105,6 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 			Amount:     beans.NewAmount(5, 0),
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
-			Account:    &account1,
 		}
 		require.Nil(t, transactionRepository.Create(ctx, transaction))
 
@@ -118,7 +114,6 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		transaction.Amount = beans.NewAmount(6, 0)
 		transaction.Date = testutils.NewDate(t, "2022-08-30")
 		transaction.Notes = beans.NewTransactionNotes("notes 5")
-		transaction.Account = &account2
 
 		require.Nil(t, transactionRepository.Update(ctx, transaction))
 
@@ -176,17 +171,12 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 		assert.Len(t, transactions, 1)
 
-		// Account, CategoryName, PayeeName, should be loaded
-		transaction1.Account = &account
-		transaction1.CategoryName = beans.NewNullString(string(category.Name))
-		transaction1.PayeeName = beans.NewNullString(string(payee.Name))
-		fmt.Printf("%v", transactions[0])
-		fmt.Printf("%v", &transaction1)
-		fmt.Printf("%v", transactions[0].Amount)
-		fmt.Printf("%v", transaction1.Amount)
-		fmt.Printf("%v", transactions[0].Amount.Exponent())
-		fmt.Printf("%v", transaction1.Amount.Exponent())
-		assert.True(t, reflect.DeepEqual(transactions[0], &transaction1))
+		assert.Equal(t, beans.TransactionWithRelations{
+			Transaction: transaction1,
+			Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+			Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
+			Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
+		}, transactions[0])
 	})
 
 	t.Run("can get income", func(t *testing.T) {

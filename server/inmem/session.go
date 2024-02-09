@@ -5,27 +5,26 @@ import (
 	"encoding/base64"
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 )
 
 type sessionRepository struct {
-	sessions map[string]*beans.Session
+	sessions map[string]beans.Session
 	mu       sync.RWMutex
 }
 
 func NewSessionRepository() *sessionRepository {
 	return &sessionRepository{
-		sessions: make(map[string]*beans.Session),
+		sessions: make(map[string]beans.Session),
 	}
 }
 
-func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
+func (r *sessionRepository) Create(userID beans.ID) (beans.Session, error) {
 	bytes := make([]byte, 64)
 	_, err := rand.Read(bytes)
 	if err != nil {
-		return nil, err
+		return beans.Session{}, err
 	}
 	sessionID := base64.RawURLEncoding.EncodeToString(bytes)
 
@@ -34,13 +33,12 @@ func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
 	defer r.mu.Unlock()
 
 	if _, ok := r.sessions[sessionID]; ok {
-		return nil, beans.WrapError(errors.New("session id conflict"), beans.ErrorInternal)
+		return beans.Session{}, errors.New("session id conflict")
 	}
 
-	session := &beans.Session{
-		ID:        beans.SessionID(sessionID),
-		UserID:    userID,
-		CreatedAt: time.Now(),
+	session := beans.Session{
+		ID:     beans.SessionID(sessionID),
+		UserID: userID,
 	}
 
 	r.sessions[sessionID] = session
@@ -48,7 +46,7 @@ func (r *sessionRepository) Create(userID beans.ID) (*beans.Session, error) {
 	return session, nil
 }
 
-func (r *sessionRepository) Get(id beans.SessionID) (*beans.Session, error) {
+func (r *sessionRepository) Get(id beans.SessionID) (beans.Session, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -56,7 +54,7 @@ func (r *sessionRepository) Get(id beans.SessionID) (*beans.Session, error) {
 		return session, nil
 	}
 
-	return nil, beans.ErrorNotFound
+	return beans.Session{}, beans.ErrorNotFound
 }
 
 func (r *sessionRepository) Delete(id beans.SessionID) error {

@@ -12,7 +12,7 @@ type Interactor interface {
 
 	// Account
 	AccountCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
-	AccountList(t *testing.T, ctx Context) ([]beans.Account, error)
+	AccountList(t *testing.T, ctx Context) ([]beans.AccountWithBalance, error)
 	AccountGet(t *testing.T, ctx Context, id beans.ID) (beans.Account, error)
 }
 

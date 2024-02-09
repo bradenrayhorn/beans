@@ -21,7 +21,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("can create and get", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		month := &beans.Month{
+		month := beans.Month{
 			ID:        beans.NewBeansID(),
 			Date:      beans.NewMonthDate(beans.NewDate(time.Now().AddDate(0, 1, 0))),
 			BudgetID:  budget.ID,
@@ -37,7 +37,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("can create with no carryover", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		month := &beans.Month{
+		month := beans.Month{
 			ID:       beans.NewBeansID(),
 			Date:     beans.NewMonthDate(beans.NewDate(time.Now().AddDate(0, 1, 0))),
 			BudgetID: budget.ID,
@@ -56,7 +56,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		txManager := ds.TxManager()
 		budget, _ := factory.MakeBudgetAndUser()
 
-		month := &beans.Month{ID: beans.NewBeansID(), Date: beans.NewMonthDate(beans.NewDate(time.Now())), BudgetID: budget.ID}
+		month := beans.Month{ID: beans.NewBeansID(), Date: beans.NewMonthDate(beans.NewDate(time.Now())), BudgetID: budget.ID}
 
 		tx, err := txManager.Create(ctx)
 		require.Nil(t, err)
@@ -77,15 +77,15 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 
 		month := factory.Month(beans.Month{BudgetID: budget.ID})
-		assert.NotNil(t, monthRepository.Create(ctx, nil, &month))
+		assert.NotNil(t, monthRepository.Create(ctx, nil, month))
 	})
 
 	t.Run("cannot create same month in same budget", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
 		date := beans.NewMonthDate(beans.NewDate(time.Now()))
-		month1 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budget.ID}
-		month2 := &beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budget.ID}
+		month1 := beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budget.ID}
+		month2 := beans.Month{ID: beans.NewBeansID(), Date: date, BudgetID: budget.ID}
 
 		assert.Nil(t, monthRepository.Create(ctx, nil, month1))
 		assert.NotNil(t, monthRepository.Create(ctx, nil, month2))
@@ -97,7 +97,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID, Carryover: beans.NewAmount(0, 0)})
 
 		month.Carryover = beans.NewAmount(5, 0)
-		require.Nil(t, monthRepository.Update(ctx, &month))
+		require.Nil(t, monthRepository.Update(ctx, month))
 
 		res, err := monthRepository.Get(ctx, month.ID)
 		require.Nil(t, err)
@@ -110,7 +110,7 @@ func TestMonthRepository(t *testing.T, ds beans.DataSource) {
 
 		// update month to have an empty carryover
 		month.Carryover = beans.NewEmptyAmount()
-		require.Nil(t, monthRepository.Update(ctx, &month))
+		require.Nil(t, monthRepository.Update(ctx, month))
 
 		// get month, carryover should have been reset to 0
 		res, err := monthRepository.Get(ctx, month.ID)

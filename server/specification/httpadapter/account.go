@@ -23,7 +23,7 @@ func (a *HTTPAdapter) AccountCreate(t *testing.T, ctx specification.Context, nam
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.Account, error) {
+func (a *HTTPAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    "/api/v1/accounts",
@@ -47,5 +47,5 @@ func (a *HTTPAdapter) AccountGet(t *testing.T, ctx specification.Context, id bea
 		return beans.Account{}, err
 	}
 
-	return mapListAccount(resp.Data), nil
+	return mapAccount(resp.Data), nil
 }

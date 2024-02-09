@@ -9,7 +9,6 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
-	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,9 +22,9 @@ func TestBudget(t *testing.T) {
 		testutils.MustExec(t, pool, "truncate table users, budgets cascade;")
 	}
 
-	budgetRepository := postgres.NewBudgetRepository(pool)
-	categoryRepository := postgres.NewCategoryRepository(pool)
-	monthRepository := postgres.NewMonthRepository(pool)
+	budgetRepository := ds.BudgetRepository()
+	categoryRepository := ds.CategoryRepository()
+	monthRepository := ds.MonthRepository()
 	c := contract.NewContracts(ds, inmem.NewSessionRepository()).Budget
 
 	sessionID := beans.SessionID("1234")
@@ -119,7 +118,6 @@ func TestBudget(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, budgets, 1)
 
-			budget.UserIDs = nil
 			assert.True(t, reflect.DeepEqual(budget, budgets[0]))
 		})
 	})

@@ -8,13 +8,9 @@ import (
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
 )
 
-type AccountRepository struct {
-	repository
-}
+type AccountRepository struct{ repository }
 
-func NewAccountRepository(pool *DbPool) *AccountRepository {
-	return &AccountRepository{repository{pool}}
-}
+var _ beans.AccountRepository = (*AccountRepository)(nil)
 
 func (r *AccountRepository) Create(ctx context.Context, id beans.ID, name beans.Name, budgetID beans.ID) error {
 	return r.DB(nil).CreateAccount(ctx, db.CreateAccountParams{ID: id.String(), Name: string(name), BudgetID: budgetID.String()})
@@ -36,8 +32,8 @@ func (r *AccountRepository) Get(ctx context.Context, id beans.ID) (beans.Account
 	}, nil
 }
 
-func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.Account, error) {
-	accounts := []beans.Account{}
+func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.AccountWithBalance, error) {
+	accounts := []beans.AccountWithBalance{}
 	dbAccounts, err := r.DB(nil).GetAccountsForBudget(ctx, budgetID.String())
 	if err != nil {
 		return accounts, err
@@ -62,7 +58,10 @@ func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 			balance = beans.NewAmount(0, 0)
 		}
 
-		accounts = append(accounts, beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID, Balance: balance})
+		accounts = append(accounts, beans.AccountWithBalance{
+			Account: beans.Account{ID: id, Name: beans.Name(a.Name), BudgetID: budgetID},
+			Balance: balance,
+		})
 	}
 
 	return accounts, nil

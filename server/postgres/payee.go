@@ -8,15 +8,11 @@ import (
 	"github.com/bradenrayhorn/beans/server/postgres/mapper"
 )
 
-type payeeRepository struct {
-	repository
-}
+type payeeRepository struct{ repository }
 
-func NewPayeeRepository(pool *DbPool) *payeeRepository {
-	return &payeeRepository{repository{pool}}
-}
+var _ beans.PayeeRepository = (*payeeRepository)(nil)
 
-func (r *payeeRepository) Create(ctx context.Context, payee *beans.Payee) error {
+func (r *payeeRepository) Create(ctx context.Context, payee beans.Payee) error {
 	return r.DB(nil).CreatePayee(ctx, db.CreatePayeeParams{
 		ID:       payee.ID.String(),
 		BudgetID: payee.BudgetID.String(),
@@ -24,16 +20,16 @@ func (r *payeeRepository) Create(ctx context.Context, payee *beans.Payee) error 
 	})
 }
 
-func (r *payeeRepository) Get(ctx context.Context, id beans.ID) (*beans.Payee, error) {
+func (r *payeeRepository) Get(ctx context.Context, id beans.ID) (beans.Payee, error) {
 	res, err := r.DB(nil).GetPayee(ctx, id.String())
 	if err != nil {
-		return nil, mapPostgresError(err)
+		return beans.Payee{}, mapPostgresError(err)
 	}
 
 	return mapper.Payee(res)
 }
 
-func (r *payeeRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]*beans.Payee, error) {
+func (r *payeeRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.Payee, error) {
 	res, err := r.DB(nil).GetPayeesForBudget(ctx, budgetID.String())
 	if err != nil {
 		return nil, mapPostgresError(err)

@@ -11,13 +11,16 @@ type Month struct {
 	BudgetID  ID
 	Date      MonthDate
 	Carryover Amount
+}
 
-	// Must be explicitly loaded.
+type MonthWithDetails struct {
+	Month
 	CarriedOver Amount
-	// Must be explicitly loaded.
-	Income Amount
-	// Must be explicitly loaded.
-	Assigned Amount
+	Income      Amount
+	Assigned    Amount
+
+	Budgetable Amount
+	Categories []MonthCategoryWithDetails
 }
 
 type MonthDate struct {
@@ -66,9 +69,7 @@ func normalizeMonth(date time.Time) time.Time {
 type MonthContract interface {
 	// Gets a month, its categories, and budgetable amount.
 	// If the month does not exist it is created.
-	//
-	// Attaches the fields: CarriedOver, Income, Assigned.
-	GetOrCreate(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (*Month, []*MonthCategory, Amount, error)
+	GetOrCreate(ctx context.Context, auth *BudgetAuthContext, date MonthDate) (MonthWithDetails, error)
 
 	// Updates the given month.
 	Update(ctx context.Context, auth *BudgetAuthContext, monthID ID, carryover Amount) error
@@ -78,10 +79,10 @@ type MonthContract interface {
 }
 
 type MonthRepository interface {
-	Create(ctx context.Context, tx Tx, month *Month) error
-	Get(ctx context.Context, id ID) (*Month, error)
+	Create(ctx context.Context, tx Tx, month Month) error
+	Get(ctx context.Context, id ID) (Month, error)
 	// Only updates the Carryover field.
-	Update(ctx context.Context, month *Month) error
-	GetOrCreate(ctx context.Context, tx Tx, budgetID ID, date MonthDate) (*Month, error)
-	GetForBudget(ctx context.Context, budgetID ID) ([]*Month, error)
+	Update(ctx context.Context, month Month) error
+	GetOrCreate(ctx context.Context, tx Tx, budgetID ID, date MonthDate) (Month, error)
+	GetForBudget(ctx context.Context, budgetID ID) ([]Month, error)
 }

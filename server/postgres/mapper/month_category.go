@@ -5,22 +5,22 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/db"
 )
 
-func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (*beans.MonthCategory, error) {
+func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (beans.MonthCategoryWithDetails, error) {
 	id, err := beans.BeansIDFromString(res.ID)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategoryWithDetails{}, err
 	}
 	monthID, err := beans.BeansIDFromString(res.MonthID)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategoryWithDetails{}, err
 	}
 	categoryID, err := beans.BeansIDFromString(res.CategoryID)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategoryWithDetails{}, err
 	}
 	amount, err := NumericToAmount(res.Amount)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategoryWithDetails{}, err
 	}
 	if amount.Empty() {
 		amount = beans.NewAmount(0, 0)
@@ -28,17 +28,19 @@ func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (*beans
 
 	activity, err := NumericToAmount(res.Activity)
 	if err != nil {
-		return nil, err
+		return beans.MonthCategoryWithDetails{}, err
 	}
 	if activity.Empty() {
 		activity = beans.NewAmount(0, 0)
 	}
 
-	return &beans.MonthCategory{
-		ID:         id,
-		MonthID:    monthID,
-		CategoryID: categoryID,
-		Amount:     amount,
+	return beans.MonthCategoryWithDetails{
+		MonthCategory: beans.MonthCategory{
+			ID:         id,
+			MonthID:    monthID,
+			CategoryID: categoryID,
+			Amount:     amount,
+		},
 
 		Activity: activity,
 	}, nil

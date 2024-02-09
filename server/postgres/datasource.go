@@ -55,14 +55,14 @@ func (ds *datasource) TxManager() beans.TxManager {
 
 func NewDataSource(pool *DbPool) *datasource {
 	return &datasource{
-		accountRepository:       NewAccountRepository(pool),
-		budgetRepository:        NewBudgetRepository(pool),
-		categoryRepository:      NewCategoryRepository(pool),
-		monthRepository:         NewMonthRepository(pool),
-		monthCategoryRepository: NewMonthCategoryRepository(pool),
-		payeeRepository:         NewPayeeRepository(pool),
-		transactionRepository:   NewTransactionRepository(pool),
-		userRepository:          NewUserRepository(pool),
+		accountRepository:       &AccountRepository{repository{pool}},
+		budgetRepository:        &BudgetRepository{repository{pool}},
+		categoryRepository:      &categoryRepository{repository{pool}},
+		monthRepository:         &monthRepository{repository{pool}},
+		monthCategoryRepository: &monthCategoryRepository{repository{pool}},
+		payeeRepository:         &payeeRepository{repository{pool}},
+		transactionRepository:   &TransactionRepository{repository{pool}},
+		userRepository:          &UserRepository{repository{pool}},
 
 		txManager: NewTxManager(pool),
 	}

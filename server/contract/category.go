@@ -6,19 +6,19 @@ import (
 	"github.com/bradenrayhorn/beans/server/beans"
 )
 
-type categoryContract struct {
-	contract
-}
+type categoryContract struct{ contract }
 
-func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.BudgetAuthContext, groupID beans.ID, name beans.Name) (*beans.Category, error) {
+var _ beans.CategoryContract = (*categoryContract)(nil)
+
+func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.BudgetAuthContext, groupID beans.ID, name beans.Name) (beans.Category, error) {
 	if err := beans.ValidateFields(
 		beans.Field("Group ID", beans.Required(groupID)),
 		beans.Field("Name", name),
 	); err != nil {
-		return nil, err
+		return beans.Category{}, err
 	}
 
-	category := &beans.Category{
+	category := beans.Category{
 		ID:       beans.NewBeansID(),
 		BudgetID: auth.BudgetID(),
 		GroupID:  groupID,
@@ -45,7 +45,7 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 		}
 
 		for _, month := range months {
-			err = c.ds().MonthCategoryRepository().Create(ctx, tx, &beans.MonthCategory{
+			err = c.ds().MonthCategoryRepository().Create(ctx, tx, beans.MonthCategory{
 				ID:         beans.NewBeansID(),
 				MonthID:    month.ID,
 				CategoryID: category.ID,
@@ -61,27 +61,27 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 	})
 
 	if err != nil {
-		return nil, err
+		return beans.Category{}, err
 	}
 
 	return category, nil
 }
 
-func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (*beans.CategoryGroup, error) {
+func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (beans.CategoryGroup, error) {
 	if err := beans.ValidateFields(
 		beans.Field("Name", name),
 	); err != nil {
-		return nil, err
+		return beans.CategoryGroup{}, err
 	}
 
-	group := &beans.CategoryGroup{
+	group := beans.CategoryGroup{
 		ID:       beans.NewBeansID(),
 		BudgetID: auth.BudgetID(),
 		Name:     name,
 	}
 
 	if err := c.ds().CategoryRepository().CreateGroup(ctx, nil, group); err != nil {
-		return nil, err
+		return beans.CategoryGroup{}, err
 	}
 
 	return group, nil
@@ -105,14 +105,14 @@ func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthCon
 	}
 	for _, category := range categories {
 		groupID := category.GroupID.String()
-		categoriesByGroup[groupID] = append(categoriesByGroup[groupID], *category)
+		categoriesByGroup[groupID] = append(categoriesByGroup[groupID], category)
 	}
 
 	// associate categories with their groups
 	groupsWithCategories := make([]beans.CategoryGroupWithCategories, len(groups))
 	for i, group := range groups {
 		groupsWithCategories[i] = beans.CategoryGroupWithCategories{
-			CategoryGroup: *group,
+			CategoryGroup: group,
 			Categories:    categoriesByGroup[group.ID.String()],
 		}
 	}
@@ -131,14 +131,9 @@ func (c *categoryContract) GetGroup(ctx context.Context, auth *beans.BudgetAuthC
 		return beans.CategoryGroupWithCategories{}, err
 	}
 
-	categoryValues := make([]beans.Category, len(categories))
-	for i, category := range categories {
-		categoryValues[i] = *category
-	}
-
 	return beans.CategoryGroupWithCategories{
-		CategoryGroup: *group,
-		Categories:    categoryValues,
+		CategoryGroup: group,
+		Categories:    categories,
 	}, nil
 }
 
@@ -148,5 +143,5 @@ func (c *categoryContract) GetCategory(ctx context.Context, auth *beans.BudgetAu
 		return beans.Category{}, err
 	}
 
-	return *category, nil
+	return category, nil
 }

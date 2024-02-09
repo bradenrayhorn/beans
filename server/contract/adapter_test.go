@@ -68,21 +68,21 @@ func (u *userAndBudget) CategoryGroup(opt specification.CategoryGroupOpts) beans
 	name := beans.Name(beans.NewBeansID().String())
 	group, err := u.contracts.Category.CreateGroup(context.Background(), u.budgetAuth, name)
 	require.Nil(u.t, err)
-	return *group
+	return group
 }
 
 func (u *userAndBudget) Category(opt specification.CategoryOpts) beans.Category {
 	name := beans.Name(beans.NewBeansID().String())
 	category, err := u.contracts.Category.CreateCategory(context.Background(), u.budgetAuth, opt.Group.ID, name)
 	require.Nil(u.t, err)
-	return *category
+	return category
 }
 
 func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Transaction {
 	if opt.Date.Empty() {
 		opt.Date = beans.NewDate(testutils.RandomTime())
 	}
-	transaction, err := u.contracts.Transaction.Create(context.Background(), u.budgetAuth, beans.TransactionCreateParams{
+	id, err := u.contracts.Transaction.Create(context.Background(), u.budgetAuth, beans.TransactionCreateParams{
 		TransactionParams: beans.TransactionParams{
 			AccountID:  opt.Account.ID,
 			CategoryID: opt.Category.ID,
@@ -91,7 +91,10 @@ func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Tra
 		},
 	})
 	require.Nil(u.t, err)
-	return *transaction
+	transaction, err := u.contracts.Transaction.Get(context.Background(), u.budgetAuth, id)
+	require.NoError(u.t, err)
+
+	return transaction.Transaction
 }
 
 // Test
@@ -127,7 +130,7 @@ func (i *ContractsAdapter) UserAndBudget(t *testing.T) specification.TestUserAnd
 	return &userAndBudget{
 		t:         t,
 		sessionID: session.ID,
-		budget:    *budget,
+		budget:    budget,
 
 		context:    ctx,
 		contracts:  i.contracts,
@@ -141,7 +144,7 @@ func (i *ContractsAdapter) AccountCreate(t *testing.T, ctx specification.Context
 	return i.contracts.Account.Create(context.Background(), i.budgetAuthContext(t, ctx), name)
 }
 
-func (i *ContractsAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.Account, error) {
+func (i *ContractsAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
 	return i.contracts.Account.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
 }
 

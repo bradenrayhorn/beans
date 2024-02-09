@@ -19,7 +19,7 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("can create and get", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		payee := &beans.Payee{ID: beans.NewBeansID(), Name: "payee1", BudgetID: budget.ID}
+		payee := beans.Payee{ID: beans.NewBeansID(), Name: "payee1", BudgetID: budget.ID}
 		require.Nil(t, payeeRepository.Create(ctx, payee))
 
 		res, err := payeeRepository.Get(ctx, payee.ID)
@@ -31,7 +31,7 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 		payee := factory.Payee(beans.Payee{BudgetID: budget.ID})
 
-		assert.NotNil(t, payeeRepository.Create(ctx, &payee))
+		assert.NotNil(t, payeeRepository.Create(ctx, payee))
 	})
 
 	t.Run("cannot get non existant payee", func(t *testing.T) {
@@ -50,13 +50,13 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 		res, err := payeeRepository.GetForBudget(ctx, budget1.ID)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.True(t, reflect.DeepEqual(res[0], &payee1))
+		require.True(t, reflect.DeepEqual(res[0], payee1))
 
 		// budget 2 contains a payee
 		res, err = payeeRepository.GetForBudget(ctx, budget2.ID)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.True(t, reflect.DeepEqual(res[0], &payee2))
+		require.True(t, reflect.DeepEqual(res[0], payee2))
 
 		// random budget contains no payee
 		res, err = payeeRepository.GetForBudget(ctx, beans.NewBeansID())

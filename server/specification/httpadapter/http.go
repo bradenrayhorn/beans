@@ -191,7 +191,7 @@ func (u *userAndBudget) Transaction(opt specification.TransactionOpts) beans.Tra
 	transaction, err := u.adapter.TransactionGet(u.t, u.context, id)
 	require.NoError(u.t, err)
 
-	return transaction
+	return transaction.Transaction
 }
 
 // Test

@@ -46,13 +46,13 @@ type UserContract interface {
 	Register(ctx context.Context, username Username, password Password) error
 
 	// Logs in and returns a session
-	Login(ctx context.Context, username Username, password Password) (*Session, error)
+	Login(ctx context.Context, username Username, password Password) (Session, error)
 
 	// Logs out and deletes the active session
 	Logout(ctx context.Context, auth *AuthContext) error
 
 	// Gets the currently authenticated user
-	GetMe(ctx context.Context, auth *AuthContext) (*User, error)
+	GetMe(ctx context.Context, auth *AuthContext) (User, error)
 
 	// Builds auth context
 	GetAuth(ctx context.Context, sessionID SessionID) (*AuthContext, error)
@@ -61,6 +61,6 @@ type UserContract interface {
 type UserRepository interface {
 	Create(ctx context.Context, id ID, username Username, passwordHash PasswordHash) error
 	Exists(ctx context.Context, username Username) (bool, error)
-	Get(ctx context.Context, id ID) (*User, error)
-	GetByUsername(ctx context.Context, username Username) (*User, error)
+	Get(ctx context.Context, id ID) (User, error)
+	GetByUsername(ctx context.Context, username Username) (User, error)
 }

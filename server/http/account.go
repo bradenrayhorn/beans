@@ -65,10 +65,9 @@ func (s *Server) handleAccountGet() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, response.GetAccountResponse{Data: response.ListAccount{
-			ID:      account.ID,
-			Name:    string(account.Name),
-			Balance: account.Balance,
+		jsonResponse(w, response.GetAccountResponse{Data: response.Account{
+			ID:   account.ID,
+			Name: string(account.Name),
 		}}, http.StatusOK)
 	}
 }

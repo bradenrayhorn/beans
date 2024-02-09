@@ -25,18 +25,17 @@ func (f *factory) MakeUser(username string) beans.ID {
 	return userID
 }
 
-func (f *factory) MakeBudget(name string, userID beans.ID) *beans.Budget {
+func (f *factory) MakeBudget(name string, userID beans.ID) beans.Budget {
 	id := beans.NewBeansID()
 	err := f.ds.BudgetRepository().Create(context.Background(), nil, id, beans.Name(name), userID)
 	require.Nil(f.tb, err)
-	return &beans.Budget{
-		ID:      id,
-		Name:    beans.Name(name),
-		UserIDs: []beans.ID{userID},
+	return beans.Budget{
+		ID:   id,
+		Name: beans.Name(name),
 	}
 }
 
-func (f *factory) MakeBudgetAndUser() (*beans.Budget, *beans.User) {
+func (f *factory) MakeBudgetAndUser() (beans.Budget, beans.User) {
 	userID := beans.NewBeansID()
 	username := beans.NewBeansID().String()
 	require.Nil(f.tb, f.ds.UserRepository().Create(context.Background(), userID, beans.Username(username), beans.PasswordHash("x")))
@@ -44,12 +43,11 @@ func (f *factory) MakeBudgetAndUser() (*beans.Budget, *beans.User) {
 	id := beans.NewBeansID()
 	budgetName := beans.NewBeansID().String()
 	require.Nil(f.tb, f.ds.BudgetRepository().Create(context.Background(), nil, id, beans.Name(budgetName), userID))
-	return &beans.Budget{
-			ID:      id,
-			Name:    beans.Name(budgetName),
-			UserIDs: []beans.ID{userID},
+	return beans.Budget{
+			ID:   id,
+			Name: beans.Name(budgetName),
 		},
-		&beans.User{
+		beans.User{
 			ID:           userID,
 			Username:     beans.Username(username),
 			PasswordHash: beans.PasswordHash("x"),
@@ -57,8 +55,8 @@ func (f *factory) MakeBudgetAndUser() (*beans.Budget, *beans.User) {
 
 }
 
-func (f *factory) MakeMonth(budgetID beans.ID, date beans.Date) *beans.Month {
-	month := &beans.Month{
+func (f *factory) MakeMonth(budgetID beans.ID, date beans.Date) beans.Month {
+	month := beans.Month{
 		ID:        beans.NewBeansID(),
 		BudgetID:  budgetID,
 		Date:      beans.NewMonthDate(date),
@@ -69,11 +67,11 @@ func (f *factory) MakeMonth(budgetID beans.ID, date beans.Date) *beans.Month {
 	return month
 }
 
-func (f *factory) MakeAccount(name string, budgetID beans.ID) *beans.Account {
+func (f *factory) MakeAccount(name string, budgetID beans.ID) beans.Account {
 	id := beans.NewBeansID()
 	err := f.ds.AccountRepository().Create(context.Background(), id, beans.Name(name), budgetID)
 	require.Nil(f.tb, err)
-	return &beans.Account{
+	return beans.Account{
 		ID:       id,
 		Name:     beans.Name(name),
 		BudgetID: budgetID,
@@ -131,7 +129,7 @@ func (f *factory) CategoryGroup(categoryGroup beans.CategoryGroup) beans.Categor
 		categoryGroup.BudgetID = defaultBudget.ID
 	}
 
-	require.Nil(f.tb, f.ds.CategoryRepository().CreateGroup(context.Background(), nil, &categoryGroup))
+	require.Nil(f.tb, f.ds.CategoryRepository().CreateGroup(context.Background(), nil, categoryGroup))
 
 	return categoryGroup
 }
@@ -156,7 +154,7 @@ func (f *factory) Category(category beans.Category) beans.Category {
 		category.BudgetID = defaultBudget.ID
 	}
 
-	require.Nil(f.tb, f.ds.CategoryRepository().Create(context.Background(), nil, &category))
+	require.Nil(f.tb, f.ds.CategoryRepository().Create(context.Background(), nil, category))
 
 	return category
 }
@@ -176,7 +174,7 @@ func (f *factory) MonthCategory(budgetID beans.ID, monthCategory beans.MonthCate
 		monthCategory.CategoryID = category.ID
 	}
 
-	require.Nil(f.tb, f.ds.MonthCategoryRepository().Create(context.Background(), nil, &monthCategory))
+	require.Nil(f.tb, f.ds.MonthCategoryRepository().Create(context.Background(), nil, monthCategory))
 
 	return monthCategory
 }
@@ -195,7 +193,7 @@ func (f *factory) Payee(payee beans.Payee) beans.Payee {
 		payee.BudgetID = defaultBudget.ID
 	}
 
-	require.Nil(f.tb, f.ds.PayeeRepository().Create(context.Background(), &payee))
+	require.Nil(f.tb, f.ds.PayeeRepository().Create(context.Background(), payee))
 
 	return payee
 }
@@ -230,7 +228,7 @@ func (f *factory) Transaction(budgetID beans.ID, transaction beans.Transaction) 
 		transaction.Amount = beans.NewAmount(coefficient, exponent)
 	}
 
-	require.Nil(f.tb, f.ds.TransactionRepository().Create(context.Background(), &transaction))
+	require.Nil(f.tb, f.ds.TransactionRepository().Create(context.Background(), transaction))
 
 	return transaction
 }
@@ -253,41 +251,41 @@ func (f *factory) Month(month beans.Month) beans.Month {
 		month.Carryover = beans.NewAmount(rand.Int63n(10), rand.Int31n(2))
 	}
 
-	require.Nil(f.tb, f.ds.MonthRepository().Create(context.Background(), nil, &month))
+	require.Nil(f.tb, f.ds.MonthRepository().Create(context.Background(), nil, month))
 
 	return month
 }
 
-func (f *factory) MakeCategoryGroup(name string, budgetID beans.ID) *beans.CategoryGroup {
-	group := &beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name)}
+func (f *factory) MakeCategoryGroup(name string, budgetID beans.ID) beans.CategoryGroup {
+	group := beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name)}
 	err := f.ds.CategoryRepository().CreateGroup(context.Background(), nil, group)
 	require.Nil(f.tb, err)
 	return group
 }
 
-func (f *factory) MakeIncomeCategoryGroup(name string, budgetID beans.ID) *beans.CategoryGroup {
-	group := &beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name), IsIncome: true}
+func (f *factory) MakeIncomeCategoryGroup(name string, budgetID beans.ID) beans.CategoryGroup {
+	group := beans.CategoryGroup{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name), IsIncome: true}
 	err := f.ds.CategoryRepository().CreateGroup(context.Background(), nil, group)
 	require.Nil(f.tb, err)
 	return group
 }
 
-func (f *factory) MakeCategory(name string, groupID beans.ID, budgetID beans.ID) *beans.Category {
-	category := &beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)}
+func (f *factory) MakeCategory(name string, groupID beans.ID, budgetID beans.ID) beans.Category {
+	category := beans.Category{ID: beans.NewBeansID(), BudgetID: budgetID, GroupID: groupID, Name: beans.Name(name)}
 	err := f.ds.CategoryRepository().Create(context.Background(), nil, category)
 	require.Nil(f.tb, err)
 	return category
 }
 
-func (f *factory) MakeMonthCategory(monthID beans.ID, categoryID beans.ID, amount beans.Amount) *beans.MonthCategory {
-	category := &beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: amount}
+func (f *factory) MakeMonthCategory(monthID beans.ID, categoryID beans.ID, amount beans.Amount) beans.MonthCategory {
+	category := beans.MonthCategory{ID: beans.NewBeansID(), MonthID: monthID, CategoryID: categoryID, Amount: amount}
 	err := f.ds.MonthCategoryRepository().Create(context.Background(), nil, category)
 	require.Nil(f.tb, err)
 	return category
 }
 
-func (f *factory) MakePayee(name string, budgetID beans.ID) *beans.Payee {
-	payee := &beans.Payee{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name)}
+func (f *factory) MakePayee(name string, budgetID beans.ID) beans.Payee {
+	payee := beans.Payee{ID: beans.NewBeansID(), BudgetID: budgetID, Name: beans.Name(name)}
 	err := f.ds.PayeeRepository().Create(context.Background(), payee)
 	require.Nil(f.tb, err)
 	return payee
