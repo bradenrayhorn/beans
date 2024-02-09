@@ -9,6 +9,6 @@ type Budget struct {
 
 type CreateBudgetResponse Data[ID]
 
-type ListBudgetsResposne Data[[]Budget]
+type ListBudgetsResponse Data[[]Budget]
 
 type GetBudgetResponse Data[Budget]

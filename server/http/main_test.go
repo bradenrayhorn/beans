@@ -11,7 +11,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/specification/httpadapter"
 )
 
-func TestAccounts(t *testing.T) {
+func TestHTTP(t *testing.T) {
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 	sessionRepository := inmem.NewSessionRepository()
@@ -27,7 +27,7 @@ func TestAccounts(t *testing.T) {
 		}
 	}()
 
-	adapter := &httpadapter.HTTPAdapter{BaseURL: "http://" + httpServer.GetBoundAddr()}
+	adapter := httpadapter.New("http://" + httpServer.GetBoundAddr())
 
-	specification.TestAccounts(t, adapter)
+	specification.DoTests(t, adapter)
 }

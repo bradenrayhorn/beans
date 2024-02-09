@@ -16,12 +16,29 @@ func mapAll[T any, K any](objs []T, mapper func(T) K) []K {
 	return models
 }
 
+// account
+
+func mapAccount(t response.Account) beans.Account {
+	return beans.Account{ID: t.ID, Name: beans.Name(t.Name)}
+}
+
+func mapListAccount(t response.ListAccount) beans.AccountWithBalance {
+	return beans.AccountWithBalance{
+		Account: beans.Account{ID: t.ID, Name: beans.Name(t.Name)},
+		Balance: t.Balance,
+	}
+}
+
+// budget
+
 func mapBudget(t response.Budget) beans.Budget {
 	return beans.Budget{
 		ID:   t.ID,
 		Name: beans.Name(t.Name),
 	}
 }
+
+// category
 
 func mapCategory(t response.Category) beans.Category {
 	return beans.Category{
@@ -38,16 +55,14 @@ func mapCategoryGroup(t response.CategoryGroup) beans.CategoryGroup {
 	}
 }
 
-func mapAccount(t response.Account) beans.Account {
-	return beans.Account{ID: t.ID, Name: beans.Name(t.Name)}
-}
-
-func mapListAccount(t response.ListAccount) beans.AccountWithBalance {
-	return beans.AccountWithBalance{
-		Account: beans.Account{ID: t.ID, Name: beans.Name(t.Name)},
-		Balance: t.Balance,
+func mapCategoryGroupWithCategories(t response.CategoryGroup) beans.CategoryGroupWithCategories {
+	return beans.CategoryGroupWithCategories{
+		CategoryGroup: mapCategoryGroup(t),
+		Categories:    mapAll(t.Categories, mapCategory),
 	}
 }
+
+// transaction
 
 func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRelations {
 	transaction := beans.TransactionWithRelations{

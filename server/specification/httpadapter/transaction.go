@@ -18,7 +18,7 @@ func mustEncode(t *testing.T, v any) string {
 	return string(bytes)
 }
 
-func (a *HTTPAdapter) TransactionCreate(t *testing.T, ctx specification.Context, params beans.TransactionCreateParams) (beans.ID, error) {
+func (a *httpAdapter) TransactionCreate(t *testing.T, ctx specification.Context, params beans.TransactionCreateParams) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method: "POST",
 		Path:   "/api/v1/transactions",
@@ -39,7 +39,7 @@ func (a *HTTPAdapter) TransactionCreate(t *testing.T, ctx specification.Context,
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) TransactionGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.TransactionWithRelations, error) {
+func (a *httpAdapter) TransactionGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.TransactionWithRelations, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/transactions/%s", id),

@@ -9,7 +9,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/specification"
 )
 
-func (a *HTTPAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {
+func (a *httpAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/user/register",
@@ -19,7 +19,7 @@ func (a *HTTPAdapter) UserRegister(t *testing.T, ctx specification.Context, user
 	return getErrorFromResponse(t, r.Response)
 }
 
-func (a *HTTPAdapter) UserLogin(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) (beans.SessionID, error) {
+func (a *httpAdapter) UserLogin(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) (beans.SessionID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/user/login",

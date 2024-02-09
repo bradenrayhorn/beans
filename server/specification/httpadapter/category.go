@@ -9,7 +9,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/specification"
 )
 
-func (a *HTTPAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+func (a *httpAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/categories/groups",
@@ -23,7 +23,7 @@ func (a *HTTPAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Contex
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroup, error) {
+func (a *httpAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroup, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/categories/groups/%s", id),
@@ -37,7 +37,7 @@ func (a *HTTPAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, 
 	return mapCategoryGroup(resp.Data), nil
 }
 
-func (a *HTTPAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
+func (a *httpAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "POST",
 		Path:    "/api/v1/categories",
@@ -51,7 +51,7 @@ func (a *HTTPAdapter) CategoryCreate(t *testing.T, ctx specification.Context, gr
 	return resp.Data.ID, nil
 }
 
-func (a *HTTPAdapter) CategoryGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Category, error) {
+func (a *httpAdapter) CategoryGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Category, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/categories/%s", id),
@@ -63,4 +63,18 @@ func (a *HTTPAdapter) CategoryGet(t *testing.T, ctx specification.Context, id be
 	}
 
 	return mapCategory(resp.Data), nil
+}
+
+func (a *httpAdapter) CategoryGetAll(t *testing.T, ctx specification.Context) ([]beans.CategoryGroupWithCategories, error) {
+	r := a.Request(t, HTTPRequest{
+		Method:  "GET",
+		Path:    "/api/v1/categories",
+		Context: ctx,
+	})
+	resp, err := MustParseResponse[response.GetCategoriesResponse](t, r.Response)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAll(resp.Data, mapCategoryGroupWithCategories), nil
 }
