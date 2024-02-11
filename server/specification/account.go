@@ -9,25 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func mustFind[T any](t *testing.T, items []T, matches func(a T) bool) T {
-	for _, item := range items {
-		if matches(item) {
-			return item
-		}
-	}
-
-	t.Error("Could not find item in list.")
-
-	var empty T
-	return empty
-}
-
-func findAccount(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(account beans.AccountWithBalance)) {
-	account := mustFind(t, items, func(a beans.AccountWithBalance) bool { return a.ID == id })
-	do(account)
-}
-
-func testAccounts(t *testing.T, interactor Interactor) {
+func testAccount(t *testing.T, interactor Interactor) {
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("cannot create with invalid name", func(t *testing.T) {

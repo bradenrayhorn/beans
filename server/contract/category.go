@@ -100,13 +100,16 @@ func (c *categoryContract) GetAll(ctx context.Context, auth *beans.BudgetAuthCon
 	}
 
 	// group categories by group
-	categoriesByGroup := make(map[string][]beans.Category)
+	categoriesByGroup := make(map[string][]beans.RelatedCategory)
 	for _, group := range groups {
-		categoriesByGroup[group.ID.String()] = make([]beans.Category, 0)
+		categoriesByGroup[group.ID.String()] = make([]beans.RelatedCategory, 0)
 	}
 	for _, category := range categories {
 		groupID := category.GroupID.String()
-		categoriesByGroup[groupID] = append(categoriesByGroup[groupID], category)
+		categoriesByGroup[groupID] = append(categoriesByGroup[groupID], beans.RelatedCategory{
+			ID:   category.ID,
+			Name: category.Name,
+		})
 	}
 
 	// associate categories with their groups
@@ -132,9 +135,17 @@ func (c *categoryContract) GetGroup(ctx context.Context, auth *beans.BudgetAuthC
 		return beans.CategoryGroupWithCategories{}, err
 	}
 
+	relatedCategories := make([]beans.RelatedCategory, len(categories))
+	for i, category := range categories {
+		relatedCategories[i] = beans.RelatedCategory{
+			ID:   category.ID,
+			Name: category.Name,
+		}
+	}
+
 	return beans.CategoryGroupWithCategories{
 		CategoryGroup: group,
-		Categories:    categories,
+		Categories:    relatedCategories,
 	}, nil
 }
 

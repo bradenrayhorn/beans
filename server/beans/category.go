@@ -23,7 +23,7 @@ type CategoryGroup struct {
 
 type CategoryGroupWithCategories struct {
 	CategoryGroup
-	Categories []Category
+	Categories []RelatedCategory
 }
 
 type CategoryContract interface {

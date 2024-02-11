@@ -6,7 +6,7 @@ import (
 )
 
 func mapAll[T any, K any](objs []T, mapper func(T) K) []K {
-	var models []K
+	models := []K{}
 	for _, m := range objs {
 		mapped := mapper(m)
 
@@ -42,23 +42,27 @@ func mapBudget(t response.Budget) beans.Budget {
 
 func mapCategory(t response.Category) beans.Category {
 	return beans.Category{
+		ID:      t.ID,
+		Name:    beans.Name(t.Name),
+		GroupID: t.GroupID,
+	}
+}
+
+func mapRelatedCategory(t response.AssociatedCategory) beans.RelatedCategory {
+	return beans.RelatedCategory{
 		ID:   t.ID,
 		Name: beans.Name(t.Name),
 	}
 }
 
-func mapCategoryGroup(t response.CategoryGroup) beans.CategoryGroup {
-	return beans.CategoryGroup{
-		ID:       t.ID,
-		Name:     beans.Name(t.Name),
-		IsIncome: t.IsIncome,
-	}
-}
-
 func mapCategoryGroupWithCategories(t response.CategoryGroup) beans.CategoryGroupWithCategories {
 	return beans.CategoryGroupWithCategories{
-		CategoryGroup: mapCategoryGroup(t),
-		Categories:    mapAll(t.Categories, mapCategory),
+		CategoryGroup: beans.CategoryGroup{
+			ID:       t.ID,
+			Name:     beans.Name(t.Name),
+			IsIncome: t.IsIncome,
+		},
+		Categories: mapAll(t.Categories, mapRelatedCategory),
 	}
 }
 

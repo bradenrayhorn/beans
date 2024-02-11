@@ -23,7 +23,7 @@ func (a *httpAdapter) CategoryGroupCreate(t *testing.T, ctx specification.Contex
 	return resp.Data.ID, nil
 }
 
-func (a *httpAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroup, error) {
+func (a *httpAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroupWithCategories, error) {
 	r := a.Request(t, HTTPRequest{
 		Method:  "GET",
 		Path:    fmt.Sprintf("/api/v1/categories/groups/%s", id),
@@ -31,10 +31,10 @@ func (a *httpAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, 
 	})
 	resp, err := MustParseResponse[response.GetCategoryGroupResponse](t, r.Response)
 	if err != nil {
-		return beans.CategoryGroup{}, err
+		return beans.CategoryGroupWithCategories{}, err
 	}
 
-	return mapCategoryGroup(resp.Data), nil
+	return mapCategoryGroupWithCategories(resp.Data), nil
 }
 
 func (a *httpAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
