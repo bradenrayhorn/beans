@@ -8,15 +8,16 @@ type AssociatedCategory struct {
 }
 
 type Category struct {
-	ID   beans.ID   `json:"id"`
-	Name beans.Name `json:"name"`
+	ID      beans.ID   `json:"id"`
+	Name    beans.Name `json:"name"`
+	GroupID beans.ID   `json:"group_id"`
 }
 
 type CategoryGroup struct {
-	ID         beans.ID   `json:"id"`
-	Name       beans.Name `json:"name"`
-	IsIncome   bool       `json:"is_income"`
-	Categories []Category `json:"categories"`
+	ID         beans.ID             `json:"id"`
+	Name       beans.Name           `json:"name"`
+	IsIncome   bool                 `json:"is_income"`
+	Categories []AssociatedCategory `json:"categories"`
 }
 
 type CreateCategoryResponse Data[ID]

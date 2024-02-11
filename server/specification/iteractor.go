@@ -24,7 +24,7 @@ type Interactor interface {
 	CategoryGet(t *testing.T, ctx Context, id beans.ID) (beans.Category, error)
 
 	CategoryGroupCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
-	CategoryGroupGet(t *testing.T, ctx Context, id beans.ID) (beans.CategoryGroup, error)
+	CategoryGroupGet(t *testing.T, ctx Context, id beans.ID) (beans.CategoryGroupWithCategories, error)
 
 	CategoryGetAll(t *testing.T, ctx Context) ([]beans.CategoryGroupWithCategories, error)
 
@@ -123,7 +123,7 @@ func (u *userAndBudget) CategoryGroup(opt CategoryGroupOpts) beans.CategoryGroup
 	group, err := u.interactor.CategoryGroupGet(u.t, u.ctx, id)
 	require.NoError(u.t, err)
 
-	return group
+	return group.CategoryGroup
 }
 
 func (u *userAndBudget) Category(opt CategoryOpts) beans.Category {

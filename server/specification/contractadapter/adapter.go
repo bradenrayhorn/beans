@@ -93,12 +93,8 @@ func (i *contractsAdapter) CategoryGroupCreate(t *testing.T, ctx specification.C
 	return group.ID, nil
 }
 
-func (i *contractsAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroup, error) {
-	group, err := i.contracts.Category.GetGroup(context.Background(), i.budgetAuthContext(t, ctx), id)
-	if err != nil {
-		return beans.CategoryGroup{}, err
-	}
-	return group.CategoryGroup, nil
+func (i *contractsAdapter) CategoryGroupGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.CategoryGroupWithCategories, error) {
+	return i.contracts.Category.GetGroup(context.Background(), i.budgetAuthContext(t, ctx), id)
 }
 
 func (i *contractsAdapter) CategoryGetAll(t *testing.T, ctx specification.Context) ([]beans.CategoryGroupWithCategories, error) {

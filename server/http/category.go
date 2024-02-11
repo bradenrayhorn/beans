@@ -67,10 +67,10 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 
 		res := response.GetCategoriesResponse{Data: make([]response.CategoryGroup, len(groups))}
 		for i, group := range groups {
-			categories := []response.Category{}
+			categories := []response.AssociatedCategory{}
 
 			for _, category := range group.Categories {
-				categories = append(categories, response.Category{ID: category.ID, Name: category.Name})
+				categories = append(categories, response.AssociatedCategory{ID: category.ID, Name: category.Name})
 			}
 
 			res.Data[i] = response.CategoryGroup{
@@ -101,8 +101,9 @@ func (s *Server) handleCategoryGetCategory() http.HandlerFunc {
 
 		jsonResponse(w, response.GetCategoryResponse{
 			Data: response.Category{
-				ID:   category.ID,
-				Name: category.Name,
+				ID:      category.ID,
+				Name:    category.Name,
+				GroupID: category.GroupID,
 			},
 		}, http.StatusOK)
 	}
@@ -122,9 +123,9 @@ func (s *Server) handleCategoryGetCategoryGroup() http.HandlerFunc {
 			return
 		}
 
-		categories := []response.Category{}
+		categories := []response.AssociatedCategory{}
 		for _, category := range group.Categories {
-			categories = append(categories, response.Category{ID: category.ID, Name: category.Name})
+			categories = append(categories, response.AssociatedCategory{ID: category.ID, Name: category.Name})
 		}
 
 		jsonResponse(w, response.GetCategoryGroupResponse{

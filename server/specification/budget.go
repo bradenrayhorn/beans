@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testBudgets(t *testing.T, interactor Interactor) {
+func testBudget(t *testing.T, interactor Interactor) {
 
 	t.Run("create", func(t *testing.T) {
 		t.Run("cannot create with invalid name", func(t *testing.T) {
