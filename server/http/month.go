@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/http/request"
 	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/go-chi/chi/v5"
 )
@@ -39,7 +40,7 @@ func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 		jsonResponse(w, response.GetMonthResponse{
 			Data: response.Month{
 				ID:          month.ID,
-				Date:        month.Date.String(),
+				Date:        month.Date,
 				Budgetable:  month.Budgetable,
 				Carryover:   month.Carryover,
 				Income:      month.Income,
@@ -52,12 +53,8 @@ func (s *Server) handleMonthGetOrCreate() http.HandlerFunc {
 }
 
 func (s *Server) handleMonthUpdate() http.HandlerFunc {
-	type request struct {
-		Amount beans.Amount `json:"carryover"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
+		var req request.UpdateMonth
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
@@ -69,7 +66,7 @@ func (s *Server) handleMonthUpdate() http.HandlerFunc {
 			return
 		}
 
-		if err := s.contracts.Month.Update(r.Context(), getBudgetAuth(r), monthID, req.Amount); err != nil {
+		if err := s.contracts.Month.Update(r.Context(), getBudgetAuth(r), monthID, req.Carryover); err != nil {
 			Error(w, err)
 			return
 		}
@@ -77,13 +74,8 @@ func (s *Server) handleMonthUpdate() http.HandlerFunc {
 }
 
 func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
-	type request struct {
-		CategoryID beans.ID     `json:"category_id"`
-		Amount     beans.Amount `json:"amount"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
+		var req request.UpdateMonthCategory
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return

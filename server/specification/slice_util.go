@@ -28,3 +28,8 @@ func findCategoryGroup(t *testing.T, items []beans.CategoryGroupWithCategories, 
 	res := mustFind(t, items, func(a beans.CategoryGroupWithCategories) bool { return a.ID == id })
 	do(res)
 }
+
+func findMonthCategory(t *testing.T, items []beans.MonthCategoryWithDetails, categoryID beans.ID, do func(it beans.MonthCategoryWithDetails)) {
+	res := mustFind(t, items, func(a beans.MonthCategoryWithDetails) bool { return a.CategoryID == categoryID })
+	do(res)
+}

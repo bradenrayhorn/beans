@@ -1,6 +1,7 @@
 package beans
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -43,5 +44,38 @@ func TestMonthDate(t *testing.T) {
 
 		previous := monthDate.Previous()
 		assert.Equal(t, previous.String(), "2022-04-01")
+	})
+}
+
+func TestMonthDateJSON(t *testing.T) {
+
+	t.Run("can unmarshal date", func(t *testing.T) {
+		var d MonthDate
+		err := json.Unmarshal([]byte(`"2022-05-11"`), &d)
+		require.Nil(t, err)
+		assert.Equal(t, "2022-05-01", d.String())
+	})
+
+	t.Run("unmarshal invalid date returns unmarshal error", func(t *testing.T) {
+		var d MonthDate
+		err := json.Unmarshal([]byte(`"2022-0511"`), &d)
+		require.NotNil(t, err)
+		var jsonErr *json.UnmarshalTypeError
+		require.ErrorAs(t, err, &jsonErr)
+		assert.Equal(t, `"2022-0511"`, jsonErr.Value)
+	})
+
+	t.Run("can marshal date", func(t *testing.T) {
+		monthDate := NewMonthDate(NewDate(time.Date(2022, 05, 26, 0, 0, 0, 0, time.UTC)))
+
+		res, err := json.Marshal(monthDate)
+		require.NoError(t, err)
+		assert.Equal(t, `"2022-05-01"`, string(res))
+	})
+
+	t.Run("can marshal empty date", func(t *testing.T) {
+		res, err := json.Marshal(MonthDate{})
+		require.NoError(t, err)
+		assert.Equal(t, `null`, string(res))
 	})
 }

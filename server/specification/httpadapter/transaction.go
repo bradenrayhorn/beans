@@ -1,7 +1,6 @@
 package httpadapter
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -9,14 +8,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/http/request"
 	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/bradenrayhorn/beans/server/specification"
-	"github.com/stretchr/testify/require"
 )
-
-func mustEncode(t *testing.T, v any) string {
-	bytes, err := json.Marshal(v)
-	require.NoError(t, err, "could not encode: %v", v)
-	return string(bytes)
-}
 
 func (a *httpAdapter) TransactionCreate(t *testing.T, ctx specification.Context, params beans.TransactionCreateParams) (beans.ID, error) {
 	r := a.Request(t, HTTPRequest{

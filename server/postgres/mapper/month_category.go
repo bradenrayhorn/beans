@@ -10,10 +10,6 @@ func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (beans.
 	if err != nil {
 		return beans.MonthCategoryWithDetails{}, err
 	}
-	monthID, err := beans.BeansIDFromString(res.MonthID)
-	if err != nil {
-		return beans.MonthCategoryWithDetails{}, err
-	}
 	categoryID, err := beans.BeansIDFromString(res.CategoryID)
 	if err != nil {
 		return beans.MonthCategoryWithDetails{}, err
@@ -35,12 +31,9 @@ func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (beans.
 	}
 
 	return beans.MonthCategoryWithDetails{
-		MonthCategory: beans.MonthCategory{
-			ID:         id,
-			MonthID:    monthID,
-			CategoryID: categoryID,
-			Amount:     amount,
-		},
+		ID:         id,
+		CategoryID: categoryID,
+		Amount:     amount,
 
 		Activity: activity,
 	}, nil

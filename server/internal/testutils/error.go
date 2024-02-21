@@ -20,7 +20,7 @@ func AssertError(t testing.TB, err error, expected string) {
 func AssertErrorCode(t testing.TB, err error, expected string) {
 	require.NotNil(t, err)
 	var beansError beans.Error
-	require.True(t, errors.As(err, &beansError))
+	require.ErrorAs(t, err, &beansError)
 	code, _ := beansError.BeansError()
 	assert.Equal(t, expected, code)
 }

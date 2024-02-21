@@ -66,6 +66,33 @@ func mapCategoryGroupWithCategories(t response.CategoryGroup) beans.CategoryGrou
 	}
 }
 
+// month
+
+func mapMonthCategory(t response.MonthCategory) beans.MonthCategoryWithDetails {
+	return beans.MonthCategoryWithDetails{
+		ID:         t.ID,
+		CategoryID: t.CategoryID,
+		Amount:     t.Assigned,
+		Activity:   t.Activity,
+		Available:  t.Available,
+	}
+}
+
+func mapMonthWithDetails(t response.Month) beans.MonthWithDetails {
+	return beans.MonthWithDetails{
+		Month: beans.Month{
+			ID:        t.ID,
+			Date:      t.Date,
+			Carryover: t.Carryover,
+		},
+		CarriedOver: t.CarriedOver,
+		Income:      t.Income,
+		Assigned:    t.Assigned,
+		Budgetable:  t.Budgetable,
+		Categories:  mapAll(t.Categories, mapMonthCategory),
+	}
+}
+
 // transaction
 
 func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRelations {

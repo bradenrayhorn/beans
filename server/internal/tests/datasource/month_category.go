@@ -34,9 +34,11 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Len(t, res, 1)
 
 		assert.Equal(t, beans.MonthCategoryWithDetails{
-			MonthCategory: monthCategory,
-			Activity:      beans.NewAmount(0, 0),
-			Available:     beans.NewAmount(1, 0),
+			ID:         monthCategory.ID,
+			CategoryID: category.ID,
+			Amount:     beans.NewAmount(1, 0),
+			Activity:   beans.NewAmount(0, 0),
+			Available:  beans.NewAmount(1, 0),
 		}, res[0])
 	})
 
@@ -211,15 +213,19 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 
 		testutils.IsEqualInAnyOrder(t, []beans.MonthCategoryWithDetails{
-			beans.MonthCategoryWithDetails{
-				MonthCategory: monthCategoryMay,
-				Activity:      beans.NewAmount(-1182, -2), // -5 - 6.82 (2 May transactions)
-				Available:     beans.NewAmount(-682, -2),  // (5 + 15 + 1) (Assigned) (- 5 - 6) (March Spending) (- 5 - 6.82) (May Spending) - 5 (April Spending)
+			{
+				ID:         monthCategoryMay.ID,
+				CategoryID: monthCategoryMay.CategoryID,
+				Amount:     monthCategoryMay.Amount,
+				Activity:   beans.NewAmount(-1182, -2), // -5 - 6.82 (2 May transactions)
+				Available:  beans.NewAmount(-682, -2),  // (5 + 15 + 1) (Assigned) (- 5 - 6) (March Spending) (- 5 - 6.82) (May Spending) - 5 (April Spending)
 			},
-			beans.MonthCategoryWithDetails{
-				MonthCategory: monthCategory2May,
-				Activity:      beans.NewAmount(0, 0),
-				Available:     beans.NewAmount(5, 0),
+			{
+				ID:         monthCategory2May.ID,
+				CategoryID: monthCategory2May.CategoryID,
+				Amount:     monthCategory2May.Amount,
+				Activity:   beans.NewAmount(0, 0),
+				Available:  beans.NewAmount(5, 0),
 			},
 		}, res, testutils.CmpMonthCategoryWithDetails)
 	})

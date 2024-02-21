@@ -67,7 +67,7 @@ func testAccount(t *testing.T, interactor Interactor) {
 		c.Transaction(TransactionOpts{
 			Account:  account1,
 			Category: category,
-			Amount:   beans.NewAmount(6, 0),
+			Amount:   "6",
 		})
 
 		// list accounts, check if accounts are proper

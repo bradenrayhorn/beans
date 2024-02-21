@@ -123,3 +123,9 @@ func getErrorFromResponse(t *testing.T, r *http.Response) error {
 		return beans.NewError(code, resp.Error)
 	}
 }
+
+func mustEncode(t *testing.T, v any) string {
+	bytes, err := json.Marshal(v)
+	require.NoError(t, err, "could not encode: %v", v)
+	return string(bytes)
+}

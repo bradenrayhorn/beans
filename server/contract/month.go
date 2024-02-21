@@ -103,13 +103,17 @@ func (c *monthContract) Update(ctx context.Context, auth *beans.BudgetAuthContex
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {
 	if err := beans.ValidateFields(
-		beans.Field("Amount", beans.NonZero(amount), beans.Positive(amount)),
+		beans.Field("Amount", beans.Required(&amount), beans.NonZero(amount), beans.Positive(amount)),
 	); err != nil {
 		return err
 	}
 
 	month, err := c.ds().MonthRepository().Get(ctx, auth.BudgetID(), monthID)
 	if err != nil {
+		return err
+	}
+
+	if _, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, categoryID, auth.BudgetID()); err != nil {
 		return err
 	}
 

@@ -11,7 +11,7 @@ type MonthCategory struct {
 }
 type Month struct {
 	ID          beans.ID        `json:"id"`
-	Date        string          `json:"date"`
+	Date        beans.MonthDate `json:"date"`
 	Budgetable  beans.Amount    `json:"budgetable"`
 	Carryover   beans.Amount    `json:"carryover"`
 	Income      beans.Amount    `json:"income"`
