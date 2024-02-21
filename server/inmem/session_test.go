@@ -13,7 +13,7 @@ import (
 func TestCanCreateAndGetSession(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
-	userID := beans.NewBeansID()
+	userID := beans.NewID()
 	session, err := r.Create(userID)
 	require.Nil(t, err)
 
@@ -36,7 +36,7 @@ func TestCannotGetNonExistent(t *testing.T) {
 func TestCanDeleteSession(t *testing.T) {
 	r := inmem.NewSessionRepository()
 
-	userID := beans.NewBeansID()
+	userID := beans.NewID()
 	session, err := r.Create(userID)
 	require.Nil(t, err)
 
@@ -56,7 +56,7 @@ func TestCanUseConcurrentSessions(t *testing.T) {
 
 	makeAndGetSession := func(i int) {
 		defer wg.Done()
-		userID := beans.NewBeansID()
+		userID := beans.NewID()
 		session, err := r.Create(userID)
 		require.Nil(t, err)
 

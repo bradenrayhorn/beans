@@ -6,11 +6,11 @@ import (
 )
 
 func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (beans.MonthCategoryWithDetails, error) {
-	id, err := beans.BeansIDFromString(res.ID)
+	id, err := beans.IDFromString(res.ID)
 	if err != nil {
 		return beans.MonthCategoryWithDetails{}, err
 	}
-	categoryID, err := beans.BeansIDFromString(res.CategoryID)
+	categoryID, err := beans.IDFromString(res.CategoryID)
 	if err != nil {
 		return beans.MonthCategoryWithDetails{}, err
 	}

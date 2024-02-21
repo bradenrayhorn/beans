@@ -15,7 +15,7 @@ func (c *accountContract) Create(ctx context.Context, auth *beans.BudgetAuthCont
 		return beans.ID{}, err
 	}
 
-	accountID := beans.NewBeansID()
+	accountID := beans.NewID()
 	if err := c.ds().AccountRepository().Create(ctx, accountID, name, auth.BudgetID()); err != nil {
 		return beans.ID{}, err
 	}

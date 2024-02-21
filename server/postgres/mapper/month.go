@@ -6,12 +6,12 @@ import (
 )
 
 func Month(d db.Month) (beans.Month, error) {
-	budgetID, err := beans.BeansIDFromString(d.BudgetID)
+	budgetID, err := beans.IDFromString(d.BudgetID)
 	if err != nil {
 		return beans.Month{}, err
 	}
 
-	id, err := beans.BeansIDFromString(d.ID)
+	id, err := beans.IDFromString(d.ID)
 	if err != nil {
 		return beans.Month{}, err
 	}

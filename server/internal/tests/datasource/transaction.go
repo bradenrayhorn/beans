@@ -27,7 +27,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		err := transactionRepository.Create(
 			ctx,
 			beans.Transaction{
-				ID:         beans.NewBeansID(),
+				ID:         beans.NewID(),
 				AccountID:  account.ID,
 				CategoryID: category.ID,
 				PayeeID:    payee.ID,
@@ -44,7 +44,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		account := factory.Account(beans.Account{BudgetID: budget.ID})
 
 		transaction1 := beans.Transaction{
-			ID:        beans.NewBeansID(),
+			ID:        beans.NewID(),
 			AccountID: account.ID,
 			Amount:    beans.NewAmount(5, 0),
 			Date:      testutils.NewDate(t, "2022-08-28"),
@@ -62,7 +62,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("cannot get nonexistant", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		_, err := transactionRepository.Get(ctx, budget.ID, beans.NewBeansID())
+		_, err := transactionRepository.Get(ctx, budget.ID, beans.NewID())
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 
@@ -82,7 +82,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
 		transaction := beans.Transaction{
-			ID:         beans.NewBeansID(),
+			ID:         beans.NewID(),
 			AccountID:  account.ID,
 			CategoryID: category.ID,
 			PayeeID:    payee.ID,
@@ -108,7 +108,7 @@ func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
 		category2 := factory.Category(beans.Category{BudgetID: budget.ID})
 
 		transaction := beans.Transaction{
-			ID:         beans.NewBeansID(),
+			ID:         beans.NewID(),
 			AccountID:  account1.ID,
 			CategoryID: category1.ID,
 			PayeeID:    payee1.ID,

@@ -14,9 +14,9 @@ func IDToPg(id beans.ID) pgtype.Text {
 
 func PgToID(pg pgtype.Text) (beans.ID, error) {
 	if !pg.Valid {
-		return beans.BeansIDFromString("")
+		return beans.IDFromString("")
 	} else {
-		return beans.BeansIDFromString(pg.String)
+		return beans.IDFromString(pg.String)
 	}
 }
 

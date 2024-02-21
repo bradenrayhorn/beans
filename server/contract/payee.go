@@ -18,7 +18,7 @@ func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthC
 	}
 
 	payee := beans.Payee{
-		ID:       beans.NewBeansID(),
+		ID:       beans.NewID(),
 		BudgetID: auth.BudgetID(),
 		Name:     name,
 	}

@@ -57,7 +57,7 @@ func testBudget(t *testing.T, interactor Interactor) {
 		t.Run("cannot get non-existent budget", func(t *testing.T) {
 			c := makeUser(t, interactor)
 
-			_, err := interactor.BudgetGet(t, c.ctx, beans.NewBeansID())
+			_, err := interactor.BudgetGet(t, c.ctx, beans.NewID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 

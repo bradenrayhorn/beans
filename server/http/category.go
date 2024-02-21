@@ -87,7 +87,7 @@ func (s *Server) handleCategoryGetAll() http.HandlerFunc {
 
 func (s *Server) handleCategoryGetCategory() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := beans.BeansIDFromString(chi.URLParam(r, "categoryID"))
+		id, err := beans.IDFromString(chi.URLParam(r, "categoryID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return
@@ -111,7 +111,7 @@ func (s *Server) handleCategoryGetCategory() http.HandlerFunc {
 
 func (s *Server) handleCategoryGetCategoryGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := beans.BeansIDFromString(chi.URLParam(r, "categoryGroupID"))
+		id, err := beans.IDFromString(chi.URLParam(r, "categoryGroupID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return

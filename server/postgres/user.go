@@ -50,7 +50,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username beans.Usern
 
 		return beans.User{}, err
 	}
-	id, err := beans.BeansIDFromString(res.ID)
+	id, err := beans.IDFromString(res.ID)
 	if err != nil {
 		return beans.User{}, err
 	}

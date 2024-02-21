@@ -88,7 +88,7 @@ func makeUser(t *testing.T, interactor Interactor) *user {
 	ctx := Context{}
 
 	// make new user
-	username := beans.NewBeansID().String()
+	username := beans.NewID().String()
 	err := interactor.UserRegister(t, ctx, beans.Username(username), beans.Password("password"))
 	require.Nil(t, err)
 
@@ -105,7 +105,7 @@ func makeUserAndBudget(t *testing.T, interactor Interactor) *userAndBudget {
 	user := makeUser(t, interactor)
 
 	// make budget
-	budgetID, err := interactor.BudgetCreate(t, user.ctx, beans.Name(beans.NewBeansID().String()))
+	budgetID, err := interactor.BudgetCreate(t, user.ctx, beans.Name(beans.NewID().String()))
 	require.Nil(t, err)
 	budget, err := interactor.BudgetGet(t, user.ctx, budgetID)
 	require.Nil(t, err)
@@ -118,7 +118,7 @@ func makeUserAndBudget(t *testing.T, interactor Interactor) *userAndBudget {
 // Factory functions
 
 func (u *userAndBudget) Account(opt AccountOpts) beans.Account {
-	name := beans.Name(beans.NewBeansID().String())
+	name := beans.Name(beans.NewID().String())
 
 	id, err := u.interactor.AccountCreate(u.t, u.ctx, name)
 	require.NoError(u.t, err)
@@ -129,7 +129,7 @@ func (u *userAndBudget) Account(opt AccountOpts) beans.Account {
 }
 
 func (u *userAndBudget) CategoryGroup(opt CategoryGroupOpts) beans.CategoryGroup {
-	name := beans.Name(beans.NewBeansID().String())
+	name := beans.Name(beans.NewID().String())
 
 	id, err := u.interactor.CategoryGroupCreate(u.t, u.ctx, name)
 	require.NoError(u.t, err)
@@ -140,7 +140,7 @@ func (u *userAndBudget) CategoryGroup(opt CategoryGroupOpts) beans.CategoryGroup
 }
 
 func (u *userAndBudget) Category(opt CategoryOpts) beans.Category {
-	name := beans.Name(beans.NewBeansID().String())
+	name := beans.Name(beans.NewID().String())
 
 	if opt.Group.ID.Empty() {
 		opt.Group = u.CategoryGroup(CategoryGroupOpts{})

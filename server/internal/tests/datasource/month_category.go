@@ -22,7 +22,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
 		monthCategory := beans.MonthCategory{
-			ID:         beans.NewBeansID(),
+			ID:         beans.NewID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
 			Amount:     beans.NewAmount(1, 0),
@@ -48,7 +48,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
 		monthCategory := beans.MonthCategory{
-			ID:         beans.NewBeansID(),
+			ID:         beans.NewID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
 			Amount:     beans.NewEmptyAmount(),
@@ -74,7 +74,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		monthCategory := factory.MonthCategory(budget.ID, beans.MonthCategory{})
 
 		// try with a new month category id
-		monthCategory.ID = beans.NewBeansID()
+		monthCategory.ID = beans.NewID()
 
 		assert.NotNil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 	})
@@ -87,7 +87,7 @@ func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
 		category := factory.Category(beans.Category{BudgetID: budget.ID})
 
 		monthCategory := beans.MonthCategory{
-			ID:         beans.NewBeansID(),
+			ID:         beans.NewID(),
 			MonthID:    month.ID,
 			CategoryID: category.ID,
 			Amount:     beans.NewAmount(1, 0),

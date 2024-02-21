@@ -48,7 +48,7 @@ func (r *monthRepository) GetOrCreate(ctx context.Context, tx beans.Tx, budgetID
 
 		if errors.Is(err, beans.ErrorNotFound) {
 			month := beans.Month{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				BudgetID:  budgetID,
 				Date:      date,
 				Carryover: beans.NewAmount(0, 0),

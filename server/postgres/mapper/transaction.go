@@ -6,12 +6,12 @@ import (
 )
 
 func Transaction(d db.Transaction) (beans.Transaction, error) {
-	id, err := beans.BeansIDFromString(d.ID)
+	id, err := beans.IDFromString(d.ID)
 	if err != nil {
 		return beans.Transaction{}, err
 	}
 
-	accountID, err := beans.BeansIDFromString(d.AccountID)
+	accountID, err := beans.IDFromString(d.AccountID)
 	if err != nil {
 		return beans.Transaction{}, err
 	}

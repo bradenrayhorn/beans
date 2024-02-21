@@ -40,12 +40,12 @@ func (r *AccountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 	}
 
 	for _, a := range dbAccounts {
-		id, err := beans.BeansIDFromString(a.ID)
+		id, err := beans.IDFromString(a.ID)
 		if err != nil {
 			return accounts, err
 		}
 
-		budgetID, err := beans.BeansIDFromString(a.BudgetID)
+		budgetID, err := beans.IDFromString(a.BudgetID)
 		if err != nil {
 			return accounts, err
 		}

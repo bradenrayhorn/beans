@@ -18,7 +18,7 @@ func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
 	user1 := factory.User(beans.User{})
 
 	t.Run("can create and get budget", func(t *testing.T) {
-		budgetID := beans.NewBeansID()
+		budgetID := beans.NewID()
 		err := budgetRepository.Create(ctx, nil, budgetID, "Budget1", user1.ID)
 		require.Nil(t, err)
 
@@ -29,7 +29,7 @@ func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
 	})
 
 	t.Run("create respects transaction", func(t *testing.T) {
-		budgetID1 := beans.NewBeansID()
+		budgetID1 := beans.NewID()
 
 		tx, err := ds.TxManager().Create(context.Background())
 		require.Nil(t, err)

@@ -20,7 +20,7 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 	}
 
 	category := beans.Category{
-		ID:       beans.NewBeansID(),
+		ID:       beans.NewID(),
 		BudgetID: auth.BudgetID(),
 		GroupID:  groupID,
 		Name:     name,
@@ -47,7 +47,7 @@ func (c *categoryContract) CreateCategory(ctx context.Context, auth *beans.Budge
 
 		for _, month := range months {
 			err = c.ds().MonthCategoryRepository().Create(ctx, tx, beans.MonthCategory{
-				ID:         beans.NewBeansID(),
+				ID:         beans.NewID(),
 				MonthID:    month.ID,
 				CategoryID: category.ID,
 				Amount:     beans.NewAmount(0, 0),
@@ -76,7 +76,7 @@ func (c *categoryContract) CreateGroup(ctx context.Context, auth *beans.BudgetAu
 	}
 
 	group := beans.CategoryGroup{
-		ID:       beans.NewBeansID(),
+		ID:       beans.NewID(),
 		BudgetID: auth.BudgetID(),
 		Name:     name,
 	}

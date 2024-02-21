@@ -18,8 +18,8 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("can create", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		group1 := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
-		group2 := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group2", BudgetID: budget.ID, IsIncome: true}
+		group1 := beans.CategoryGroup{ID: beans.NewID(), Name: "group1", BudgetID: budget.ID}
+		group2 := beans.CategoryGroup{ID: beans.NewID(), Name: "group2", BudgetID: budget.ID, IsIncome: true}
 		require.Nil(t, categoryRepository.CreateGroup(ctx, nil, group1))
 		require.Nil(t, categoryRepository.CreateGroup(ctx, nil, group2))
 
@@ -27,8 +27,8 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 		testutils.IsEqualInAnyOrder(t, []beans.CategoryGroup{group1, group2}, groups, testutils.CmpCategoryGroup)
 
-		category1 := beans.Category{ID: beans.NewBeansID(), GroupID: group1.ID, Name: "cat 1", BudgetID: budget.ID}
-		category2 := beans.Category{ID: beans.NewBeansID(), GroupID: group2.ID, Name: "cat 2", BudgetID: budget.ID}
+		category1 := beans.Category{ID: beans.NewID(), GroupID: group1.ID, Name: "cat 1", BudgetID: budget.ID}
+		category2 := beans.Category{ID: beans.NewID(), GroupID: group2.ID, Name: "cat 2", BudgetID: budget.ID}
 		require.Nil(t, categoryRepository.Create(ctx, nil, category1))
 		require.Nil(t, categoryRepository.Create(ctx, nil, category2))
 
@@ -41,8 +41,8 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		budget, _ := factory.MakeBudgetAndUser()
 		txManager := ds.TxManager()
 
-		group := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
-		category := beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
+		group := beans.CategoryGroup{ID: beans.NewID(), Name: "group1", BudgetID: budget.ID}
+		category := beans.Category{ID: beans.NewID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
 
 		tx, err := txManager.Create(ctx)
 		require.Nil(t, err)
@@ -73,13 +73,13 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("can get single category", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		group := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
+		group := beans.CategoryGroup{ID: beans.NewID(), Name: "group1", BudgetID: budget.ID}
 		require.Nil(t, categoryRepository.CreateGroup(ctx, nil, group))
 
-		_, err := categoryRepository.GetSingleForBudget(ctx, beans.NewBeansID(), budget.ID)
+		_, err := categoryRepository.GetSingleForBudget(ctx, beans.NewID(), budget.ID)
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		category := beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
+		category := beans.Category{ID: beans.NewID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
 		require.Nil(t, categoryRepository.Create(ctx, nil, category))
 
 		res, err := categoryRepository.GetSingleForBudget(ctx, category.ID, budget.ID)
@@ -90,11 +90,11 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("cannot create duplicate IDs", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		group := beans.CategoryGroup{ID: beans.NewBeansID(), Name: "group1", BudgetID: budget.ID}
+		group := beans.CategoryGroup{ID: beans.NewID(), Name: "group1", BudgetID: budget.ID}
 		require.Nil(t, categoryRepository.CreateGroup(ctx, nil, group))
 		assert.NotNil(t, categoryRepository.CreateGroup(ctx, nil, group))
 
-		category := beans.Category{ID: beans.NewBeansID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
+		category := beans.Category{ID: beans.NewID(), GroupID: group.ID, Name: "cat 1", BudgetID: budget.ID}
 		require.Nil(t, categoryRepository.Create(ctx, nil, category))
 		assert.NotNil(t, categoryRepository.Create(ctx, nil, category))
 	})
@@ -103,7 +103,7 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		t.Run("cannot get non-existent group", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 
-			_, err := categoryRepository.GetCategoryGroup(ctx, beans.NewBeansID(), budget.ID)
+			_, err := categoryRepository.GetCategoryGroup(ctx, beans.NewID(), budget.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -131,7 +131,7 @@ func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
 		t.Run("empty for non-existent group", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 
-			res, err := categoryRepository.GetCategoriesForGroup(ctx, beans.NewBeansID(), budget.ID)
+			res, err := categoryRepository.GetCategoriesForGroup(ctx, beans.NewID(), budget.ID)
 			require.Nil(t, err)
 			assert.Empty(t, res)
 		})

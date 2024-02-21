@@ -60,7 +60,7 @@ func (s *Server) handleMonthUpdate() http.HandlerFunc {
 			return
 		}
 
-		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "monthID"))
+		monthID, err := beans.IDFromString(chi.URLParam(r, "monthID"))
 		if err != nil {
 			Error(w, err)
 			return
@@ -81,7 +81,7 @@ func (s *Server) handleMonthCategoryUpdate() http.HandlerFunc {
 			return
 		}
 
-		monthID, err := beans.BeansIDFromString(chi.URLParam(r, "monthID"))
+		monthID, err := beans.IDFromString(chi.URLParam(r, "monthID"))
 		if err != nil {
 			Error(w, err)
 			return

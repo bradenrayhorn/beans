@@ -13,7 +13,7 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 		return beans.Budget{}, err
 	}
 
-	budgetID := beans.NewBeansID()
+	budgetID := beans.NewID()
 
 	return beans.ExecTx(ctx, c.ds().TxManager(), func(tx beans.Tx) (beans.Budget, error) {
 		// create budget
@@ -23,7 +23,7 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 
 		// create income group and category
 		categoryGroup := beans.CategoryGroup{
-			ID:       beans.NewBeansID(),
+			ID:       beans.NewID(),
 			BudgetID: budgetID,
 			Name:     "Income",
 			IsIncome: true,
@@ -33,7 +33,7 @@ func (c *budgetContract) Create(ctx context.Context, auth *beans.AuthContext, na
 		}
 
 		category := beans.Category{
-			ID:       beans.NewBeansID(),
+			ID:       beans.NewID(),
 			GroupID:  categoryGroup.ID,
 			BudgetID: budgetID,
 			Name:     "Income",

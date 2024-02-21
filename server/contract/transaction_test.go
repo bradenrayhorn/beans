@@ -170,7 +170,7 @@ func TestTransaction(t *testing.T) {
 
 			params := beans.TransactionCreateParams{
 				TransactionParams: beans.TransactionParams{
-					AccountID: beans.NewBeansID(),
+					AccountID: beans.NewID(),
 					Amount:    beans.NewAmount(10, 1),
 					Date:      testutils.NewDate(t, "2022-06-07"),
 				},
@@ -217,7 +217,7 @@ func TestTransaction(t *testing.T) {
 					AccountID:  account.ID,
 					Amount:     beans.NewAmount(10, 1),
 					Date:       testutils.NewDate(t, "2022-06-07"),
-					CategoryID: beans.NewBeansID(),
+					CategoryID: beans.NewID(),
 				},
 			}
 
@@ -264,7 +264,7 @@ func TestTransaction(t *testing.T) {
 					AccountID: account.ID,
 					Amount:    beans.NewAmount(10, 1),
 					Date:      testutils.NewDate(t, "2022-06-07"),
-					PayeeID:   beans.NewBeansID(),
+					PayeeID:   beans.NewID(),
 				},
 			}
 
@@ -306,7 +306,7 @@ func TestTransaction(t *testing.T) {
 			budget := factory.MakeBudget("budget", userID)
 			auth := testutils.BudgetAuthContext(t, userID, budget)
 
-			err := c.Update(context.Background(), auth, beans.TransactionUpdateParams{ID: beans.NewBeansID()})
+			err := c.Update(context.Background(), auth, beans.TransactionUpdateParams{ID: beans.NewID()})
 			testutils.AssertError(t, err, "Account ID is required. Amount is required. Date is required.")
 		})
 
@@ -319,7 +319,7 @@ func TestTransaction(t *testing.T) {
 			account := factory.MakeAccount("account", budget.ID)
 
 			params := beans.TransactionUpdateParams{
-				ID: beans.NewBeansID(),
+				ID: beans.NewID(),
 				TransactionParams: beans.TransactionParams{
 					AccountID: account.ID,
 					Amount:    beans.NewAmount(5, 0),
@@ -343,7 +343,7 @@ func TestTransaction(t *testing.T) {
 			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -376,7 +376,7 @@ func TestTransaction(t *testing.T) {
 			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -436,7 +436,7 @@ func TestTransaction(t *testing.T) {
 			account2 := factory.MakeAccount("account", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -480,7 +480,7 @@ func TestTransaction(t *testing.T) {
 			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -490,7 +490,7 @@ func TestTransaction(t *testing.T) {
 			params := beans.TransactionUpdateParams{
 				ID: transaction.ID,
 				TransactionParams: beans.TransactionParams{
-					AccountID: beans.NewBeansID(),
+					AccountID: beans.NewID(),
 					Amount:    beans.NewAmount(5, 0),
 					Date:      testutils.NewDate(t, "2023-01-09"),
 				},
@@ -514,7 +514,7 @@ func TestTransaction(t *testing.T) {
 			account2 := factory.MakeAccount("account", budget2.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -544,7 +544,7 @@ func TestTransaction(t *testing.T) {
 			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -557,7 +557,7 @@ func TestTransaction(t *testing.T) {
 					AccountID:  account.ID,
 					Amount:     beans.NewAmount(5, 0),
 					Date:       testutils.NewDate(t, "2023-01-09"),
-					CategoryID: beans.NewBeansID(),
+					CategoryID: beans.NewID(),
 				},
 			}
 
@@ -578,7 +578,7 @@ func TestTransaction(t *testing.T) {
 			category := factory.MakeCategory("name", group.ID, budget2.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -609,7 +609,7 @@ func TestTransaction(t *testing.T) {
 			account := factory.MakeAccount("account", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -622,7 +622,7 @@ func TestTransaction(t *testing.T) {
 					AccountID: account.ID,
 					Amount:    beans.NewAmount(5, 0),
 					Date:      testutils.NewDate(t, "2023-01-09"),
-					PayeeID:   beans.NewBeansID(),
+					PayeeID:   beans.NewID(),
 				},
 			}
 
@@ -642,7 +642,7 @@ func TestTransaction(t *testing.T) {
 			payee := factory.MakePayee("payee", budget2.ID)
 
 			transaction := beans.Transaction{
-				ID:        beans.NewBeansID(),
+				ID:        beans.NewID(),
 				AccountID: account.ID,
 				Amount:    beans.NewAmount(5, 0),
 				Date:      testutils.NewDate(t, "2023-01-09"),
@@ -678,7 +678,7 @@ func TestTransaction(t *testing.T) {
 			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:         beans.NewBeansID(),
+				ID:         beans.NewID(),
 				AccountID:  account.ID,
 				CategoryID: category.ID,
 				PayeeID:    payee.ID,
@@ -709,7 +709,7 @@ func TestTransaction(t *testing.T) {
 			payee := factory.MakePayee("payee", budget.ID)
 
 			transaction := beans.Transaction{
-				ID:         beans.NewBeansID(),
+				ID:         beans.NewID(),
 				AccountID:  account.ID,
 				CategoryID: category.ID,
 				PayeeID:    payee.ID,

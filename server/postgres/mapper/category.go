@@ -6,12 +6,12 @@ import (
 )
 
 func CategoryGroup(d db.CategoryGroup) (beans.CategoryGroup, error) {
-	id, err := beans.BeansIDFromString(d.ID)
+	id, err := beans.IDFromString(d.ID)
 	if err != nil {
 		return beans.CategoryGroup{}, err
 	}
 
-	budgetID, err := beans.BeansIDFromString(d.BudgetID)
+	budgetID, err := beans.IDFromString(d.BudgetID)
 	if err != nil {
 		return beans.CategoryGroup{}, err
 	}
@@ -25,17 +25,17 @@ func CategoryGroup(d db.CategoryGroup) (beans.CategoryGroup, error) {
 }
 
 func Category(d db.Category) (beans.Category, error) {
-	id, err := beans.BeansIDFromString(d.ID)
+	id, err := beans.IDFromString(d.ID)
 	if err != nil {
 		return beans.Category{}, err
 	}
 
-	budgetID, err := beans.BeansIDFromString(d.BudgetID)
+	budgetID, err := beans.IDFromString(d.BudgetID)
 	if err != nil {
 		return beans.Category{}, err
 	}
 
-	groupID, err := beans.BeansIDFromString(d.GroupID)
+	groupID, err := beans.IDFromString(d.GroupID)
 	if err != nil {
 		return beans.Category{}, err
 	}

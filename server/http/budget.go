@@ -54,7 +54,7 @@ func (s *Server) handleBudgetGetAll() http.HandlerFunc {
 
 func (s *Server) handleBudgetGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		budgetID, err := beans.BeansIDFromString(chi.URLParam(r, "budgetID"))
+		budgetID, err := beans.IDFromString(chi.URLParam(r, "budgetID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return
@@ -78,7 +78,7 @@ func (s *Server) handleBudgetGet() http.HandlerFunc {
 
 func (s *Server) parseBudgetHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		budgetID, err := beans.BeansIDFromString(r.Header.Get("Budget-ID"))
+		budgetID, err := beans.IDFromString(r.Header.Get("Budget-ID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return

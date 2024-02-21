@@ -149,7 +149,7 @@ func testMonth(t *testing.T, interactor Interactor) {
 		t.Run("cannot update a month that does not exist", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
-			err := interactor.MonthUpdate(t, c.ctx, beans.NewBeansID(), beans.NewAmount(1, 0))
+			err := interactor.MonthUpdate(t, c.ctx, beans.NewID(), beans.NewAmount(1, 0))
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -219,7 +219,7 @@ func testMonth(t *testing.T, interactor Interactor) {
 
 			category := c.Category(CategoryOpts{})
 
-			err := interactor.MonthSetCategoryAmount(t, c.ctx, beans.NewBeansID(), category.ID, beans.NewAmount(1, 0))
+			err := interactor.MonthSetCategoryAmount(t, c.ctx, beans.NewID(), category.ID, beans.NewAmount(1, 0))
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -239,7 +239,7 @@ func testMonth(t *testing.T, interactor Interactor) {
 
 			month := c.Month(MonthOpts{Date: "2022-04-01"})
 
-			err := interactor.MonthSetCategoryAmount(t, c.ctx, month.ID, beans.NewBeansID(), beans.NewAmount(1, 0))
+			err := interactor.MonthSetCategoryAmount(t, c.ctx, month.ID, beans.NewID(), beans.NewAmount(1, 0))
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 

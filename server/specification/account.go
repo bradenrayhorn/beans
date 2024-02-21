@@ -39,7 +39,7 @@ func testAccount(t *testing.T, interactor Interactor) {
 		t.Run("cannot get a non-existent account", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
-			_, err := interactor.AccountGet(t, c.ctx, beans.NewBeansID())
+			_, err := interactor.AccountGet(t, c.ctx, beans.NewID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 

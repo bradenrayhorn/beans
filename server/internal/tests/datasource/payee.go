@@ -19,7 +19,7 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("can create and get", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		payee := beans.Payee{ID: beans.NewBeansID(), Name: "payee1", BudgetID: budget.ID}
+		payee := beans.Payee{ID: beans.NewID(), Name: "payee1", BudgetID: budget.ID}
 		require.Nil(t, payeeRepository.Create(ctx, payee))
 
 		res, err := payeeRepository.Get(ctx, budget.ID, payee.ID)
@@ -37,7 +37,7 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("cannot get non existant payee", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		_, err := payeeRepository.Get(ctx, budget.ID, beans.NewBeansID())
+		_, err := payeeRepository.Get(ctx, budget.ID, beans.NewID())
 		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 	})
 
@@ -70,7 +70,7 @@ func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
 		require.True(t, reflect.DeepEqual(res[0], payee2))
 
 		// random budget contains no payee
-		res, err = payeeRepository.GetForBudget(ctx, beans.NewBeansID())
+		res, err = payeeRepository.GetForBudget(ctx, beans.NewID())
 		require.Nil(t, err)
 		require.Len(t, res, 0)
 	})
