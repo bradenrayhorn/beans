@@ -43,7 +43,7 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 
 func (s *Server) handleTransactionCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request.CreateTransactionRequest
+		var req request.CreateTransaction
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
@@ -73,7 +73,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 
 func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request.UpdateTransactionRequest
+		var req request.UpdateTransaction
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return

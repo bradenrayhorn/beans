@@ -14,7 +14,7 @@ func (a *httpAdapter) TransactionCreate(t *testing.T, ctx specification.Context,
 	r := a.Request(t, HTTPRequest{
 		Method: "POST",
 		Path:   "/api/v1/transactions",
-		Body: mustEncode(t, request.CreateTransactionRequest{
+		Body: mustEncode(t, request.CreateTransaction{
 			AccountID:  params.AccountID,
 			CategoryID: params.CategoryID,
 			PayeeID:    params.PayeeID,
