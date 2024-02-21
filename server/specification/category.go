@@ -53,7 +53,7 @@ func testCategory(t *testing.T, interactor Interactor) {
 		t.Run("cannot get non-existent group", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
-			_, err := interactor.CategoryGroupGet(t, c.ctx, beans.NewBeansID())
+			_, err := interactor.CategoryGroupGet(t, c.ctx, beans.NewID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
@@ -112,7 +112,7 @@ func testCategory(t *testing.T, interactor Interactor) {
 		t.Run("cannot get with non-existent id", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
-			_, err := interactor.CategoryGet(t, c.ctx, beans.NewBeansID())
+			_, err := interactor.CategoryGet(t, c.ctx, beans.NewID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 

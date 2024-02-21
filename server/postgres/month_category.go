@@ -113,7 +113,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 
 		if errors.Is(err, beans.ErrorNotFound) {
 			monthCategory := beans.MonthCategory{
-				ID:         beans.NewBeansID(),
+				ID:         beans.NewID(),
 				MonthID:    month.ID,
 				CategoryID: categoryID,
 				Amount:     beans.NewAmount(0, 0),
@@ -123,7 +123,7 @@ func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, 
 		}
 	}
 
-	id, err := beans.BeansIDFromString(res.ID)
+	id, err := beans.IDFromString(res.ID)
 	if err != nil {
 		return beans.MonthCategory{}, err
 	}

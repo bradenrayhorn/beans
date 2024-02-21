@@ -18,7 +18,7 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 	t.Run("can create and get account", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 
-		accountID := beans.NewBeansID()
+		accountID := beans.NewID()
 		err := accountRepository.Create(
 			ctx,
 			accountID,
@@ -36,7 +36,7 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("cannot create duplicate account", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		accountID := beans.NewBeansID()
+		accountID := beans.NewID()
 
 		err := accountRepository.Create(ctx, accountID, "Account1", budget.ID)
 		require.Nil(t, err)
@@ -47,7 +47,7 @@ func TestAccountRepository(t *testing.T, ds beans.DataSource) {
 
 	t.Run("cannot get fictitious account", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
-		accountID := beans.NewBeansID()
+		accountID := beans.NewID()
 
 		_, err := accountRepository.Get(ctx, accountID, budget.ID)
 

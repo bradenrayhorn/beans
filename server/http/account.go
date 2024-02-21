@@ -52,7 +52,7 @@ func (s *Server) handleAccountsGet() http.HandlerFunc {
 
 func (s *Server) handleAccountGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		accountID, err := beans.BeansIDFromString(chi.URLParam(r, "accountID"))
+		accountID, err := beans.IDFromString(chi.URLParam(r, "accountID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return

@@ -2,7 +2,7 @@ package request
 
 import "github.com/bradenrayhorn/beans/server/beans"
 
-type transactionRequest struct {
+type transaction struct {
 	AccountID  beans.ID               `json:"account_id"`
 	CategoryID beans.ID               `json:"category_id"`
 	PayeeID    beans.ID               `json:"payee_id"`
@@ -11,5 +11,5 @@ type transactionRequest struct {
 	Notes      beans.TransactionNotes `json:"notes"`
 }
 
-type CreateTransactionRequest transactionRequest
-type UpdateTransactionRequest transactionRequest
+type CreateTransaction transaction
+type UpdateTransaction transaction

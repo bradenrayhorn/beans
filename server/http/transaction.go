@@ -43,7 +43,7 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 
 func (s *Server) handleTransactionCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request.CreateTransactionRequest
+		var req request.CreateTransaction
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
@@ -73,13 +73,13 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 
 func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request.UpdateTransactionRequest
+		var req request.UpdateTransaction
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
 		}
 
-		transactionID, err := beans.BeansIDFromString(chi.URLParam(r, "transactionID"))
+		transactionID, err := beans.IDFromString(chi.URLParam(r, "transactionID"))
 		if err != nil {
 			Error(w, err)
 			return
@@ -143,7 +143,7 @@ func (s *Server) handleTransactionGetAll() http.HandlerFunc {
 
 func (s *Server) handleTransactionGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := beans.BeansIDFromString(chi.URLParam(r, "transactionID"))
+		id, err := beans.IDFromString(chi.URLParam(r, "transactionID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return

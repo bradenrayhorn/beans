@@ -44,7 +44,7 @@ func (r *BudgetRepository) GetBudgetsForUser(ctx context.Context, userID beans.I
 	}
 
 	for _, b := range dbBudgets {
-		id, err := beans.BeansIDFromString(b.ID)
+		id, err := beans.IDFromString(b.ID)
 		if err != nil {
 			return budgets, err
 		}
@@ -62,7 +62,7 @@ func (r *BudgetRepository) GetBudgetUserIDs(ctx context.Context, id beans.ID) ([
 	}
 	userIDs := make([]beans.ID, 0, len(userIDStrings))
 	for _, v := range userIDStrings {
-		userID, err := beans.BeansIDFromString(v)
+		userID, err := beans.IDFromString(v)
 		if err != nil {
 			return nil, err
 		}

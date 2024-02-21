@@ -71,7 +71,7 @@ func (i *contractsAdapter) BudgetGetAll(t *testing.T, ctx specification.Context)
 	return i.contracts.Budget.GetAll(context.Background(), i.authContext(t, ctx))
 }
 
-// CategoryGroup
+// Category
 
 func (i *contractsAdapter) CategoryCreate(t *testing.T, ctx specification.Context, groupID beans.ID, name beans.Name) (beans.ID, error) {
 	category, err := i.contracts.Category.CreateCategory(context.Background(), i.budgetAuthContext(t, ctx), groupID, name)
@@ -99,6 +99,20 @@ func (i *contractsAdapter) CategoryGroupGet(t *testing.T, ctx specification.Cont
 
 func (i *contractsAdapter) CategoryGetAll(t *testing.T, ctx specification.Context) ([]beans.CategoryGroupWithCategories, error) {
 	return i.contracts.Category.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
+}
+
+// Month
+
+func (i *contractsAdapter) MonthGetOrCreate(t *testing.T, ctx specification.Context, date beans.MonthDate) (beans.MonthWithDetails, error) {
+	return i.contracts.Month.GetOrCreate(context.Background(), i.budgetAuthContext(t, ctx), date)
+}
+
+func (i *contractsAdapter) MonthUpdate(t *testing.T, ctx specification.Context, id beans.ID, carryover beans.Amount) error {
+	return i.contracts.Month.Update(context.Background(), i.budgetAuthContext(t, ctx), id, carryover)
+}
+
+func (i *contractsAdapter) MonthSetCategoryAmount(t *testing.T, ctx specification.Context, id beans.ID, categoryID beans.ID, amount beans.Amount) error {
+	return i.contracts.Month.SetCategoryAmount(context.Background(), i.budgetAuthContext(t, ctx), id, categoryID, amount)
 }
 
 // Transaction

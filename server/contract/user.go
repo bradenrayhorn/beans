@@ -22,7 +22,7 @@ func (c *userContract) Register(ctx context.Context, username beans.Username, pa
 		return err
 	}
 
-	id := beans.NewBeansID()
+	id := beans.NewID()
 
 	hashedPassword, err := argon2.GenerateHash(string(password))
 	if err != nil {

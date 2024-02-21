@@ -56,7 +56,7 @@ func (s *Server) handlePayeeGetAll() http.HandlerFunc {
 
 func (s *Server) handlePayeeGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := beans.BeansIDFromString(chi.URLParam(r, "payeeID"))
+		id, err := beans.IDFromString(chi.URLParam(r, "payeeID"))
 		if err != nil {
 			Error(w, beans.WrapError(err, beans.ErrorNotFound))
 			return

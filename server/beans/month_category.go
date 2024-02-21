@@ -10,9 +10,11 @@ type MonthCategory struct {
 }
 
 type MonthCategoryWithDetails struct {
-	MonthCategory
-	Activity  Amount
-	Available Amount
+	ID         ID
+	CategoryID ID
+	Amount     Amount
+	Activity   Amount
+	Available  Amount
 }
 
 type MonthCategoryRepository interface {

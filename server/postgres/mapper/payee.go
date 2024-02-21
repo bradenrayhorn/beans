@@ -6,12 +6,12 @@ import (
 )
 
 func Payee(d db.Payee) (beans.Payee, error) {
-	id, err := beans.BeansIDFromString(d.ID)
+	id, err := beans.IDFromString(d.ID)
 	if err != nil {
 		return beans.Payee{}, err
 	}
 
-	budgetID, err := beans.BeansIDFromString(d.BudgetID)
+	budgetID, err := beans.IDFromString(d.BudgetID)
 	if err != nil {
 		return beans.Payee{}, err
 	}

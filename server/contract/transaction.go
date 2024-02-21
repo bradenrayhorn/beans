@@ -50,7 +50,7 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 	}
 
 	transaction := beans.Transaction{
-		ID:         beans.NewBeansID(),
+		ID:         beans.NewID(),
 		AccountID:  data.AccountID,
 		CategoryID: data.CategoryID,
 		PayeeID:    data.PayeeID,

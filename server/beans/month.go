@@ -1,6 +1,7 @@
 package beans
 
 import (
+	"encoding/json"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,6 +50,20 @@ func (d MonthDate) Previous() MonthDate {
 
 func (d MonthDate) Empty() bool {
 	return d.date.Empty()
+}
+
+func (d *MonthDate) UnmarshalJSON(b []byte) error {
+	var date Date
+	if err := json.Unmarshal(b, &date); err != nil {
+		return err
+	}
+
+	*d = NewMonthDate(date)
+	return nil
+}
+
+func (d MonthDate) MarshalJSON() ([]byte, error) {
+	return d.date.MarshalJSON()
 }
 
 // Creates a new MonthDate and normalizes the date.

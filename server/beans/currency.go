@@ -87,7 +87,7 @@ func (a Amount) MarshalJSON() ([]byte, error) {
 	if !a.set {
 		return json.Marshal(nil)
 	}
-	return json.Marshal(a.decimal.Text('f'))
+	return json.Marshal(a.String())
 }
 
 // max precision rule

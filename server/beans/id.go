@@ -22,7 +22,7 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	parsedID, err := BeansIDFromString(idString)
+	parsedID, err := IDFromString(idString)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (id ID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(id.String())
 }
 
-func BeansIDFromString(id string) (ID, error) {
+func IDFromString(id string) (ID, error) {
 	if id == "" {
 		return ID(ksuid.Nil), nil
 	}
@@ -49,7 +49,7 @@ func BeansIDFromString(id string) (ID, error) {
 	return ID(parsedID), nil
 }
 
-func NewBeansID() ID {
+func NewID() ID {
 	return ID(ksuid.New())
 }
 
