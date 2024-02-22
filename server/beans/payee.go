@@ -15,7 +15,7 @@ type RelatedPayee struct {
 
 type PayeeContract interface {
 	// Creates a payee.
-	CreatePayee(ctx context.Context, auth *BudgetAuthContext, name Name) (Payee, error)
+	CreatePayee(ctx context.Context, auth *BudgetAuthContext, name Name) (ID, error)
 
 	// Gets all payees for a budget.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]Payee, error)

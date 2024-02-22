@@ -115,6 +115,20 @@ func (i *contractsAdapter) MonthSetCategoryAmount(t *testing.T, ctx specificatio
 	return i.contracts.Month.SetCategoryAmount(context.Background(), i.budgetAuthContext(t, ctx), id, categoryID, amount)
 }
 
+// Payee
+
+func (i *contractsAdapter) PayeeCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+	return i.contracts.Payee.CreatePayee(context.Background(), i.budgetAuthContext(t, ctx), name)
+}
+
+func (i *contractsAdapter) PayeeGetAll(t *testing.T, ctx specification.Context) ([]beans.Payee, error) {
+	return i.contracts.Payee.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
+}
+
+func (i *contractsAdapter) PayeeGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Payee, error) {
+	return i.contracts.Payee.Get(context.Background(), i.budgetAuthContext(t, ctx), id)
+}
+
 // Transaction
 
 func (i *contractsAdapter) TransactionCreate(t *testing.T, ctx specification.Context, params beans.TransactionCreateParams) (beans.ID, error) {

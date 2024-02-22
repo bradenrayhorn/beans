@@ -20,14 +20,14 @@ func (s *Server) handlePayeeCreate() http.HandlerFunc {
 			return
 		}
 
-		payee, err := s.contracts.Payee.CreatePayee(r.Context(), getBudgetAuth(r), req.Name)
+		id, err := s.contracts.Payee.CreatePayee(r.Context(), getBudgetAuth(r), req.Name)
 		if err != nil {
 			Error(w, err)
 			return
 		}
 
 		jsonResponse(w, response.CreatePayeeResponse{
-			Data: response.ID{ID: payee.ID},
+			Data: response.ID{ID: id},
 		}, http.StatusOK)
 	}
 }
