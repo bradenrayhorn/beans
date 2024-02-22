@@ -34,6 +34,11 @@ type Interactor interface {
 	MonthUpdate(t *testing.T, ctx Context, monthID beans.ID, carryover beans.Amount) error
 	MonthSetCategoryAmount(t *testing.T, ctx Context, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error
 
+	// Payee
+	PayeeCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
+	PayeeGetAll(t *testing.T, ctx Context) ([]beans.Payee, error)
+	PayeeGet(t *testing.T, ctx Context, id beans.ID) (beans.Payee, error)
+
 	// Transaction
 	TransactionCreate(t *testing.T, ctx Context, params beans.TransactionCreateParams) (beans.ID, error)
 	TransactionGet(t *testing.T, ctx Context, id beans.ID) (beans.TransactionWithRelations, error)
@@ -70,6 +75,8 @@ type TransactionOpts struct {
 	Amount   string
 	Date     string
 }
+
+type PayeeOpts struct{}
 
 type user struct {
 	t         *testing.T
@@ -172,6 +179,17 @@ func (u *userAndBudget) Month(opt MonthOpts) beans.Month {
 	require.NoError(u.t, err)
 
 	return month.Month
+}
+
+func (u *userAndBudget) Payee(opt PayeeOpts) beans.Payee {
+	name := beans.Name(beans.NewID().String())
+
+	id, err := u.interactor.PayeeCreate(u.t, u.ctx, name)
+	require.NoError(u.t, err)
+	payee, err := u.interactor.PayeeGet(u.t, u.ctx, id)
+	require.NoError(u.t, err)
+
+	return payee
 }
 
 func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {

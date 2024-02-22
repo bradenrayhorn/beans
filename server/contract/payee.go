@@ -10,11 +10,11 @@ type payeeContract struct{ contract }
 
 var _ beans.PayeeContract = (*payeeContract)(nil)
 
-func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (beans.Payee, error) {
+func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthContext, name beans.Name) (beans.ID, error) {
 	if err := beans.ValidateFields(
 		beans.Field("Name", name),
 	); err != nil {
-		return beans.Payee{}, err
+		return beans.EmptyID(), err
 	}
 
 	payee := beans.Payee{
@@ -25,10 +25,10 @@ func (c *payeeContract) CreatePayee(ctx context.Context, auth *beans.BudgetAuthC
 
 	err := c.ds().PayeeRepository().Create(ctx, payee)
 	if err != nil {
-		return beans.Payee{}, err
+		return beans.EmptyID(), err
 	}
 
-	return payee, nil
+	return payee.ID, nil
 }
 
 func (c *payeeContract) GetAll(ctx context.Context, auth *beans.BudgetAuthContext) ([]beans.Payee, error) {

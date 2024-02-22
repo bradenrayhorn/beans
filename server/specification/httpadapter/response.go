@@ -93,6 +93,12 @@ func mapMonthWithDetails(t response.Month) beans.MonthWithDetails {
 	}
 }
 
+// payee
+
+func mapPayee(t response.Payee) beans.Payee {
+	return beans.Payee{ID: t.ID, Name: beans.Name(t.Name)}
+}
+
 // transaction
 
 func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRelations {
