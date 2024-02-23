@@ -12,4 +12,9 @@ type transaction struct {
 }
 
 type CreateTransaction transaction
+
 type UpdateTransaction transaction
+
+type DeleteTransaction struct {
+	IDs []beans.ID `json:"ids"`
+}

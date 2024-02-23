@@ -17,7 +17,18 @@ func NewDate(date time.Time) Date {
 }
 
 func (t *Date) UnmarshalJSON(b []byte) error {
-	date, err := time.Parse(`"2006-01-02"`, string(b))
+	var s *string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	// if string is nil we unmarshalled a null value
+	if s == nil {
+		t.set = false
+		return nil
+	}
+
+	date, err := time.Parse(`2006-01-02`, *s)
 	if err != nil {
 		var parseError *time.ParseError
 		if errors.As(err, &parseError) {

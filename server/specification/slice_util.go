@@ -38,3 +38,8 @@ func findPayee(t *testing.T, items []beans.Payee, id beans.ID, do func(it beans.
 	res := mustFind(t, items, func(a beans.Payee) bool { return a.ID == id })
 	do(res)
 }
+
+func findTransaction(t *testing.T, items []beans.TransactionWithRelations, id beans.ID, do func(it beans.TransactionWithRelations)) {
+	res := mustFind(t, items, func(a beans.TransactionWithRelations) bool { return a.ID == id })
+	do(res)
+}

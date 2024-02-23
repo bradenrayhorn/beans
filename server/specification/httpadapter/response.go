@@ -117,9 +117,11 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 	}
 
 	if t.Category != nil {
+		transaction.CategoryID = t.Category.ID
 		transaction.Category = beans.OptionalWrap(beans.RelatedCategory{ID: t.Category.ID, Name: t.Category.Name})
 	}
 	if t.Payee != nil {
+		transaction.PayeeID = t.Payee.ID
 		transaction.Payee = beans.OptionalWrap(beans.RelatedPayee{ID: t.Payee.ID, Name: t.Payee.Name})
 	}
 
