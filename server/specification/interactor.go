@@ -42,6 +42,9 @@ type Interactor interface {
 	// Transaction
 	TransactionCreate(t *testing.T, ctx Context, params beans.TransactionCreateParams) (beans.ID, error)
 	TransactionGet(t *testing.T, ctx Context, id beans.ID) (beans.TransactionWithRelations, error)
+	TransactionUpdate(t *testing.T, ctx Context, params beans.TransactionUpdateParams) error
+	TransactionDelete(t *testing.T, ctx Context, ids []beans.ID) error
+	TransactionGetAll(t *testing.T, ctx Context) ([]beans.TransactionWithRelations, error)
 
 	// User
 	UserRegister(t *testing.T, ctx Context, username beans.Username, password beans.Password) error
@@ -72,8 +75,10 @@ type MonthOpts struct {
 type TransactionOpts struct {
 	Account  beans.Account
 	Category beans.Category
+	Payee    beans.Payee
 	Amount   string
 	Date     string
+	Notes    string
 }
 
 type PayeeOpts struct{}
@@ -193,9 +198,23 @@ func (u *userAndBudget) Payee(opt PayeeOpts) beans.Payee {
 }
 
 func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {
-	params := beans.TransactionParams{
-		AccountID:  opt.Account.ID,
-		CategoryID: opt.Category.ID,
+	params := beans.TransactionParams{}
+
+	// account
+	if opt.Account.ID.Empty() {
+		params.AccountID = u.Account(AccountOpts{}).ID
+	} else {
+		params.AccountID = opt.Account.ID
+	}
+
+	// category
+	if !opt.Category.ID.Empty() {
+		params.CategoryID = opt.Category.ID
+	}
+
+	// payee
+	if !opt.Payee.ID.Empty() {
+		params.PayeeID = opt.Payee.ID
 	}
 
 	// date
@@ -206,7 +225,16 @@ func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {
 	}
 
 	// amount
-	require.NoError(u.t, json.Unmarshal([]byte(opt.Amount), &params.Amount))
+	if opt.Amount == "" {
+		params.Amount = beans.NewAmount(15, 1)
+	} else {
+		require.NoError(u.t, json.Unmarshal([]byte(opt.Amount), &params.Amount))
+	}
+
+	// notes
+	if opt.Notes != "" {
+		params.Notes = beans.NewTransactionNotes(opt.Notes)
+	}
 
 	// create
 	id, err := u.interactor.TransactionCreate(u.t, u.ctx, beans.TransactionCreateParams{

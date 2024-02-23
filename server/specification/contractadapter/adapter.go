@@ -139,6 +139,18 @@ func (i *contractsAdapter) TransactionGet(t *testing.T, ctx specification.Contex
 	return i.contracts.Transaction.Get(context.Background(), i.budgetAuthContext(t, ctx), id)
 }
 
+func (i *contractsAdapter) TransactionUpdate(t *testing.T, ctx specification.Context, params beans.TransactionUpdateParams) error {
+	return i.contracts.Transaction.Update(context.Background(), i.budgetAuthContext(t, ctx), params)
+}
+
+func (i *contractsAdapter) TransactionDelete(t *testing.T, ctx specification.Context, ids []beans.ID) error {
+	return i.contracts.Transaction.Delete(context.Background(), i.budgetAuthContext(t, ctx), ids)
+}
+
+func (i *contractsAdapter) TransactionGetAll(t *testing.T, ctx specification.Context) ([]beans.TransactionWithRelations, error) {
+	return i.contracts.Transaction.GetAll(context.Background(), i.budgetAuthContext(t, ctx))
+}
+
 // User
 
 func (i *contractsAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {

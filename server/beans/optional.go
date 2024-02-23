@@ -6,7 +6,7 @@ type Optional[T any] struct {
 }
 
 func (n Optional[T]) Empty() bool {
-	return n.set
+	return !n.set
 }
 
 func (n Optional[T]) Value() (T, bool) {

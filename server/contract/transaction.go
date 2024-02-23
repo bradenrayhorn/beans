@@ -34,15 +34,6 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 				return beans.EmptyID(), err
 			}
 		}
-
-		month, err := c.ds().MonthRepository().GetOrCreate(ctx, nil, auth.BudgetID(), beans.NewMonthDate(data.Date))
-		if err != nil {
-			return beans.EmptyID(), err
-		}
-
-		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month, data.CategoryID); err != nil {
-			return beans.EmptyID(), err
-		}
 	}
 
 	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
@@ -73,10 +64,6 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 
 	transaction, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), data.ID)
 	if err != nil {
-		if errors.Is(err, beans.ErrorNotFound) {
-			return beans.NewError(beans.EINVALID, "Invalid Transaction ID")
-		}
-
 		return err
 	}
 
@@ -95,15 +82,6 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 			} else {
 				return err
 			}
-		}
-
-		month, err := c.ds().MonthRepository().GetOrCreate(ctx, nil, auth.BudgetID(), beans.NewMonthDate(data.Date))
-		if err != nil {
-			return err
-		}
-
-		if _, err := c.ds().MonthCategoryRepository().GetOrCreate(ctx, nil, month, data.CategoryID); err != nil {
-			return err
 		}
 	}
 

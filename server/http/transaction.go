@@ -105,18 +105,14 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 }
 
 func (s *Server) handleTransactionDelete() http.HandlerFunc {
-	type request struct {
-		TransactionIDs []beans.ID `json:"ids"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req request
+		var req request.DeleteTransaction
 		if err := decodeRequest(r, &req); err != nil {
 			Error(w, err)
 			return
 		}
 
-		err := s.contracts.Transaction.Delete(r.Context(), getBudgetAuth(r), req.TransactionIDs)
+		err := s.contracts.Transaction.Delete(r.Context(), getBudgetAuth(r), req.IDs)
 		if err != nil {
 			Error(w, err)
 			return
@@ -155,6 +151,8 @@ func (s *Server) handleTransactionGet() http.HandlerFunc {
 			return
 		}
 
-		jsonResponse(w, responseFromTransaction(transaction), http.StatusOK)
+		jsonResponse(w,
+			response.GetTransactionResponse{Data: responseFromTransaction(transaction)},
+			http.StatusOK)
 	}
 }
