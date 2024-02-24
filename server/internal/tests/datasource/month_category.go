@@ -11,7 +11,7 @@ import (
 )
 
 func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
-	factory := testutils.Factory(t, ds)
+	factory := testutils.NewFactory(t, ds)
 
 	monthCategoryRepository := ds.MonthCategoryRepository()
 	ctx := context.Background()

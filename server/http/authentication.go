@@ -16,7 +16,7 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		authCtx, err := s.contracts.User.GetAuth(r.Context(), beans.SessionID(cookie.Value))
+		authCtx, err := s.services.User.GetAuth(r.Context(), beans.SessionID(cookie.Value))
 		if err != nil {
 			Error(w, err)
 			return

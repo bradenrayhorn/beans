@@ -13,7 +13,7 @@ import (
 )
 
 func TestMonthRepository(t *testing.T, ds beans.DataSource) {
-	factory := testutils.Factory(t, ds)
+	factory := testutils.NewFactory(t, ds)
 
 	monthRepository := ds.MonthRepository()
 	ctx := context.Background()

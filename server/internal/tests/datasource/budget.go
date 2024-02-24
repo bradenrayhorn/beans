@@ -11,7 +11,7 @@ import (
 )
 
 func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
-	factory := testutils.Factory(t, ds)
+	factory := testutils.NewFactory(t, ds)
 	budgetRepository := ds.BudgetRepository()
 	ctx := context.Background()
 

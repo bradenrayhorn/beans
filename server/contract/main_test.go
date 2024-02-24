@@ -6,6 +6,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
+	"github.com/bradenrayhorn/beans/server/service"
 	"github.com/bradenrayhorn/beans/server/specification"
 	"github.com/bradenrayhorn/beans/server/specification/contractadapter"
 )
@@ -15,8 +16,10 @@ func TestContracts(t *testing.T) {
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
-	contracts := contract.NewContracts(ds, inmem.NewSessionRepository())
-	adapter := contractadapter.New(contracts)
+	sessionRepository := inmem.NewSessionRepository()
+	contracts := contract.NewContracts(ds, sessionRepository)
+	services := service.NewServices(ds, sessionRepository)
+	adapter := contractadapter.New(contracts, services)
 
 	specification.DoTests(t, adapter)
 }

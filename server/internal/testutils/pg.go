@@ -49,10 +49,10 @@ func StartPool(tb testing.TB) (*postgres.DbPool, func()) {
 	}
 }
 
-func StartPoolWithDataSource(tb testing.TB) (*postgres.DbPool, beans.DataSource, *factory, func()) {
+func StartPoolWithDataSource(tb testing.TB) (*postgres.DbPool, beans.DataSource, *Factory, func()) {
 	pool, stop := StartPool(tb)
 	ds := postgres.NewDataSource(pool)
-	factory := Factory(tb, ds)
+	factory := NewFactory(tb, ds)
 	return pool, ds, factory, stop
 }
 
