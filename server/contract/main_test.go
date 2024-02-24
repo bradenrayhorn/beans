@@ -12,9 +12,8 @@ import (
 )
 
 func TestContracts(t *testing.T) {
-	t.Parallel()
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
-	defer stop()
+	t.Cleanup(stop)
 
 	sessionRepository := inmem.NewSessionRepository()
 	contracts := contract.NewContracts(ds, sessionRepository)

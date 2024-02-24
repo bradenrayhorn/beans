@@ -14,7 +14,7 @@ import (
 
 func TestHTTP(t *testing.T) {
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
-	defer stop()
+	t.Cleanup(stop)
 	sessionRepository := inmem.NewSessionRepository()
 	httpServer := http.NewServer(
 		contract.NewContracts(ds, sessionRepository),
@@ -25,11 +25,11 @@ func TestHTTP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func() {
+	t.Cleanup(func() {
 		if err := httpServer.Close(); err != nil {
 			t.Fatal(err)
 		}
-	}()
+	})
 
 	adapter := httpadapter.New("http://" + httpServer.GetBoundAddr())
 
