@@ -49,6 +49,8 @@ type Interactor interface {
 	// User
 	UserRegister(t *testing.T, ctx Context, username beans.Username, password beans.Password) error
 	UserLogin(t *testing.T, ctx Context, username beans.Username, password beans.Password) (beans.SessionID, error)
+	UserLogout(t *testing.T, ctx Context) error
+	UserGetMe(t *testing.T, ctx Context) (beans.UserPublic, error)
 }
 
 // Common parameters that need to be passed on most requests.

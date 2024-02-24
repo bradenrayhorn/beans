@@ -41,6 +41,11 @@ type User struct {
 	PasswordHash PasswordHash
 }
 
+type UserPublic struct {
+	ID       ID
+	Username Username
+}
+
 type UserContract interface {
 	// Creates a new account
 	Register(ctx context.Context, username Username, password Password) error
@@ -52,8 +57,10 @@ type UserContract interface {
 	Logout(ctx context.Context, auth *AuthContext) error
 
 	// Gets the currently authenticated user
-	GetMe(ctx context.Context, auth *AuthContext) (User, error)
+	GetMe(ctx context.Context, auth *AuthContext) (UserPublic, error)
+}
 
+type UserService interface {
 	// Builds auth context
 	GetAuth(ctx context.Context, sessionID SessionID) (*AuthContext, error)
 }

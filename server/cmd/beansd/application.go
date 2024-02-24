@@ -8,6 +8,7 @@ import (
 	"github.com/bradenrayhorn/beans/server/http"
 	"github.com/bradenrayhorn/beans/server/inmem"
 	"github.com/bradenrayhorn/beans/server/postgres"
+	"github.com/bradenrayhorn/beans/server/service"
 )
 
 type Application struct {
@@ -43,10 +44,10 @@ func (a *Application) Start() error {
 	a.datasource = postgres.NewDataSource(pool)
 	a.sessionRepository = inmem.NewSessionRepository()
 
-	a.httpServer = http.NewServer(contract.NewContracts(
-		a.datasource,
-		a.sessionRepository,
-	))
+	a.httpServer = http.NewServer(
+		contract.NewContracts(a.datasource, a.sessionRepository),
+		service.NewServices(a.datasource, a.sessionRepository),
+	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bradenrayhorn/beans/server/contract"
+	"github.com/bradenrayhorn/beans/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
@@ -19,16 +20,19 @@ type Server struct {
 	boundAddr string
 
 	contracts *contract.Contracts
+	services  *service.All
 }
 
 func NewServer(
 	contracts *contract.Contracts,
+	services *service.All,
 ) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		sv:     &http.Server{},
 
 		contracts: contracts,
+		services:  services,
 	}
 
 	s.sv.Handler = s.router
