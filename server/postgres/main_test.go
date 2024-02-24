@@ -7,10 +7,9 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/testutils"
 )
 
-func TestCategories(t *testing.T) {
-	t.Parallel()
+func TestPostgresDatasource(t *testing.T) {
 	_, ds, _, stop := testutils.StartPoolWithDataSource(t)
 	defer stop()
 
-	datasource.TestCategoryRepository(t, ds)
+	datasource.DoTestDatasource(t, ds)
 }

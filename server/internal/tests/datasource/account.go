@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAccountRepository(t *testing.T, ds beans.DataSource) {
+func testAccount(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 	accountRepository := ds.AccountRepository()
 	ctx := context.Background()

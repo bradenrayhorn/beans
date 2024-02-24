@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCategoryRepository(t *testing.T, ds beans.DataSource) {
+func testCategory(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 	categoryRepository := ds.CategoryRepository()
 	ctx := context.Background()

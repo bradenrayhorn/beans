@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMonthCategoryRepository(t *testing.T, ds beans.DataSource) {
+func testMonthCategory(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 
 	monthCategoryRepository := ds.MonthCategoryRepository()

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPayeeRepository(t *testing.T, ds beans.DataSource) {
+func testPayee(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 
 	payeeRepository := ds.PayeeRepository()
