@@ -13,7 +13,7 @@ import (
 )
 
 func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
-	factory := testutils.Factory(t, ds)
+	factory := testutils.NewFactory(t, ds)
 
 	transactionRepository := ds.TransactionRepository()
 	ctx := context.Background()
