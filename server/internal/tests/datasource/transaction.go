@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransactionRepository(t *testing.T, ds beans.DataSource) {
+func testTransaction(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 
 	transactionRepository := ds.TransactionRepository()

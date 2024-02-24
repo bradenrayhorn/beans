@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
+func testBudget(t *testing.T, ds beans.DataSource) {
 	factory := testutils.NewFactory(t, ds)
 	budgetRepository := ds.BudgetRepository()
 	ctx := context.Background()
@@ -56,5 +56,16 @@ func TestBudgetRepository(t *testing.T, ds beans.DataSource) {
 		require.NoError(t, err)
 
 		assert.ElementsMatch(t, ids, []beans.ID{user.ID})
+	})
+
+	t.Run("get for user", func(t *testing.T) {
+		budget, user := factory.MakeBudgetAndUser()
+		factory.MakeBudgetAndUser() // this budget should not be in the result
+
+		// get budgets user has access to and verify results
+		res, err := budgetRepository.GetBudgetsForUser(ctx, user.ID)
+		require.NoError(t, err)
+
+		assert.ElementsMatch(t, res, []beans.Budget{budget})
 	})
 }
