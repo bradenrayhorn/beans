@@ -59,7 +59,7 @@ func (q *Queries) DeleteTransactions(ctx context.Context, arg DeleteTransactions
 	return err
 }
 
-const getActivityBeforeDateByCategory = `-- name: GetActivityBeforeDateByCategory :many
+const getActivityByCategory = `-- name: GetActivityByCategory :many
 SELECT categories.id, sum(transactions.amount)::numeric as activity
   FROM transactions
   JOIN categories
@@ -67,31 +67,42 @@ SELECT categories.id, sum(transactions.amount)::numeric as activity
   JOIN accounts
     ON accounts.id = transactions.account_id
     AND accounts.budget_id = $1
-  WHERE transactions.date < $2
+  WHERE
+    (transactions.date >= $2 OR NOT $3)
+    AND (transactions.date <= $4 OR NOT $5)
   GROUP BY (
     categories.id
   )
 `
 
-type GetActivityBeforeDateByCategoryParams struct {
-	BudgetID string
-	Date     pgtype.Date
+type GetActivityByCategoryParams struct {
+	BudgetID       string
+	FromDate       pgtype.Date
+	FilterFromDate interface{}
+	ToDate         pgtype.Date
+	FilterToDate   interface{}
 }
 
-type GetActivityBeforeDateByCategoryRow struct {
+type GetActivityByCategoryRow struct {
 	ID       string
 	Activity pgtype.Numeric
 }
 
-func (q *Queries) GetActivityBeforeDateByCategory(ctx context.Context, arg GetActivityBeforeDateByCategoryParams) ([]GetActivityBeforeDateByCategoryRow, error) {
-	rows, err := q.db.Query(ctx, getActivityBeforeDateByCategory, arg.BudgetID, arg.Date)
+func (q *Queries) GetActivityByCategory(ctx context.Context, arg GetActivityByCategoryParams) ([]GetActivityByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, getActivityByCategory,
+		arg.BudgetID,
+		arg.FromDate,
+		arg.FilterFromDate,
+		arg.ToDate,
+		arg.FilterToDate,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetActivityBeforeDateByCategoryRow
+	var items []GetActivityByCategoryRow
 	for rows.Next() {
-		var i GetActivityBeforeDateByCategoryRow
+		var i GetActivityByCategoryRow
 		if err := rows.Scan(&i.ID, &i.Activity); err != nil {
 			return nil, err
 		}

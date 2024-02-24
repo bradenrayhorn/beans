@@ -49,50 +49,26 @@ func (q *Queries) GetAssignedInMonth(ctx context.Context, id string) (pgtype.Num
 }
 
 const getMonthCategoriesForMonth = `-- name: GetMonthCategoriesForMonth :many
-SELECT month_categories.id, month_categories.month_id, month_categories.category_id, month_categories.amount, month_categories.created_at, sum(t.amount)::numeric as activity
+SELECT month_categories.id, month_categories.month_id, month_categories.category_id, month_categories.amount, month_categories.created_at
   FROM month_categories
-  LEFT JOIN transactions t on t.category_id = month_categories.category_id
-    AND t.date >= $1 AND t.date <= $2
-  WHERE month_id = $3
-  GROUP BY (
-    month_categories.id,
-    month_categories.month_id,
-    month_categories.category_id,
-    month_categories.amount
-  )
+  WHERE month_id = $1
 `
 
-type GetMonthCategoriesForMonthParams struct {
-	FromDate pgtype.Date
-	ToDate   pgtype.Date
-	MonthID  string
-}
-
-type GetMonthCategoriesForMonthRow struct {
-	ID         string
-	MonthID    string
-	CategoryID string
-	Amount     pgtype.Numeric
-	CreatedAt  pgtype.Timestamp
-	Activity   pgtype.Numeric
-}
-
-func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, arg GetMonthCategoriesForMonthParams) ([]GetMonthCategoriesForMonthRow, error) {
-	rows, err := q.db.Query(ctx, getMonthCategoriesForMonth, arg.FromDate, arg.ToDate, arg.MonthID)
+func (q *Queries) GetMonthCategoriesForMonth(ctx context.Context, monthID string) ([]MonthCategory, error) {
+	rows, err := q.db.Query(ctx, getMonthCategoriesForMonth, monthID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMonthCategoriesForMonthRow
+	var items []MonthCategory
 	for rows.Next() {
-		var i GetMonthCategoriesForMonthRow
+		var i MonthCategory
 		if err := rows.Scan(
 			&i.ID,
 			&i.MonthID,
 			&i.CategoryID,
 			&i.Amount,
 			&i.CreatedAt,
-			&i.Activity,
 		); err != nil {
 			return nil, err
 		}
@@ -126,40 +102,39 @@ func (q *Queries) GetMonthCategoryByMonthAndCategory(ctx context.Context, arg Ge
 	return i, err
 }
 
-const getPastMonthCategoriesAvailable = `-- name: GetPastMonthCategoriesAvailable :many
+const getPastMonthCategoriesAssigned = `-- name: GetPastMonthCategoriesAssigned :many
 SELECT
-    categories.id,
+    mc.category_id,
     sum(mc.amount)::numeric as assigned
-  FROM categories
-  JOIN month_categories mc on mc.category_id = categories.id
+  FROM month_categories mc
   JOIN months m on m.id = mc.month_id
     AND m.budget_id = $1
     AND m.date < $2
   GROUP BY (
-    categories.id
+    mc.category_id
   )
 `
 
-type GetPastMonthCategoriesAvailableParams struct {
+type GetPastMonthCategoriesAssignedParams struct {
 	BudgetID   string
 	BeforeDate pgtype.Date
 }
 
-type GetPastMonthCategoriesAvailableRow struct {
-	ID       string
-	Assigned pgtype.Numeric
+type GetPastMonthCategoriesAssignedRow struct {
+	CategoryID string
+	Assigned   pgtype.Numeric
 }
 
-func (q *Queries) GetPastMonthCategoriesAvailable(ctx context.Context, arg GetPastMonthCategoriesAvailableParams) ([]GetPastMonthCategoriesAvailableRow, error) {
-	rows, err := q.db.Query(ctx, getPastMonthCategoriesAvailable, arg.BudgetID, arg.BeforeDate)
+func (q *Queries) GetPastMonthCategoriesAssigned(ctx context.Context, arg GetPastMonthCategoriesAssignedParams) ([]GetPastMonthCategoriesAssignedRow, error) {
+	rows, err := q.db.Query(ctx, getPastMonthCategoriesAssigned, arg.BudgetID, arg.BeforeDate)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPastMonthCategoriesAvailableRow
+	var items []GetPastMonthCategoriesAssignedRow
 	for rows.Next() {
-		var i GetPastMonthCategoriesAvailableRow
-		if err := rows.Scan(&i.ID, &i.Assigned); err != nil {
+		var i GetPastMonthCategoriesAssignedRow
+		if err := rows.Scan(&i.CategoryID, &i.Assigned); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

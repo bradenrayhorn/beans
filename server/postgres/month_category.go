@@ -29,77 +29,36 @@ func (r *monthCategoryRepository) UpdateAmount(ctx context.Context, monthCategor
 	})
 }
 
-func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.Month) ([]beans.MonthCategoryWithDetails, error) {
-	monthCategories := []beans.MonthCategoryWithDetails{}
+func (r *monthCategoryRepository) GetForMonth(ctx context.Context, month beans.Month) ([]beans.MonthCategory, error) {
+	monthCategories := []beans.MonthCategory{}
 
-	res, err := r.DB(nil).GetMonthCategoriesForMonth(ctx, db.GetMonthCategoriesForMonthParams{
-		FromDate: mapper.MonthDateToPg(month.Date),
-		ToDate:   mapper.DateToPg(month.Date.LastDay()),
-		MonthID:  month.ID.String(),
-	})
+	res, err := r.DB(nil).GetMonthCategoriesForMonth(ctx, month.ID.String())
 	if err != nil {
 		return monthCategories, mapPostgresError(err)
 	}
 
-	previousAssigned, err := r.DB(nil).GetPastMonthCategoriesAvailable(ctx, db.GetPastMonthCategoriesAvailableParams{
-		BudgetID:   month.BudgetID.String(),
-		BeforeDate: mapper.MonthDateToPg(month.Date),
+	return mapper.MapSlice(res, mapper.MonthCategory)
+}
+
+func (r *monthCategoryRepository) GetAssignedByCategory(ctx context.Context, budgetID beans.ID, before beans.Date) (map[beans.ID]beans.Amount, error) {
+	res, err := r.DB(nil).GetPastMonthCategoriesAssigned(ctx, db.GetPastMonthCategoriesAssignedParams{
+		BudgetID:   budgetID.String(),
+		BeforeDate: mapper.DateToPg(before),
 	})
 	if err != nil {
-		return monthCategories, mapPostgresError(err)
+		return nil, mapPostgresError(err)
 	}
 
-	previousAssignedByCategory := make(map[string]beans.Amount)
-	for _, v := range previousAssigned {
-		amount, err := mapper.NumericToAmount(v.Assigned)
-		if err != nil {
-			return monthCategories, err
-		}
-		previousAssignedByCategory[v.ID] = amount
-	}
-
-	previousActivity, err := r.DB(nil).GetActivityBeforeDateByCategory(ctx, db.GetActivityBeforeDateByCategoryParams{
-		BudgetID: month.BudgetID.String(),
-		Date:     mapper.MonthDateToPg(month.Date),
-	})
-	if err != nil {
-		return monthCategories, mapPostgresError(err)
-	}
-
-	previousActivityByCategory := make(map[string]beans.Amount)
-	for _, v := range previousActivity {
-		amount, err := mapper.NumericToAmount(v.Activity)
-		if err != nil {
-			return monthCategories, err
-		}
-		previousActivityByCategory[v.ID] = amount
-	}
-
+	previousAssignedByCategory := make(map[beans.ID]beans.Amount)
 	for _, v := range res {
-		monthCategory, err := mapper.GetMonthCategoriesForMonthRow(v)
+		id, amount, err := mapper.GetPastMonthCategoriesAssigned(v)
 		if err != nil {
-			return monthCategories, err
+			return nil, err
 		}
-
-		pastAssigned := previousAssignedByCategory[v.CategoryID]
-		pastActivity := previousActivityByCategory[v.CategoryID]
-
-		available, err := beans.Arithmetic.Add(
-			pastAssigned.OrZero(),
-			pastActivity.OrZero(),
-			monthCategory.Amount,
-			monthCategory.Activity,
-		)
-		if err != nil {
-			return monthCategories, err
-		}
-
-		monthCategory.Available = available
-
-		monthCategories = append(monthCategories, monthCategory)
+		previousAssignedByCategory[id] = amount
 	}
 
-	return monthCategories, nil
+	return previousAssignedByCategory, nil
 }
 
 func (r *monthCategoryRepository) GetOrCreate(ctx context.Context, tx beans.Tx, month beans.Month, categoryID beans.ID) (beans.MonthCategory, error) {

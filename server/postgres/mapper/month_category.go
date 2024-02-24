@@ -5,36 +5,47 @@ import (
 	"github.com/bradenrayhorn/beans/server/internal/db"
 )
 
-func GetMonthCategoriesForMonthRow(res db.GetMonthCategoriesForMonthRow) (beans.MonthCategoryWithDetails, error) {
+func MonthCategory(res db.MonthCategory) (beans.MonthCategory, error) {
 	id, err := beans.IDFromString(res.ID)
 	if err != nil {
-		return beans.MonthCategoryWithDetails{}, err
+		return beans.MonthCategory{}, err
 	}
 	categoryID, err := beans.IDFromString(res.CategoryID)
 	if err != nil {
-		return beans.MonthCategoryWithDetails{}, err
+		return beans.MonthCategory{}, err
+	}
+	monthID, err := beans.IDFromString(res.MonthID)
+	if err != nil {
+		return beans.MonthCategory{}, err
 	}
 	amount, err := NumericToAmount(res.Amount)
 	if err != nil {
-		return beans.MonthCategoryWithDetails{}, err
+		return beans.MonthCategory{}, err
 	}
 	if amount.Empty() {
 		amount = beans.NewAmount(0, 0)
 	}
 
-	activity, err := NumericToAmount(res.Activity)
-	if err != nil {
-		return beans.MonthCategoryWithDetails{}, err
-	}
-	if activity.Empty() {
-		activity = beans.NewAmount(0, 0)
-	}
-
-	return beans.MonthCategoryWithDetails{
+	return beans.MonthCategory{
 		ID:         id,
+		MonthID:    monthID,
 		CategoryID: categoryID,
 		Amount:     amount,
-
-		Activity: activity,
 	}, nil
+}
+
+func GetPastMonthCategoriesAssigned(res db.GetPastMonthCategoriesAssignedRow) (beans.ID, beans.Amount, error) {
+	id, err := beans.IDFromString(res.CategoryID)
+	if err != nil {
+		return beans.EmptyID(), beans.NewEmptyAmount(), err
+	}
+	amount, err := NumericToAmount(res.Assigned)
+	if err != nil {
+		return beans.EmptyID(), beans.NewEmptyAmount(), err
+	}
+	if amount.Empty() {
+		amount = beans.NewAmount(0, 0)
+	}
+
+	return id, amount, err
 }

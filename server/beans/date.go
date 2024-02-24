@@ -16,6 +16,17 @@ func NewDate(date time.Time) Date {
 	return Date{Time: time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC), set: true}
 }
 
+func (d Date) Previous() Date {
+	if !d.set {
+		return Date{}
+	}
+
+	return Date{
+		Time: d.Time.AddDate(0, 0, -1),
+		set:  true,
+	}
+}
+
 func (t *Date) UnmarshalJSON(b []byte) error {
 	var s *string
 	if err := json.Unmarshal(b, &s); err != nil {
