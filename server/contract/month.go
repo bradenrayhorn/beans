@@ -26,7 +26,7 @@ func (c *monthContract) GetOrCreate(ctx context.Context, auth *beans.BudgetAuthC
 		return beans.MonthWithDetails{}, err
 	}
 
-	categories, err := c.ds().MonthCategoryRepository().GetForMonth(ctx, month)
+	categories, err := c.services.MonthCategory.GetForMonth(ctx, month)
 	if err != nil {
 		return beans.MonthWithDetails{}, err
 	}

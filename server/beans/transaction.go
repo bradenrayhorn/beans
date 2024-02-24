@@ -61,6 +61,8 @@ type TransactionRepository interface {
 
 	// Gets sum of all income transactions between the dates.
 	GetIncomeBetween(ctx context.Context, budgetID ID, begin Date, end Date) (Amount, error)
+
+	GetActivityByCategory(ctx context.Context, budgetID ID, from Date, to Date) (map[ID]Amount, error)
 }
 
 type TransactionParams struct {

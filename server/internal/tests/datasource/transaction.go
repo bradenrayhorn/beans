@@ -189,6 +189,114 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 		}, transactions[0])
 	})
 
+	t.Run("can get activity by category", func(t *testing.T) {
+
+		t.Run("groups and sums", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			category1 := factory.Category(beans.Category{BudgetID: budget.ID})
+			category2 := factory.Category(beans.Category{BudgetID: budget.ID})
+
+			// setup 3 transactions - two in category1 and one in category2
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(3, 0),
+				CategoryID: category1.ID,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(2, 0),
+				CategoryID: category1.ID,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(1, 0),
+				CategoryID: category2.ID,
+			})
+
+			// make sure they are grouped and summed properly
+			res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, beans.Date{}, beans.Date{})
+			require.NoError(t, err)
+
+			assert.Equal(t, 2, len(res))
+			assert.Equal(t, beans.NewAmount(5, 0), res[category1.ID])
+			assert.Equal(t, beans.NewAmount(1, 0), res[category2.ID])
+		})
+
+		t.Run("filters by date", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			// setup 4 transactions with varying dates
+			category := factory.Category(beans.Category{BudgetID: budget.ID})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(3, 0),
+				CategoryID: category.ID,
+				Date:       testutils.NewDate(t, "2099-09-01"),
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(2, 0),
+				CategoryID: category.ID,
+				Date:       testutils.NewDate(t, "2022-09-01"),
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(1, 0),
+				CategoryID: category.ID,
+				Date:       testutils.NewDate(t, "2022-08-31"),
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(8, 0),
+				CategoryID: category.ID,
+				Date:       testutils.NewDate(t, "1900-08-31"),
+			})
+
+			// try to filter the transactions
+
+			t.Run("filters by only from date", func(t *testing.T) {
+				res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, testutils.NewDate(t, "2022-09-01"), beans.Date{})
+				require.NoError(t, err)
+
+				assert.Equal(t, 1, len(res))
+				assert.Equal(t, beans.NewAmount(5, 0), res[category.ID])
+			})
+
+			t.Run("filters by only to date", func(t *testing.T) {
+				res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, beans.Date{}, testutils.NewDate(t, "2022-08-31"))
+				require.NoError(t, err)
+
+				assert.Equal(t, 1, len(res))
+				assert.Equal(t, beans.NewAmount(9, 0), res[category.ID])
+			})
+
+			t.Run("filters by both dates", func(t *testing.T) {
+				res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-09-30"))
+				require.NoError(t, err)
+
+				assert.Equal(t, 1, len(res))
+				assert.Equal(t, beans.NewAmount(3, 0), res[category.ID])
+			})
+
+			t.Run("applies no date filter", func(t *testing.T) {
+				res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, beans.Date{}, beans.Date{})
+				require.NoError(t, err)
+
+				assert.Equal(t, 1, len(res))
+				assert.Equal(t, beans.NewAmount(14, 0), res[category.ID])
+			})
+		})
+
+		t.Run("filters by budget", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
+
+			factory.Transaction(budget2.ID, beans.Transaction{
+				Amount: beans.NewAmount(1, 0),
+				Date:   testutils.NewDate(t, "2022-09-01"),
+			})
+
+			res, err := transactionRepository.GetActivityByCategory(ctx, budget.ID, beans.Date{}, beans.Date{})
+			require.NoError(t, err)
+
+			assert.Equal(t, 0, len(res))
+		})
+	})
+
 	t.Run("can get income", func(t *testing.T) {
 		budget, _ := factory.MakeBudgetAndUser()
 		incomeGroup := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget.ID, IsIncome: true})

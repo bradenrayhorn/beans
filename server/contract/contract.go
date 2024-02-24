@@ -1,10 +1,14 @@
 package contract
 
-import "github.com/bradenrayhorn/beans/server/beans"
+import (
+	"github.com/bradenrayhorn/beans/server/beans"
+	"github.com/bradenrayhorn/beans/server/service"
+)
 
 type contract struct {
 	datasource        beans.DataSource
 	sessionRepository beans.SessionRepository
+	services          *service.All
 }
 
 func (c *contract) ds() beans.DataSource {
@@ -22,7 +26,8 @@ type Contracts struct {
 }
 
 func NewContracts(datasource beans.DataSource, sessionRepository beans.SessionRepository) *Contracts {
-	contract := contract{datasource, sessionRepository}
+	services := service.NewServices(datasource, sessionRepository)
+	contract := contract{datasource, sessionRepository, services}
 
 	return &Contracts{
 		Account:     &accountContract{contract},

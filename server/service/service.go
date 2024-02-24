@@ -8,13 +8,15 @@ type service struct {
 }
 
 type All struct {
-	User beans.UserService
+	MonthCategory beans.MonthCategoryService
+	User          beans.UserService
 }
 
 func NewServices(datasource beans.DataSource, sessionRepository beans.SessionRepository) *All {
 	service := service{datasource, sessionRepository}
 
 	return &All{
-		User: &userService{service},
+		MonthCategory: &monthCategoryService{service},
+		User:          &userService{service},
 	}
 }

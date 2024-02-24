@@ -42,12 +42,12 @@ func (a *Amount) Coefficient() *big.Int {
 }
 
 // If the amount is empty returns a new zero amount.
-func (a *Amount) OrZero() Amount {
+func (a Amount) OrZero() Amount {
 	if a.Empty() {
 		return NewAmount(0, 0)
 	}
 
-	return *a
+	return a
 }
 
 func (a *Amount) String() string {

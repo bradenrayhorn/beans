@@ -4,29 +4,20 @@ INSERT INTO month_categories (
 ) VALUES ($1, $2, $3, $4);
 
 -- name: GetMonthCategoriesForMonth :many
-SELECT month_categories.*, sum(t.amount)::numeric as activity
+SELECT month_categories.*
   FROM month_categories
-  LEFT JOIN transactions t on t.category_id = month_categories.category_id
-    AND t.date >= @from_date AND t.date <= @to_date
-  WHERE month_id = @month_id
-  GROUP BY (
-    month_categories.id,
-    month_categories.month_id,
-    month_categories.category_id,
-    month_categories.amount
-  );
+  WHERE month_id = @month_id;
 
--- name: GetPastMonthCategoriesAvailable :many
+-- name: GetPastMonthCategoriesAssigned :many
 SELECT
-    categories.id,
+    mc.category_id,
     sum(mc.amount)::numeric as assigned
-  FROM categories
-  JOIN month_categories mc on mc.category_id = categories.id
+  FROM month_categories mc
   JOIN months m on m.id = mc.month_id
     AND m.budget_id = @budget_id
     AND m.date < @before_date
   GROUP BY (
-    categories.id
+    mc.category_id
   );
 
 -- name: GetMonthCategoryByMonthAndCategory :one

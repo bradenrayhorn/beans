@@ -66,6 +66,34 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 	return mapper.MapSlice(res, mapper.GetTransactionsForBudgetRow)
 }
 
+func (r *TransactionRepository) GetActivityByCategory(ctx context.Context, budgetID beans.ID, from beans.Date, to beans.Date) (map[beans.ID]beans.Amount, error) {
+	res, err := r.DB(nil).GetActivityByCategory(ctx, db.GetActivityByCategoryParams{
+		BudgetID:       budgetID.String(),
+		FromDate:       mapper.DateToPg(from),
+		FilterFromDate: !from.Empty(),
+		ToDate:         mapper.DateToPg(to),
+		FilterToDate:   !to.Empty(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	activityByCategory := make(map[beans.ID]beans.Amount)
+	for _, v := range res {
+		id, err := beans.IDFromString(v.ID)
+		if err != nil {
+			return nil, err
+		}
+		amount, err := mapper.NumericToAmount(v.Activity)
+		if err != nil {
+			return nil, err
+		}
+		activityByCategory[id] = amount
+	}
+
+	return activityByCategory, nil
+}
+
 func (r *TransactionRepository) GetIncomeBetween(ctx context.Context, budgetID beans.ID, begin beans.Date, end beans.Date) (beans.Amount, error) {
 	res, err := r.DB(nil).GetIncomeBetween(ctx, db.GetIncomeBetweenParams{
 		BudgetID:  budgetID.String(),

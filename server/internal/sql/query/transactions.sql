@@ -55,15 +55,17 @@ WHERE
   transactions.date <= @end_date
   AND transactions.date >= @begin_date;
 
--- name: GetActivityBeforeDateByCategory :many
+-- name: GetActivityByCategory :many
 SELECT categories.id, sum(transactions.amount)::numeric as activity
   FROM transactions
   JOIN categories
     ON transactions.category_id = categories.id
   JOIN accounts
     ON accounts.id = transactions.account_id
-    AND accounts.budget_id = $1
-  WHERE transactions.date < $2
+    AND accounts.budget_id = @budget_id
+  WHERE
+    (transactions.date >= @from_date OR NOT @filter_from_date)
+    AND (transactions.date <= @to_date OR NOT @filter_to_date)
   GROUP BY (
     categories.id
   );
