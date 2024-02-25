@@ -49,7 +49,7 @@ func testMonth(t *testing.T, ds beans.DataSource) {
 
 		// carryover should have been initialized to 0
 		month.Carryover = beans.NewAmount(0, 0)
-		assert.True(t, reflect.DeepEqual(month, res))
+		assert.Equal(t, month, res)
 	})
 
 	t.Run("create respects tx", func(t *testing.T) {
@@ -88,7 +88,7 @@ func testMonth(t *testing.T, ds beans.DataSource) {
 		month2 := beans.Month{ID: beans.NewID(), Date: date, BudgetID: budget.ID}
 
 		assert.Nil(t, monthRepository.Create(ctx, nil, month1))
-		assert.NotNil(t, monthRepository.Create(ctx, nil, month2))
+		assert.Error(t, monthRepository.Create(ctx, nil, month2))
 	})
 
 	t.Run("can update month carryover", func(t *testing.T) {
@@ -97,10 +97,10 @@ func testMonth(t *testing.T, ds beans.DataSource) {
 		month := factory.Month(beans.Month{BudgetID: budget.ID, Carryover: beans.NewAmount(0, 0)})
 
 		month.Carryover = beans.NewAmount(5, 0)
-		require.Nil(t, monthRepository.Update(ctx, month))
+		require.NoError(t, monthRepository.Update(ctx, month))
 
 		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, beans.NewAmount(5, 0), res.Carryover)
 	})
 
@@ -110,11 +110,11 @@ func testMonth(t *testing.T, ds beans.DataSource) {
 
 		// update month to have an empty carryover
 		month.Carryover = beans.NewEmptyAmount()
-		require.Nil(t, monthRepository.Update(ctx, month))
+		require.NoError(t, monthRepository.Update(ctx, month))
 
 		// get month, carryover should have been reset to 0
 		res, err := monthRepository.Get(ctx, budget.ID, month.ID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, beans.NewAmount(0, 0), res.Carryover)
 	})
