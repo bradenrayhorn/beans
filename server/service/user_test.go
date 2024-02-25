@@ -11,8 +11,7 @@ import (
 )
 
 func TestUser(t *testing.T) {
-	services, _, _, sessionRepository, stop := makeServices(t)
-	defer stop()
+	services, _, _, sessionRepository := makeServices(t)
 	ctx := context.Background()
 
 	t.Run("GetAuth", func(t *testing.T) {

@@ -54,7 +54,7 @@ jobs:
           go-version-file: "./server/go.mod"
           cache: false
       - name: Run tests
-        run: "go test ./..."
+        run: "go test ./... --tags=slow"
 
   lint-svelte:
     name: Lint Svelte

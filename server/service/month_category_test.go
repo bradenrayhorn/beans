@@ -11,8 +11,7 @@ import (
 )
 
 func TestMonthCategory(t *testing.T) {
-	services, factory, _, _, stop := makeServices(t)
-	defer stop()
+	services, factory, _, _ := makeServices(t)
 	ctx := context.Background()
 
 	t.Run("GetForMonth", func(t *testing.T) {
