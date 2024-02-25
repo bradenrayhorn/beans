@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"testing"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -32,6 +33,14 @@ func GenerateHash(password string) (string, error) {
 	_, err := rand.Read(salt)
 	if err != nil {
 		return "", err
+	}
+
+	// Use lightweight and unsecure config while running a test
+	if testing.Testing() {
+		argonConfig.iterations = 1
+		argonConfig.memory = 512
+		argonConfig.keyLength = 8
+		argonConfig.saltLength = 8
 	}
 
 	key := argon2.IDKey(
