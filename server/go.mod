@@ -14,7 +14,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/orlangure/gnomock v0.30.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.21.0
 	golang.org/x/net v0.22.0
 )
