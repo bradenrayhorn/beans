@@ -10,13 +10,13 @@ type AssociatedCategory struct {
 type Category struct {
 	ID      beans.ID   `json:"id"`
 	Name    beans.Name `json:"name"`
-	GroupID beans.ID   `json:"group_id"`
+	GroupID beans.ID   `json:"groupId"`
 }
 
 type CategoryGroup struct {
 	ID         beans.ID             `json:"id"`
 	Name       beans.Name           `json:"name"`
-	IsIncome   bool                 `json:"is_income"`
+	IsIncome   bool                 `json:"isIncome"`
 	Categories []AssociatedCategory `json:"categories"`
 }
 

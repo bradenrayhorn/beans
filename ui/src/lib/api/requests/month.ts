@@ -13,13 +13,13 @@ type APIMonth = {
   carryover: APIAmount;
   income: APIAmount;
   assigned: APIAmount;
-  carried_over: APIAmount;
+  carriedOver: APIAmount;
   categories: Array<APIMonthCategory>;
 };
 
 type APIMonthCategory = {
   id: string;
-  category_id: string;
+  categoryId: string;
   assigned: APIAmount;
   activity: APIAmount;
   available: APIAmount;
@@ -43,10 +43,10 @@ export const getMonth = async ({
     carryover: new Amount(json.carryover),
     income: new Amount(json.income),
     assigned: new Amount(json.assigned),
-    carriedOver: new Amount(json.carried_over),
+    carriedOver: new Amount(json.carriedOver),
     categories: json.categories.map<MonthCategory>((apiCategory) => ({
       id: apiCategory.id,
-      categoryID: apiCategory.category_id,
+      categoryID: apiCategory.categoryId,
       assigned: new Amount(apiCategory.assigned),
       activity: new Amount(apiCategory.activity),
       available: new Amount(apiCategory.available),

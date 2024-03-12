@@ -7,7 +7,7 @@ type MonthCategory struct {
 	Assigned   beans.Amount `json:"assigned"`
 	Activity   beans.Amount `json:"activity"`
 	Available  beans.Amount `json:"available"`
-	CategoryID beans.ID     `json:"category_id"`
+	CategoryID beans.ID     `json:"categoryId"`
 }
 type Month struct {
 	ID          beans.ID        `json:"id"`
@@ -16,7 +16,7 @@ type Month struct {
 	Carryover   beans.Amount    `json:"carryover"`
 	Income      beans.Amount    `json:"income"`
 	Assigned    beans.Amount    `json:"assigned"`
-	CarriedOver beans.Amount    `json:"carried_over"`
+	CarriedOver beans.Amount    `json:"carriedOver"`
 	Categories  []MonthCategory `json:"categories"`
 }
 

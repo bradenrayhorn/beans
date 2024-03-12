@@ -10,14 +10,14 @@ type AssociatedAccount struct {
 type Account struct {
 	ID        beans.ID `json:"id"`
 	Name      string   `json:"name"`
-	OffBudget bool     `json:"off_budget"`
+	OffBudget bool     `json:"offBudget"`
 }
 
 type ListAccount struct {
 	ID        beans.ID     `json:"id"`
 	Name      string       `json:"name"`
 	Balance   beans.Amount `json:"balance"`
-	OffBudget bool         `json:"off_budget"`
+	OffBudget bool         `json:"offBudget"`
 }
 
 type CreateAccountResponse Data[ID]
