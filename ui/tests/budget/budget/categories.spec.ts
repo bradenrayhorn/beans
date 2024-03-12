@@ -16,7 +16,7 @@ const getReceived = (locator: Locator) => locator.getByRole("cell").nth(1);
 test("can edit categories", async ({ budget: { id }, page, request }) => {
   const groupID = await createCategoryGroup(id, "Bills", request);
   const categoryID = await createCategory(id, groupID, "Electric", request);
-  const accountID = await createAccount(id, "Checking", request);
+  const accountID = await createAccount(id, request, { name: "Checking" });
   const currentDate = new Date().toISOString().substring(0, 10);
   await createTransaction(
     id,

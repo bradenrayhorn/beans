@@ -22,8 +22,7 @@
         >
           <div class="flex justify-between">
             <div>
-              {transaction.category?.name ?? ""}
-              {transaction.account?.name ?? ""}
+              {transaction.payee?.name ?? ""}
             </div>
             <div>
               {transaction.amount.display}
@@ -31,9 +30,13 @@
           </div>
 
           <div class="flex justify-between">
-            <div>
-              {transaction.category?.name ?? ""}
-            </div>
+            {#if transaction.variant === "off_budget"}
+              <div class="italic">Off-Budget</div>
+            {:else}
+              <div>
+                {transaction.category?.name ?? ""}
+              </div>
+            {/if}
             <div>
               {transaction.account.name ?? ""}
             </div>

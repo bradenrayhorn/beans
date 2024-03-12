@@ -11,19 +11,15 @@ type accountRepository struct{ repository }
 
 var _ beans.AccountRepository = (*accountRepository)(nil)
 
-func (r *accountRepository) Create(ctx context.Context, id beans.ID, name beans.Name, budgetID beans.ID) error {
+func (r *accountRepository) Create(ctx context.Context, account beans.Account) error {
 	r.acquire(func() { r.database.accountsMU.Lock() })
 	defer r.database.accountsMU.Unlock()
 
-	if _, ok := r.database.accounts[id]; ok {
+	if _, ok := r.database.accounts[account.ID]; ok {
 		return errors.New("duplicate")
 	}
 
-	r.database.accounts[id] = beans.Account{
-		ID:       id,
-		Name:     name,
-		BudgetID: budgetID,
-	}
+	r.database.accounts[account.ID] = account
 
 	return nil
 }
@@ -41,7 +37,7 @@ func (r *accountRepository) Get(ctx context.Context, budgetID beans.ID, id beans
 	return beans.Account{}, beans.NewError(beans.ENOTFOUND, "account not found")
 }
 
-func (r *accountRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.AccountWithBalance, error) {
+func (r *accountRepository) GetWithBalance(ctx context.Context, budgetID beans.ID) ([]beans.AccountWithBalance, error) {
 	r.acquire(func() {
 		r.database.accountsMU.RLock()
 		r.database.transactionsMU.RLock()
@@ -72,4 +68,18 @@ func (r *accountRepository) GetForBudget(ctx context.Context, budgetID beans.ID)
 			Balance: balance,
 		}
 	}), nil
+}
+
+func (r *accountRepository) GetTransactable(ctx context.Context, budgetID beans.ID) ([]beans.Account, error) {
+	r.acquire(func() {
+		r.database.accountsMU.RLock()
+	})
+	defer r.database.accountsMU.RUnlock()
+
+	accounts := filter(
+		values(r.database.accounts), func(it beans.Account) bool {
+			return it.BudgetID == budgetID
+		})
+
+	return accounts, nil
 }

@@ -10,12 +10,14 @@ export const doRequest = async ({
   fetch: internalFetch,
   request,
   params,
+  mapFormData,
 }: {
   method: string;
   path: string;
   request?: Request;
   fetch: typeof fetch;
   params?: { [key: string]: string | undefined };
+  mapFormData?: (obj: { [key: string]: unknown }) => { [key: string]: unknown };
 }): Promise<Response> => {
   let obj: null | { [key: string]: unknown } = null;
 
@@ -31,6 +33,10 @@ export const doRequest = async ({
         }
       }
     });
+
+    if (mapFormData) {
+      obj = mapFormData(obj);
+    }
   }
 
   const res = await internalFetch(api(path), {

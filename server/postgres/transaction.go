@@ -60,7 +60,7 @@ func (r *TransactionRepository) Get(ctx context.Context, budgetID beans.ID, id b
 func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.TransactionWithRelations, error) {
 	res, err := r.DB(nil).GetTransactionsForBudget(ctx, budgetID.String())
 	if err != nil {
-		return nil, nil
+		return nil, mapPostgresError(err)
 	}
 
 	return mapper.MapSlice(res, mapper.GetTransactionsForBudgetRow)

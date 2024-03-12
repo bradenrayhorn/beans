@@ -7,9 +7,8 @@ import {
   test,
 } from "../../setup";
 
-test("can delete transaction", async ({ budget: { id }, page }) => {
-  const account = await createAccount(id, "Checking", page.context().request);
-  await createAccount(id, "Savings", page.context().request);
+test("can delete transaction", async ({ budget: { id }, page, request }) => {
+  const account = await createAccount(id, request, { name: "Checking" });
   const groupID = await createCategoryGroup(
     id,
     "Bills",

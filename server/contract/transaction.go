@@ -17,23 +17,17 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		return beans.EmptyID(), err
 	}
 
-	_, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
+	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
 	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return beans.EmptyID(), beans.NewError(beans.EINVALID, "Invalid Account ID")
-		} else {
-			return beans.EmptyID(), err
 		}
+
+		return beans.EmptyID(), err
 	}
 
-	if !data.CategoryID.Empty() {
-		if _, err = c.ds().CategoryRepository().GetSingleForBudget(ctx, data.CategoryID, auth.BudgetID()); err != nil {
-			if errors.Is(err, beans.ErrorNotFound) {
-				return beans.EmptyID(), beans.NewError(beans.EINVALID, "Invalid Category ID")
-			} else {
-				return beans.EmptyID(), err
-			}
-		}
+	if err = c.validateCategory(ctx, auth, account, data.CategoryID); err != nil {
+		return beans.EmptyID(), err
 	}
 
 	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
@@ -67,7 +61,8 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
-	if _, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID); err != nil {
+	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
+	if err != nil {
 		if errors.Is(err, beans.ErrorNotFound) {
 			return beans.NewError(beans.EINVALID, "Invalid Account ID")
 		}
@@ -75,14 +70,8 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
-	if !data.CategoryID.Empty() {
-		if _, err = c.ds().CategoryRepository().GetSingleForBudget(ctx, data.CategoryID, auth.BudgetID()); err != nil {
-			if errors.Is(err, beans.ErrorNotFound) {
-				return beans.NewError(beans.EINVALID, "Invalid Category ID")
-			} else {
-				return err
-			}
-		}
+	if err = c.validateCategory(ctx, auth, account, data.CategoryID); err != nil {
+		return err
 	}
 
 	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
@@ -125,7 +114,12 @@ func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthCon
 
 	fullTransaction := beans.TransactionWithRelations{
 		Transaction: transaction,
+		Variant:     beans.TransactionStandard,
 		Account:     beans.RelatedAccount{ID: currentAccount.ID, Name: currentAccount.Name},
+	}
+
+	if currentAccount.OffBudget {
+		fullTransaction.Variant = beans.TransactionOffBudget
 	}
 
 	if !transaction.CategoryID.Empty() {
@@ -159,6 +153,24 @@ func (c *transactionContract) validatePayee(ctx context.Context, auth *beans.Bud
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+func (c *transactionContract) validateCategory(ctx context.Context, auth *beans.BudgetAuthContext, account beans.Account, categoryID beans.ID) error {
+	if !categoryID.Empty() {
+		if account.OffBudget {
+			return beans.NewError(beans.EINVALID, "Cannot assign category with off-budget account")
+		}
+
+		if _, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, categoryID, auth.BudgetID()); err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Category ID")
+			}
+
+			return err
+		}
 	}
 
 	return nil

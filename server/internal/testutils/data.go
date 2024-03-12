@@ -67,17 +67,6 @@ func (f *Factory) MakeMonth(budgetID beans.ID, date beans.Date) beans.Month {
 	return month
 }
 
-func (f *Factory) MakeAccount(name string, budgetID beans.ID) beans.Account {
-	id := beans.NewID()
-	err := f.ds.AccountRepository().Create(context.Background(), id, beans.Name(name), budgetID)
-	require.Nil(f.tb, err)
-	return beans.Account{
-		ID:       id,
-		Name:     beans.Name(name),
-		BudgetID: budgetID,
-	}
-}
-
 func (f *Factory) User(user beans.User) beans.User {
 	if user.ID.Empty() {
 		user.ID = beans.NewID()
@@ -110,7 +99,7 @@ func (f *Factory) Account(account beans.Account) beans.Account {
 		account.BudgetID = defaultBudget.ID
 	}
 
-	require.Nil(f.tb, f.ds.AccountRepository().Create(context.Background(), account.ID, account.Name, account.BudgetID))
+	require.Nil(f.tb, f.ds.AccountRepository().Create(context.Background(), account))
 
 	return account
 }
@@ -205,14 +194,6 @@ func (f *Factory) Transaction(budgetID beans.ID, transaction beans.Transaction) 
 
 	if transaction.AccountID.Empty() {
 		transaction.AccountID = f.Account(beans.Account{BudgetID: budgetID}).ID
-	}
-
-	if transaction.CategoryID.Empty() {
-		transaction.CategoryID = f.Category(beans.Category{BudgetID: budgetID}).ID
-	}
-
-	if transaction.PayeeID.Empty() {
-		transaction.PayeeID = f.Payee(beans.Payee{BudgetID: budgetID}).ID
 	}
 
 	if transaction.Date.Empty() {

@@ -29,6 +29,17 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			_, err := interactor.TransactionGet(t, c2.ctx, transaction.ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
+
+		t.Run("can get off-budget variant", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			account := c.Account(AccountOpts{OffBudget: true})
+			transaction := c.Transaction(TransactionOpts{Account: account})
+
+			res, err := interactor.TransactionGet(t, c.ctx, transaction.ID)
+			require.NoError(t, err)
+			assert.Equal(t, beans.TransactionOffBudget, res.Variant)
+		})
 	})
 
 	t.Run("create", func(t *testing.T) {
@@ -85,6 +96,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 			assert.Equal(t, beans.NewTransactionNotes("My Notes"), transaction.Notes)
 
+			assert.Equal(t, beans.TransactionStandard, transaction.Variant)
 			assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name}, transaction.Account)
 			assert.Equal(t, beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}), transaction.Category)
 			assert.Equal(t, beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}), transaction.Payee)
@@ -119,6 +131,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 			assert.Equal(t, beans.TransactionNotes{}, transaction.Notes)
 
+			assert.Equal(t, beans.TransactionStandard, transaction.Variant)
 			assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name}, transaction.Account)
 			assert.True(t, transaction.Category.Empty())
 			assert.True(t, transaction.Payee.Empty())
@@ -167,6 +180,14 @@ func testTransaction(t *testing.T, interactor Interactor) {
 
 				_, err := interactor.TransactionCreate(t, c.ctx, params)
 				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Category ID")
+			})
+
+			t.Run("cannot assign category with off-budget account", func(t *testing.T) {
+				params.AccountID = c.Account(AccountOpts{OffBudget: true}).ID
+				params.CategoryID = c.Category(CategoryOpts{}).ID
+
+				_, err := interactor.TransactionCreate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot assign category with off-budget account")
 			})
 		})
 
@@ -291,6 +312,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes("My Notes"), res.Notes)
 
+				assert.Equal(t, beans.TransactionStandard, res.Variant)
 				assert.Equal(t, beans.RelatedAccount{ID: account2.ID, Name: account2.Name}, res.Account)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedCategory{ID: category2.ID, Name: category2.Name}), res.Category)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedPayee{ID: payee2.ID, Name: payee2.Name}), res.Payee)
@@ -329,6 +351,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes(""), res.Notes)
 
+				assert.Equal(t, beans.TransactionStandard, res.Variant)
 				assert.Equal(t, beans.RelatedAccount{ID: account2.ID, Name: account2.Name}, res.Account)
 				assert.Equal(t, beans.Optional[beans.RelatedCategory]{}, res.Category)
 				assert.Equal(t, beans.Optional[beans.RelatedPayee]{}, res.Payee)
@@ -389,6 +412,14 @@ func testTransaction(t *testing.T, interactor Interactor) {
 
 					err := interactor.TransactionUpdate(t, c.ctx, params)
 					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Category ID")
+				})
+
+				t.Run("cannot assign category with off-budget account", func(t *testing.T) {
+					params.AccountID = c.Account(AccountOpts{OffBudget: true}).ID
+					params.CategoryID = c.Category(CategoryOpts{}).ID
+
+					err := interactor.TransactionUpdate(t, c.ctx, params)
+					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot assign category with off-budget account")
 				})
 			})
 
@@ -502,9 +533,28 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, testutils.NewDate(t, "2022-04-05"), it.Date)
 				assert.Equal(t, beans.NewTransactionNotes("hey"), it.Notes)
 
+				assert.Equal(t, beans.TransactionStandard, it.Variant)
 				assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name}, it.Account)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}), it.Category)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}), it.Payee)
+			})
+		})
+
+		t.Run("can get off-budget variant", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			account := c.Account(AccountOpts{OffBudget: true})
+
+			// make transaction
+			transaction := c.Transaction(TransactionOpts{Account: account})
+
+			// get transactions and verify
+			res, err := interactor.TransactionGetAll(t, c.ctx)
+			require.NoError(t, err)
+
+			assert.Equal(t, 1, len(res))
+			findTransaction(t, res, transaction.ID, func(it beans.TransactionWithRelations) {
+				assert.Equal(t, beans.TransactionOffBudget, it.Variant)
 			})
 		})
 

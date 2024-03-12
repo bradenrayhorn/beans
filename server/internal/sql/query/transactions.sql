@@ -29,7 +29,8 @@ SELECT
   sqlc.embed(transactions),
   accounts.name as account_name,
   categories.name as category_name,
-  payees.name as payee_name
+  payees.name as payee_name,
+  accounts.off_budget as account_off_budget
 FROM transactions
 JOIN accounts
   ON accounts.id = transactions.account_id

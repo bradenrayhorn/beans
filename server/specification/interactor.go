@@ -11,8 +11,9 @@ import (
 
 type Interactor interface {
 	// Account
-	AccountCreate(t *testing.T, ctx Context, name beans.Name) (beans.ID, error)
+	AccountCreate(t *testing.T, ctx Context, params beans.AccountCreate) (beans.ID, error)
 	AccountList(t *testing.T, ctx Context) ([]beans.AccountWithBalance, error)
+	AccountListTransactable(t *testing.T, ctx Context) ([]beans.Account, error)
 	AccountGet(t *testing.T, ctx Context, id beans.ID) (beans.Account, error)
 
 	// Budget
@@ -60,6 +61,7 @@ type Context struct {
 }
 
 type AccountOpts struct {
+	OffBudget bool
 }
 
 type CategoryGroupOpts struct {
@@ -132,9 +134,12 @@ func makeUserAndBudget(t *testing.T, interactor Interactor) *userAndBudget {
 // Factory functions
 
 func (u *userAndBudget) Account(opt AccountOpts) beans.Account {
-	name := beans.Name(beans.NewID().String())
+	params := beans.AccountCreate{
+		Name:      beans.Name(beans.NewID().String()),
+		OffBudget: opt.OffBudget,
+	}
 
-	id, err := u.interactor.AccountCreate(u.t, u.ctx, name)
+	id, err := u.interactor.AccountCreate(u.t, u.ctx, params)
 	require.NoError(u.t, err)
 	account, err := u.interactor.AccountGet(u.t, u.ctx, id)
 	require.NoError(u.t, err)

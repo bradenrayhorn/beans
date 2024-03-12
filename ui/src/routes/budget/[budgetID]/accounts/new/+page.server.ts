@@ -11,6 +11,9 @@ export const actions: Actions = {
       request,
       fetch,
       params,
+      mapFormData: (obj) => {
+        return { ...obj, off_budget: obj.off_budget === "true" };
+      },
     });
 
     if (!res.ok) {

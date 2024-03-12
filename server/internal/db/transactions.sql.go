@@ -178,7 +178,8 @@ SELECT
   transactions.id, transactions.account_id, transactions.payee_id, transactions.category_id, transactions.date, transactions.amount, transactions.notes, transactions.created_at,
   accounts.name as account_name,
   categories.name as category_name,
-  payees.name as payee_name
+  payees.name as payee_name,
+  accounts.off_budget as account_off_budget
 FROM transactions
 JOIN accounts
   ON accounts.id = transactions.account_id
@@ -191,10 +192,11 @@ ORDER BY date desc
 `
 
 type GetTransactionsForBudgetRow struct {
-	Transaction  Transaction
-	AccountName  string
-	CategoryName pgtype.Text
-	PayeeName    pgtype.Text
+	Transaction      Transaction
+	AccountName      string
+	CategoryName     pgtype.Text
+	PayeeName        pgtype.Text
+	AccountOffBudget bool
 }
 
 func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string) ([]GetTransactionsForBudgetRow, error) {
@@ -218,6 +220,7 @@ func (q *Queries) GetTransactionsForBudget(ctx context.Context, budgetID string)
 			&i.AccountName,
 			&i.CategoryName,
 			&i.PayeeName,
+			&i.AccountOffBudget,
 		); err != nil {
 			return nil, err
 		}

@@ -11,7 +11,7 @@ test("can view account", async ({ budget: { id }, page, request }) => {
   // create account and transaction
   const groupID = await createCategoryGroup(id, "Bills", request);
   const categoryID = await createCategory(id, groupID, "Electric", request);
-  const accountID = await createAccount(id, "Checking", request);
+  const accountID = await createAccount(id, request, { name: "Checking" });
   await createTransaction(
     id,
     null,

@@ -33,6 +33,11 @@
       <input name="name" type="text" class="input input-bordered w-full" />
     </label>
 
+    <label class="label cursor-pointer">
+      <span class="label-text">Off Budget</span>
+      <input name="off_budget" type="checkbox" class="checkbox" value="true" />
+    </label>
+
     <div class="w-full flex flex-row justify-between">
       <a
         href={withParameter(paths.budget.accounts.base, $page.params)}

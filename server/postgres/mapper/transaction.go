@@ -56,6 +56,12 @@ func GetTransactionsForBudgetRow(d db.GetTransactionsForBudgetRow) (beans.Transa
 		},
 	}
 
+	if d.AccountOffBudget {
+		transactionWithRelations.Variant = beans.TransactionOffBudget
+	} else {
+		transactionWithRelations.Variant = beans.TransactionStandard
+	}
+
 	if !categoryName.Empty() {
 		transactionWithRelations.Category = beans.OptionalWrap(beans.RelatedCategory{
 			ID:   transaction.CategoryID,

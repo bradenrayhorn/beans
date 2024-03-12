@@ -48,12 +48,12 @@ func (a *contractsAdapter) budgetAuthContext(t *testing.T, ctx specification.Con
 
 // Account
 
-func (i *contractsAdapter) AccountCreate(t *testing.T, ctx specification.Context, name beans.Name) (beans.ID, error) {
+func (i *contractsAdapter) AccountCreate(t *testing.T, ctx specification.Context, params beans.AccountCreate) (beans.ID, error) {
 	auth, err := i.budgetAuthContext(t, ctx)
 	if err != nil {
 		return beans.EmptyID(), err
 	}
-	return i.contracts.Account.Create(context.Background(), auth, name)
+	return i.contracts.Account.Create(context.Background(), auth, params)
 }
 
 func (i *contractsAdapter) AccountList(t *testing.T, ctx specification.Context) ([]beans.AccountWithBalance, error) {
@@ -62,6 +62,14 @@ func (i *contractsAdapter) AccountList(t *testing.T, ctx specification.Context) 
 		return nil, err
 	}
 	return i.contracts.Account.GetAll(context.Background(), auth)
+}
+
+func (i *contractsAdapter) AccountListTransactable(t *testing.T, ctx specification.Context) ([]beans.Account, error) {
+	auth, err := i.budgetAuthContext(t, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return i.contracts.Account.GetTransactable(context.Background(), auth)
 }
 
 func (i *contractsAdapter) AccountGet(t *testing.T, ctx specification.Context, id beans.ID) (beans.Account, error) {

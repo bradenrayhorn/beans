@@ -19,6 +19,8 @@ type Transaction struct {
 type TransactionWithRelations struct {
 	Transaction
 
+	Variant TransactionVariant
+
 	Account  RelatedAccount
 	Category Optional[RelatedCategory]
 	Payee    Optional[RelatedPayee]
@@ -29,6 +31,13 @@ type TransactionNotes struct{ NullString }
 func NewTransactionNotes(string string) TransactionNotes {
 	return TransactionNotes{NullString: NewNullString(string)}
 }
+
+type TransactionVariant string
+
+const (
+	TransactionStandard  TransactionVariant = "standard"
+	TransactionOffBudget TransactionVariant = "off_budget"
+)
 
 type TransactionContract interface {
 	// Creates a transaction.
@@ -62,6 +71,7 @@ type TransactionRepository interface {
 	// Gets sum of all income transactions between the dates.
 	GetIncomeBetween(ctx context.Context, budgetID ID, begin Date, end Date) (Amount, error)
 
+	// Gets sum of transactions grouped by category between the dates.
 	GetActivityByCategory(ctx context.Context, budgetID ID, from Date, to Date) (map[ID]Amount, error)
 }
 

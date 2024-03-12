@@ -161,32 +161,56 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("can get all", func(t *testing.T) {
-		budget1, _ := factory.MakeBudgetAndUser()
-		budget2, _ := factory.MakeBudgetAndUser()
+	t.Run("get all for budget", func(t *testing.T) {
 
-		account := factory.Account(beans.Account{BudgetID: budget1.ID})
-		payee := factory.Payee(beans.Payee{BudgetID: budget1.ID})
-		category := factory.Category(beans.Category{BudgetID: budget1.ID})
+		t.Run("can get all", func(t *testing.T) {
+			budget1, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
 
-		transaction1 := factory.Transaction(budget1.ID, beans.Transaction{
-			AccountID:  account.ID,
-			PayeeID:    payee.ID,
-			CategoryID: category.ID,
+			account := factory.Account(beans.Account{BudgetID: budget1.ID})
+			payee := factory.Payee(beans.Payee{BudgetID: budget1.ID})
+			category := factory.Category(beans.Category{BudgetID: budget1.ID})
+
+			transaction1 := factory.Transaction(budget1.ID, beans.Transaction{
+				AccountID:  account.ID,
+				PayeeID:    payee.ID,
+				CategoryID: category.ID,
+			})
+			// this transaction should not be included
+			factory.Transaction(budget2.ID, beans.Transaction{})
+
+			transactions, err := transactionRepository.GetForBudget(ctx, budget1.ID)
+			require.Nil(t, err)
+			assert.Len(t, transactions, 1)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction: transaction1,
+				Variant:     beans.TransactionStandard,
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
+				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
+			}, transactions[0])
 		})
-		// this transaction should not be included
-		factory.Transaction(budget2.ID, beans.Transaction{})
 
-		transactions, err := transactionRepository.GetForBudget(ctx, budget1.ID)
-		require.Nil(t, err)
-		assert.Len(t, transactions, 1)
+		t.Run("maps off budget variant", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
 
-		assert.Equal(t, beans.TransactionWithRelations{
-			Transaction: transaction1,
-			Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
-			Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
-			Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
-		}, transactions[0])
+			account := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+
+			transaction := factory.Transaction(budget.ID, beans.Transaction{AccountID: account.ID})
+
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.Nil(t, err)
+			require.Equal(t, 1, len(res))
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction: transaction,
+				Variant:     beans.TransactionOffBudget,
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Category:    beans.Optional[beans.RelatedCategory]{},
+				Payee:       beans.Optional[beans.RelatedPayee]{},
+			}, res[0])
+		})
 	})
 
 	t.Run("can get activity by category", func(t *testing.T) {
@@ -298,73 +322,76 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 	})
 
 	t.Run("can get income", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-		incomeGroup := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget.ID, IsIncome: true})
-		incomeCategory := factory.Category(beans.Category{BudgetID: budget.ID, GroupID: incomeGroup.ID})
-		otherCategory := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		budget2, _ := factory.MakeBudgetAndUser()
-		budget2IncomeGroup := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget2.ID, IsIncome: true})
-		budget2IncomeCategory := factory.Category(beans.Category{BudgetID: budget2.ID, GroupID: budget2IncomeGroup.ID})
+		t.Run("can get", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			incomeGroup := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget.ID, IsIncome: true})
+			incomeCategory := factory.Category(beans.Category{BudgetID: budget.ID, GroupID: incomeGroup.ID})
+			otherCategory := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		// Earned $1 in September
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(1, 0),
-			Date:       testutils.NewDate(t, "2022-09-01"),
-			CategoryID: incomeCategory.ID,
+			budget2, _ := factory.MakeBudgetAndUser()
+			budget2IncomeGroup := factory.CategoryGroup(beans.CategoryGroup{BudgetID: budget2.ID, IsIncome: true})
+			budget2IncomeCategory := factory.Category(beans.Category{BudgetID: budget2.ID, GroupID: budget2IncomeGroup.ID})
+
+			// Earned $1 in September
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(1, 0),
+				Date:       testutils.NewDate(t, "2022-09-01"),
+				CategoryID: incomeCategory.ID,
+			})
+			// Earned $2 in August
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(2, 0),
+				Date:       testutils.NewDate(t, "2022-08-31"),
+				CategoryID: incomeCategory.ID,
+			})
+			// Earned $3 in August
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(3, 0),
+				Date:       testutils.NewDate(t, "2022-08-01"),
+				CategoryID: incomeCategory.ID,
+			})
+			// Earned $3 in July
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(3, 0),
+				Date:       testutils.NewDate(t, "2022-07-31"),
+				CategoryID: incomeCategory.ID,
+			})
+
+			// Spent $99 in August
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(99, 0),
+				Date:       testutils.NewDate(t, "2022-08-31"),
+				CategoryID: otherCategory.ID,
+			})
+			// Spent $99 in July
+			factory.Transaction(budget.ID, beans.Transaction{
+				Amount:     beans.NewAmount(99, 0),
+				Date:       testutils.NewDate(t, "2022-07-29"),
+				CategoryID: otherCategory.ID,
+			})
+
+			// Budget 2, earned $99 in August
+			factory.Transaction(budget2.ID, beans.Transaction{
+				Amount:     beans.NewAmount(99, 0),
+				Date:       testutils.NewDate(t, "2022-08-15"),
+				CategoryID: budget2IncomeCategory.ID,
+			})
+
+			amount, err := transactionRepository.GetIncomeBetween(ctx, budget.ID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
+			require.Nil(t, err)
+
+			// August earnings for budget 1 = $5
+			require.Equal(t, beans.NewAmount(5, 0), amount)
 		})
-		// Earned $2 in August
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(2, 0),
-			Date:       testutils.NewDate(t, "2022-08-31"),
-			CategoryID: incomeCategory.ID,
+
+		t.Run("can get with no income", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			amount, err := transactionRepository.GetIncomeBetween(ctx, budget.ID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
+
+			require.Nil(t, err)
+
+			require.Equal(t, beans.NewAmount(0, 0), amount)
 		})
-		// Earned $3 in August
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(3, 0),
-			Date:       testutils.NewDate(t, "2022-08-01"),
-			CategoryID: incomeCategory.ID,
-		})
-		// Earned $3 in July
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(3, 0),
-			Date:       testutils.NewDate(t, "2022-07-31"),
-			CategoryID: incomeCategory.ID,
-		})
-
-		// Spent $99 in August
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(99, 0),
-			Date:       testutils.NewDate(t, "2022-08-31"),
-			CategoryID: otherCategory.ID,
-		})
-		// Spent $99 in July
-		factory.Transaction(budget.ID, beans.Transaction{
-			Amount:     beans.NewAmount(99, 0),
-			Date:       testutils.NewDate(t, "2022-07-29"),
-			CategoryID: otherCategory.ID,
-		})
-
-		// Budget 2, earned $99 in August
-		factory.Transaction(budget2.ID, beans.Transaction{
-			Amount:     beans.NewAmount(99, 0),
-			Date:       testutils.NewDate(t, "2022-08-15"),
-			CategoryID: budget2IncomeCategory.ID,
-		})
-
-		amount, err := transactionRepository.GetIncomeBetween(ctx, budget.ID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
-		require.Nil(t, err)
-
-		// August earnings for budget 1 = $5
-		require.Equal(t, beans.NewAmount(5, 0), amount)
-	})
-
-	t.Run("can get blank income", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-		amount, err := transactionRepository.GetIncomeBetween(ctx, budget.ID, testutils.NewDate(t, "2022-08-01"), testutils.NewDate(t, "2022-08-31"))
-
-		require.Nil(t, err)
-
-		require.Equal(t, beans.NewAmount(0, 0), amount)
 	})
 }
