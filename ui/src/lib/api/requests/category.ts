@@ -5,10 +5,6 @@ import type { DataWrapped } from "./data-wrapped";
 import type { WithFetch } from "./fetch";
 import { withBudgetHeader, type WithBudgetID } from "./with-budget-header";
 
-type APICategory = Omit<CategoryGroup, "isIncome"> & {
-  is_income: boolean;
-};
-
 export const getCategoryGroups = async ({
   fetch: _fetch,
   params,
@@ -19,10 +15,7 @@ export const getCategoryGroups = async ({
     return await getError(res);
   }
 
-  return await res.json().then((json: DataWrapped<Array<APICategory>>) =>
-    json.data.map(({ is_income, ...category }) => ({
-      ...category,
-      isIncome: is_income,
-    })),
-  );
+  return await res
+    .json()
+    .then((json: DataWrapped<Array<CategoryGroup>>) => json.data);
 };

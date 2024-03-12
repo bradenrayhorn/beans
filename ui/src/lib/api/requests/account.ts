@@ -10,13 +10,7 @@ type APIAccountWithBalance = {
   id: string;
   name: string;
   balance: APIAmount;
-  off_budget: boolean;
-};
-
-type APIAccount = {
-  id: string;
-  name: string;
-  off_budget: boolean;
+  offBudget: boolean;
 };
 
 export const getAccounts = async ({
@@ -36,7 +30,7 @@ export const getAccounts = async ({
         id: account.id,
         name: account.name,
         balance: new Amount(account.balance),
-        offBudget: account.off_budget,
+        offBudget: account.offBudget,
       })),
     );
 };
@@ -54,11 +48,7 @@ export const getTransactableAccounts = async ({
     return await getError(res);
   }
 
-  return await res.json().then((json: DataWrapped<Array<APIAccount>>) =>
-    json.data.map((account) => ({
-      id: account.id,
-      name: account.name,
-      offBudget: account.off_budget,
-    })),
-  );
+  return await res
+    .json()
+    .then((json: DataWrapped<Array<Account>>) => json.data);
 };
