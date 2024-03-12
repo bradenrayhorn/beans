@@ -110,6 +110,12 @@ func (r *transactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		account := r.database.accounts[it.AccountID]
 		t.Account = beans.RelatedAccount{ID: account.ID, Name: account.Name}
 
+		if account.OffBudget {
+			t.Variant = beans.TransactionOffBudget
+		} else {
+			t.Variant = beans.TransactionStandard
+		}
+
 		if !it.CategoryID.Empty() {
 			category := r.database.categories[it.CategoryID]
 			t.Category = beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name})

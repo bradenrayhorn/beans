@@ -19,12 +19,12 @@ func mapAll[T any, K any](objs []T, mapper func(T) K) []K {
 // account
 
 func mapAccount(t response.Account) beans.Account {
-	return beans.Account{ID: t.ID, Name: beans.Name(t.Name)}
+	return beans.Account{ID: t.ID, Name: beans.Name(t.Name), OffBudget: t.OffBudget}
 }
 
 func mapListAccount(t response.ListAccount) beans.AccountWithBalance {
 	return beans.AccountWithBalance{
-		Account: beans.Account{ID: t.ID, Name: beans.Name(t.Name)},
+		Account: beans.Account{ID: t.ID, Name: beans.Name(t.Name), OffBudget: t.OffBudget},
 		Balance: t.Balance,
 	}
 }
@@ -110,6 +110,7 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 			Date:      t.Date,
 			Notes:     t.Notes,
 		},
+		Variant: t.Variant,
 		Account: beans.RelatedAccount{
 			ID:   t.Account.ID,
 			Name: t.Account.Name,

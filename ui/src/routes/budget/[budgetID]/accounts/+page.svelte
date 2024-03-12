@@ -5,6 +5,10 @@
   import type { PageData } from "./$types";
 
   export let data: PageData;
+
+  $: accounts = data.accounts.sort((a, b) =>
+    a.offBudget === b.offBudget ? 0 : a.offBudget ? 1 : -1,
+  );
 </script>
 
 <div class="p-4 md:max-w-md md:mx-auto">
@@ -12,12 +16,15 @@
 
   <div>
     <div class="flex flex-col gap-4" role="list">
-      {#each data.accounts as account (account.id)}
+      {#each accounts as account (account.id)}
         <div class="p-4 shadow-md rounded-md bg-base-100" role="listitem">
           <h2 class="font-bold text-lg">{account.name}</h2>
           <div>
             Balance: {account.balance.display}
           </div>
+          {#if account.offBudget}
+            <div class="italic">Off-Budget</div>
+          {/if}
         </div>
       {/each}
     </div>

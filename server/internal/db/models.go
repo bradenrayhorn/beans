@@ -12,6 +12,7 @@ type Account struct {
 	ID        string
 	Name      string
 	BudgetID  string
+	OffBudget bool
 	CreatedAt pgtype.Timestamp
 }
 

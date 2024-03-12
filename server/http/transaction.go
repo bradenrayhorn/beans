@@ -28,7 +28,8 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 	}
 
 	return response.Transaction{
-		ID: transaction.ID,
+		ID:      transaction.ID,
+		Variant: transaction.Variant,
 		Account: response.AssociatedAccount{
 			ID:   transaction.AccountID,
 			Name: transaction.Account.Name,

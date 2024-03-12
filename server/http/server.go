@@ -70,6 +70,8 @@ func NewServer(
 
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/", s.handleAccountsGet())
+				r.Get("/transactable", s.handleAccountsGetTransactable())
+
 				r.Post("/", s.handleAccountCreate())
 				r.Get("/{accountID}", s.handleAccountGet())
 			})

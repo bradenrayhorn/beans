@@ -35,7 +35,11 @@
         >
         <td>{transaction.date}</td>
         <td class="pr-2 truncate">{transaction.payee?.name ?? ""}</td>
-        <td class="pr-2 truncate">{transaction.category?.name}</td>
+        {#if transaction.variant === "off_budget"}
+          <td class="pr-2 truncate italic">Off-Budget</td>
+        {:else}
+          <td class="pr-2 truncate">{transaction.category?.name ?? ""}</td>
+        {/if}
         <td class="pr-2 truncate">{transaction.account.name}</td>
         <td class="pr-2 truncate">{transaction.notes ?? ""}</td>
         <td class="text-right pr-0 truncate">{transaction.amount.display}</td>

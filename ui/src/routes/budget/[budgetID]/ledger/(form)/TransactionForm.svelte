@@ -17,6 +17,8 @@
   export let payees: Array<Payee>;
   export let transaction: Transaction | undefined = undefined;
 
+  let selectedAccount: Account | undefined;
+
   let isSubmitting = false;
   $: isLoading = !!$navigating || isSubmitting;
 </script>
@@ -49,9 +51,29 @@
 
   <PayeeCombobox {payees} defaultPayee={transaction?.payee} />
 
-  <CategoryCombobox {categoryGroups} defaultCategory={transaction?.category} />
+  {#if selectedAccount?.offBudget}
+    <label>
+      <span class="label label-text">Category</span>
+      <input
+        name="category-placeholder"
+        type="text"
+        class="input input-sm input-bordered w-full"
+        disabled
+        value="Off-Budget"
+      />
+    </label>
+  {:else}
+    <CategoryCombobox
+      {categoryGroups}
+      defaultCategory={transaction?.category}
+    />
+  {/if}
 
-  <AccountCombobox {accounts} defaultAccount={transaction?.account} />
+  <AccountCombobox
+    {accounts}
+    defaultAccount={transaction?.account}
+    bind:account={selectedAccount}
+  />
 
   <label>
     <span class="label label-text">Notes</span>

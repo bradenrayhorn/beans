@@ -19,8 +19,13 @@ func mustFind[T any](t *testing.T, items []T, matches func(a T) bool) T {
 	return empty
 }
 
-func findAccount(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(account beans.AccountWithBalance)) {
+func findAccountWithBalance(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(account beans.AccountWithBalance)) {
 	res := mustFind(t, items, func(a beans.AccountWithBalance) bool { return a.ID == id })
+	do(res)
+}
+
+func findAccount(t *testing.T, items []beans.Account, id beans.ID, do func(account beans.Account)) {
+	res := mustFind(t, items, func(a beans.Account) bool { return a.ID == id })
 	do(res)
 }
 

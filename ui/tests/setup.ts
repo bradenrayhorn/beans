@@ -65,12 +65,13 @@ export const test = base.extend<Fixtures>({
 
 export const createAccount = async (
   budgetID: string,
-  name: string,
   request: APIRequestContext,
+  { name, offBudget = false }: { name: string; offBudget?: boolean },
 ): Promise<string> => {
   const response = await request.post(`/api/v1/accounts`, {
     data: {
       name,
+      off_budget: offBudget,
     },
     headers: { "Budget-ID": budgetID },
   });
@@ -121,7 +122,7 @@ export const createCategory = async (
 export const createTransaction = async (
   budgetID: string,
   payeeID: string | null,
-  categoryID: string,
+  categoryID: string | null,
   accountID: string,
   amount: string,
   date: string,
