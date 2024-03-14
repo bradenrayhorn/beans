@@ -1,7 +1,7 @@
--- name: CreateTransaction :exec
+-- name: CreateTransaction :copyfrom
 INSERT INTO transactions (
-  id, account_id, payee_id, category_id, date, amount, notes
-) VALUES ($1, $2, $3, $4, $5, $6, $7);
+  id, account_id, payee_id, category_id, date, amount, notes, transfer_id
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 
 -- name: UpdateTransaction :exec
 UPDATE transactions
@@ -23,23 +23,6 @@ SELECT transactions.*
     ON accounts.id = transactions.account_id
     AND accounts.budget_id = @budget_id
   WHERE transactions.id = @id;
-
--- name: GetTransactionsForBudget :many
-SELECT
-  sqlc.embed(transactions),
-  accounts.name as account_name,
-  categories.name as category_name,
-  payees.name as payee_name,
-  accounts.off_budget as account_off_budget
-FROM transactions
-JOIN accounts
-  ON accounts.id = transactions.account_id
-  AND accounts.budget_id = $1
-LEFT JOIN categories
-  ON categories.id = transactions.category_id
-LEFT JOIN payees
-  ON payees.id = transactions.payee_id
-ORDER BY date desc;
 
 -- name: GetIncomeBetween :one
 SELECT sum(transactions.amount)::numeric

@@ -209,9 +209,39 @@ func (f *Factory) Transaction(budgetID beans.ID, transaction beans.Transaction) 
 		transaction.Amount = beans.NewAmount(coefficient, exponent)
 	}
 
-	require.Nil(f.tb, f.ds.TransactionRepository().Create(context.Background(), transaction))
+	require.Nil(f.tb, f.ds.TransactionRepository().Create(
+		context.Background(),
+		[]beans.Transaction{transaction},
+	))
 
 	return transaction
+}
+
+func (f *Factory) Transfer(budgetID beans.ID, accountA beans.Account, accountB beans.Account, amount beans.Amount) []beans.Transaction {
+	date := beans.NewDate(RandomTime())
+
+	transactionA := beans.Transaction{
+		ID:        beans.NewID(),
+		AccountID: accountA.ID,
+		Amount:    amount,
+		Date:      date,
+	}
+	transactionB := beans.Transaction{
+		ID:        beans.NewID(),
+		AccountID: accountB.ID,
+		Amount:    beans.Arithmetic.Negate(amount),
+		Date:      date,
+	}
+
+	transactionA.TransferID = transactionB.ID
+	transactionB.TransferID = transactionA.ID
+
+	require.Nil(f.tb, f.ds.TransactionRepository().Create(
+		context.Background(),
+		[]beans.Transaction{transactionA, transactionB},
+	))
+
+	return []beans.Transaction{transactionA, transactionB}
 }
 
 func (f *Factory) Month(month beans.Month) beans.Month {

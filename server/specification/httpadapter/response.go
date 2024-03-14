@@ -104,11 +104,12 @@ func mapPayee(t response.Payee) beans.Payee {
 func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRelations {
 	transaction := beans.TransactionWithRelations{
 		Transaction: beans.Transaction{
-			ID:        t.ID,
-			AccountID: t.Account.ID,
-			Amount:    t.Amount,
-			Date:      t.Date,
-			Notes:     t.Notes,
+			ID:         t.ID,
+			AccountID:  t.Account.ID,
+			Amount:     t.Amount,
+			Date:       t.Date,
+			Notes:      t.Notes,
+			TransferID: t.TransferID,
 		},
 		Variant: t.Variant,
 		Account: beans.RelatedAccount{
@@ -124,6 +125,9 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 	if t.Payee != nil {
 		transaction.PayeeID = t.Payee.ID
 		transaction.Payee = beans.OptionalWrap(beans.RelatedPayee{ID: t.Payee.ID, Name: t.Payee.Name})
+	}
+	if t.TransferAccount != nil {
+		transaction.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{ID: t.TransferAccount.ID, Name: t.TransferAccount.Name})
 	}
 
 	return transaction

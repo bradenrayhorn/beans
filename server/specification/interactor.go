@@ -85,6 +85,15 @@ type TransactionOpts struct {
 	Notes    string
 }
 
+type TransferOpts struct {
+	AccountA beans.Account
+	AccountB beans.Account
+
+	Amount string
+	Date   string
+	Notes  string
+}
+
 type PayeeOpts struct{}
 
 type user struct {
@@ -252,6 +261,50 @@ func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {
 	require.NoError(u.t, err)
 
 	return transaction.Transaction
+}
+
+func (u *userAndBudget) Transfer(opt TransferOpts) []beans.Transaction {
+	params := beans.TransactionParams{}
+	createParams := beans.TransactionCreateParams{}
+
+	// account
+	if opt.AccountA.ID.Empty() {
+		params.AccountID = u.Account(AccountOpts{}).ID
+	} else {
+		params.AccountID = opt.AccountA.ID
+	}
+
+	// accountB
+	if opt.AccountB.ID.Empty() {
+		createParams.TransferAccountID = u.Account(AccountOpts{}).ID
+	} else {
+		createParams.TransferAccountID = opt.AccountB.ID
+	}
+
+	// date
+	if opt.Date == "" {
+		params.Date = beans.NewDate(testutils.RandomTime())
+	} else {
+		params.Date = testutils.NewDate(u.t, opt.Date)
+	}
+
+	// amount
+	if opt.Amount == "" {
+		params.Amount = beans.NewAmount(15, 1)
+	} else {
+		require.NoError(u.t, json.Unmarshal([]byte(opt.Amount), &params.Amount))
+	}
+
+	// create
+	createParams.TransactionParams = params
+	id, err := u.interactor.TransactionCreate(u.t, u.ctx, createParams)
+	require.NoError(u.t, err)
+	transactionA, err := u.interactor.TransactionGet(u.t, u.ctx, id)
+	require.NoError(u.t, err)
+	transactionB, err := u.interactor.TransactionGet(u.t, u.ctx, transactionA.TransferID)
+	require.NoError(u.t, err)
+
+	return []beans.Transaction{transactionA.Transaction, transactionB.Transaction}
 }
 
 // Other helpers

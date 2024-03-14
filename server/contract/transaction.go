@@ -17,12 +17,8 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		return beans.EmptyID(), err
 	}
 
-	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
+	account, err := c.validateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
 	if err != nil {
-		if errors.Is(err, beans.ErrorNotFound) {
-			return beans.EmptyID(), beans.NewError(beans.EINVALID, "Invalid Account ID")
-		}
-
 		return beans.EmptyID(), err
 	}
 
@@ -43,7 +39,34 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		Date:       data.Date,
 		Notes:      data.Notes,
 	}
-	err = c.ds().TransactionRepository().Create(ctx, transaction)
+
+	transactions := []beans.Transaction{transaction}
+
+	// check if initiating transfer
+	if !data.TransferAccountID.Empty() {
+
+		if _, err := c.validateAccount(ctx, auth, data.TransferAccountID, "Invalid Transfer Account"); err != nil {
+			return beans.EmptyID(), err
+		}
+
+		// copy transaction
+		transactionB := beans.Transaction{
+			ID:         beans.NewID(),
+			AccountID:  data.TransferAccountID,
+			Amount:     beans.Arithmetic.Negate(data.Amount),
+			Date:       data.Date,
+			Notes:      data.Notes,
+			TransferID: transaction.ID,
+		}
+
+		// make transactionA a transfer
+		transaction.TransferID = transactionB.ID
+
+		// save
+		transactions = []beans.Transaction{transaction, transactionB}
+	}
+
+	err = c.ds().TransactionRepository().Create(ctx, transactions)
 	if err != nil {
 		return beans.EmptyID(), err
 	}
@@ -61,13 +84,14 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
-	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), data.AccountID)
+	account, err := c.validateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
 	if err != nil {
-		if errors.Is(err, beans.ErrorNotFound) {
-			return beans.NewError(beans.EINVALID, "Invalid Account ID")
-		}
-
 		return err
+	}
+
+	// cannot set payee or category on transfer
+	if !transaction.TransferID.Empty() && (!data.CategoryID.Empty() || !data.PayeeID.Empty()) {
+		return beans.NewError(beans.EINVALID, "cannot set a payee or category on transfer")
 	}
 
 	if err = c.validateCategory(ctx, auth, account, data.CategoryID); err != nil {
@@ -78,6 +102,7 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
+	// update primary transaction
 	transaction.AccountID = data.AccountID
 	transaction.CategoryID = data.CategoryID
 	transaction.PayeeID = data.PayeeID
@@ -85,8 +110,23 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 	transaction.Date = data.Date
 	transaction.Notes = data.Notes
 
-	err = c.ds().TransactionRepository().Update(ctx, transaction)
-	if err != nil {
+	updates := []beans.Transaction{transaction}
+
+	// update transfer, if it exists
+	if !transaction.TransferID.Empty() {
+		transactionB, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), transaction.TransferID)
+		if err != nil {
+			return fmt.Errorf("could not get transfer: %w", err)
+		}
+
+		transactionB.Amount = beans.Arithmetic.Negate(data.Amount)
+		transactionB.Date = data.Date
+		transactionB.Notes = data.Notes
+
+		updates = append(updates, transactionB)
+	}
+
+	if err := c.ds().TransactionRepository().Update(ctx, updates); err != nil {
 		return err
 	}
 
@@ -102,45 +142,7 @@ func (c *transactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuth
 }
 
 func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.TransactionWithRelations, error) {
-	transaction, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), id)
-	if err != nil {
-		return beans.TransactionWithRelations{}, err
-	}
-
-	currentAccount, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), transaction.AccountID)
-	if err != nil {
-		return beans.TransactionWithRelations{}, fmt.Errorf("could not find related account: %w", err)
-	}
-
-	fullTransaction := beans.TransactionWithRelations{
-		Transaction: transaction,
-		Variant:     beans.TransactionStandard,
-		Account:     beans.RelatedAccount{ID: currentAccount.ID, Name: currentAccount.Name},
-	}
-
-	if currentAccount.OffBudget {
-		fullTransaction.Variant = beans.TransactionOffBudget
-	}
-
-	if !transaction.CategoryID.Empty() {
-		category, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, transaction.CategoryID, auth.BudgetID())
-		if err != nil {
-			return beans.TransactionWithRelations{}, fmt.Errorf("could not find related category %s for transaction %s", transaction.CategoryID, id)
-		}
-
-		fullTransaction.Category = beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name})
-	}
-
-	if !transaction.PayeeID.Empty() {
-		payee, err := c.ds().PayeeRepository().Get(ctx, auth.BudgetID(), transaction.PayeeID)
-		if err != nil {
-			return beans.TransactionWithRelations{}, fmt.Errorf("could not find related payee %s for transaction %s", transaction.PayeeID, id)
-		}
-
-		fullTransaction.Payee = beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name})
-	}
-
-	return fullTransaction, nil
+	return c.ds().TransactionRepository().GetWithRelations(ctx, auth.BudgetID(), id)
 }
 
 func (c *transactionContract) validatePayee(ctx context.Context, auth *beans.BudgetAuthContext, payeeID beans.ID) error {
@@ -174,4 +176,17 @@ func (c *transactionContract) validateCategory(ctx context.Context, auth *beans.
 	}
 
 	return nil
+}
+
+func (c *transactionContract) validateAccount(ctx context.Context, auth *beans.BudgetAuthContext, accountID beans.ID, msg string) (beans.Account, error) {
+	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), accountID)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return beans.Account{}, beans.NewError(beans.EINVALID, msg)
+		}
+
+		return beans.Account{}, err
+	}
+
+	return account, nil
 }
