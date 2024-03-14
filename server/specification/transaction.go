@@ -40,6 +40,23 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			require.NoError(t, err)
 			assert.Equal(t, beans.TransactionOffBudget, res.Variant)
 		})
+
+		t.Run("can get transfer", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			accountA := c.Account(AccountOpts{})
+			accountB := c.Account(AccountOpts{})
+			transactions := c.Transfer(TransferOpts{
+				AccountA: accountA,
+				AccountB: accountB,
+			})
+
+			res, err := interactor.TransactionGet(t, c.ctx, transactions[0].ID)
+			require.NoError(t, err)
+			assert.Equal(t, beans.TransactionTransfer, res.Variant)
+			assert.Equal(t, transactions[1].ID, res.TransferID)
+			assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}), res.TransferAccount)
+		})
 	})
 
 	t.Run("create", func(t *testing.T) {
@@ -135,6 +152,95 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name}, transaction.Account)
 			assert.True(t, transaction.Category.Empty())
 			assert.True(t, transaction.Payee.Empty())
+		})
+
+		// transfers
+		t.Run("transfers", func(t *testing.T) {
+
+			t.Run("can transfer", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				accountA := c.Account(AccountOpts{})
+				accountB := c.Account(AccountOpts{})
+
+				// create transaction
+				params := beans.TransactionCreateParams{
+					TransferAccountID: accountB.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: accountA.ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+					},
+				}
+
+				id, err := interactor.TransactionCreate(t, c.ctx, params)
+				require.NoError(t, err)
+
+				// get transaction and verify
+				transaction, err := interactor.TransactionGet(t, c.ctx, id)
+				require.NoError(t, err)
+
+				assert.False(t, transaction.ID.Empty())
+				assert.Equal(t, accountA.ID, transaction.AccountID)
+				assert.Equal(t, true, transaction.CategoryID.Empty())
+				assert.Equal(t, true, transaction.PayeeID.Empty())
+				assert.Equal(t, beans.NewAmount(7, 0), transaction.Amount)
+				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
+				assert.Equal(t, true, transaction.Notes.Empty())
+				assert.Equal(t, false, transaction.TransferID.Empty())
+
+				assert.Equal(t, beans.TransactionTransfer, transaction.Variant)
+				assert.Equal(t, beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}, transaction.Account)
+				assert.Equal(t, beans.Optional[beans.RelatedCategory]{}, transaction.Category)
+				assert.Equal(t, beans.Optional[beans.RelatedPayee]{}, transaction.Payee)
+				assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}), transaction.TransferAccount)
+
+				// verify other side
+				transaction, err = interactor.TransactionGet(t, c.ctx, transaction.TransferID)
+				require.NoError(t, err)
+
+				assert.False(t, transaction.ID.Empty())
+				assert.Equal(t, accountB.ID, transaction.AccountID)
+				assert.Equal(t, true, transaction.CategoryID.Empty())
+				assert.Equal(t, true, transaction.PayeeID.Empty())
+				assert.Equal(t, beans.NewAmount(-7, 0), transaction.Amount)
+				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
+				assert.Equal(t, true, transaction.Notes.Empty())
+				assert.Equal(t, false, transaction.TransferID.Empty())
+
+				assert.Equal(t, beans.TransactionTransfer, transaction.Variant)
+				assert.Equal(t, beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}, transaction.Account)
+				assert.Equal(t, beans.Optional[beans.RelatedCategory]{}, transaction.Category)
+				assert.Equal(t, beans.Optional[beans.RelatedPayee]{}, transaction.Payee)
+				assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}), transaction.TransferAccount)
+			})
+
+			t.Run("transfer account validation", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+				c2 := makeUserAndBudget(t, interactor)
+
+				accountA := c.Account(AccountOpts{})
+				accountB := c2.Account(AccountOpts{})
+
+				t.Run("cannot transfer to account from other budget", func(t *testing.T) {
+					params := basicParams
+					params.AccountID = accountA.ID
+					params.TransferAccountID = accountB.ID
+
+					_, err := interactor.TransactionCreate(t, c.ctx, params)
+					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Transfer Account")
+				})
+
+				t.Run("cannot transfer to non-existent account", func(t *testing.T) {
+					params := basicParams
+					params.AccountID = accountA.ID
+					params.TransferAccountID = beans.NewID()
+
+					_, err := interactor.TransactionCreate(t, c.ctx, params)
+					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Transfer Account")
+				})
+			})
+
 		})
 
 		// account validation
@@ -356,6 +462,45 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, beans.Optional[beans.RelatedCategory]{}, res.Category)
 				assert.Equal(t, beans.Optional[beans.RelatedPayee]{}, res.Payee)
 			})
+
+			t.Run("can update transfer", func(t *testing.T) {
+
+				// create transactions
+				transactions := c.Transfer(TransferOpts{
+					Amount: "10",
+				})
+				transactionA := transactions[0]
+				transactionB := transactions[1]
+
+				// update transaction B
+				params := beans.TransactionUpdateParams{
+					ID: transactionB.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: transactionB.AccountID,
+						Amount:    beans.NewAmount(6, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Notes:     beans.NewTransactionNotes("hey there"),
+					},
+				}
+
+				require.NoError(t, interactor.TransactionUpdate(t, c.ctx, params))
+
+				// get and verify transaction A
+				res, err := interactor.TransactionGet(t, c.ctx, transactionA.ID)
+				require.NoError(t, err)
+
+				assert.Equal(t, beans.NewAmount(-6, 0), res.Amount)
+				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
+				assert.Equal(t, beans.NewTransactionNotes("hey there"), res.Notes)
+
+				// get and verify transaction B
+				res, err = interactor.TransactionGet(t, c.ctx, transactionB.ID)
+				require.NoError(t, err)
+
+				assert.Equal(t, beans.NewAmount(6, 0), res.Amount)
+				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
+				assert.Equal(t, beans.NewTransactionNotes("hey there"), res.Notes)
+			})
 		})
 
 		t.Run("validates related models", func(t *testing.T) {
@@ -364,6 +509,8 @@ func testTransaction(t *testing.T, interactor Interactor) {
 
 			account := c.Account(AccountOpts{})
 
+			transferTransactions := c.Transfer(TransferOpts{})
+			transfer := transferTransactions[0]
 			transaction := c.Transaction(TransactionOpts{
 				Account: account,
 				Amount:  "10",
@@ -376,6 +523,9 @@ func testTransaction(t *testing.T, interactor Interactor) {
 					Date:   testutils.NewDate(t, "2022-06-07"),
 				},
 			}
+			transferParams := basicParams
+			transferParams.AccountID = account.ID
+			transferParams.ID = transfer.ID
 
 			t.Run("account", func(t *testing.T) {
 
@@ -415,11 +565,20 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				})
 
 				t.Run("cannot assign category with off-budget account", func(t *testing.T) {
+					params := params
 					params.AccountID = c.Account(AccountOpts{OffBudget: true}).ID
 					params.CategoryID = c.Category(CategoryOpts{}).ID
 
 					err := interactor.TransactionUpdate(t, c.ctx, params)
 					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot assign category with off-budget account")
+				})
+
+				t.Run("cannot assign category with transfer", func(t *testing.T) {
+					transferParams := transferParams
+					transferParams.CategoryID = c.Category(CategoryOpts{}).ID
+
+					err := interactor.TransactionUpdate(t, c.ctx, transferParams)
+					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "cannot set a payee or category on transfer")
 				})
 			})
 
@@ -439,6 +598,14 @@ func testTransaction(t *testing.T, interactor Interactor) {
 
 					err := interactor.TransactionUpdate(t, c.ctx, params)
 					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Payee ID")
+				})
+
+				t.Run("cannot assign payee with transfer", func(t *testing.T) {
+					transferParams := transferParams
+					transferParams.PayeeID = c.Payee(PayeeOpts{}).ID
+
+					err := interactor.TransactionUpdate(t, c.ctx, transferParams)
+					testutils.AssertErrorAndCode(t, err, beans.EINVALID, "cannot set a payee or category on transfer")
 				})
 			})
 
@@ -498,6 +665,23 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			_, err = interactor.TransactionGet(t, c.ctx, transaction.ID)
 			require.NoError(t, err)
 		})
+
+		t.Run("deleting one side of transfer deletes both transactions", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			transfer := c.Transfer(TransferOpts{})
+
+			// delete first transaction
+			err := interactor.TransactionDelete(t, c.ctx, []beans.ID{transfer[0].ID})
+			require.NoError(t, err)
+
+			// check that both are deleted
+			_, err = interactor.TransactionGet(t, c.ctx, transfer[0].ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+
+			_, err = interactor.TransactionGet(t, c.ctx, transfer[1].ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
 	})
 
 	t.Run("get all", func(t *testing.T) {
@@ -556,6 +740,30 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			findTransaction(t, res, transaction.ID, func(it beans.TransactionWithRelations) {
 				assert.Equal(t, beans.TransactionOffBudget, it.Variant)
 			})
+		})
+
+		t.Run("can get transfer", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			// make transfer
+			accountA := c.Account(AccountOpts{})
+			accountB := c.Account(AccountOpts{})
+			transactions := c.Transfer(TransferOpts{
+				AccountA: accountA,
+				AccountB: accountB,
+			})
+
+			// get transactions and verify
+			res, err := interactor.TransactionGetAll(t, c.ctx)
+			require.NoError(t, err)
+			assert.Equal(t, 2, len(res))
+
+			findTransaction(t, res, transactions[0].ID, func(it beans.TransactionWithRelations) {
+				assert.Equal(t, beans.TransactionTransfer, it.Variant)
+				assert.Equal(t, transactions[1].ID, it.TransferID)
+				assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}), it.TransferAccount)
+			})
+			findTransaction(t, res, transactions[1].ID, func(it beans.TransactionWithRelations) {})
 		})
 
 		t.Run("filters by budget", func(t *testing.T) {

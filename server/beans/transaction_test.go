@@ -59,6 +59,55 @@ func TestTransactionParamsValidation(t *testing.T) {
 	})
 }
 
+func TestTransactionCreateParamsValidation(t *testing.T) {
+	params := TransactionCreateParams{
+		TransactionParams: TransactionParams{
+			AccountID:  NewID(),
+			CategoryID: NewID(),
+			PayeeID:    NewID(),
+			Amount:     NewAmount(7, 0),
+			Date:       NewDate(time.Now()),
+			Notes:      NewTransactionNotes("blah"),
+		},
+	}
+
+	t.Run("cannot transfer with payee", func(t *testing.T) {
+		params := params
+		params.CategoryID = EmptyID()
+		params.TransferAccountID = NewID()
+
+		_, msg := params.ValidateAll().(Error).BeansError()
+		assert.Equal(t, "cannot set a payee or category on transfer", msg)
+	})
+
+	t.Run("cannot transfer with category", func(t *testing.T) {
+		params := params
+		params.PayeeID = EmptyID()
+		params.TransferAccountID = NewID()
+
+		_, msg := params.ValidateAll().(Error).BeansError()
+		assert.Equal(t, "cannot set a payee or category on transfer", msg)
+	})
+
+	t.Run("can transfer with no payee and no cateogry", func(t *testing.T) {
+		params := params
+		params.CategoryID = EmptyID()
+		params.PayeeID = EmptyID()
+		params.TransferAccountID = NewID()
+
+		err := params.ValidateAll()
+		assert.NoError(t, err)
+	})
+
+	t.Run("validates other params", func(t *testing.T) {
+		params := params
+		params.AccountID = EmptyID()
+
+		_, msg := params.ValidateAll().(Error).BeansError()
+		assert.Equal(t, "Account ID is required.", msg)
+	})
+}
+
 func TestTransactionUpdateParamsValidation(t *testing.T) {
 	params := TransactionUpdateParams{
 		TransactionParams: TransactionParams{

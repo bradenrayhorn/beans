@@ -27,6 +27,10 @@ func Transaction(d db.Transaction) (beans.Transaction, error) {
 	if err != nil {
 		return beans.Transaction{}, err
 	}
+	transferID, err := PgToID(d.TransferID)
+	if err != nil {
+		return beans.Transaction{}, err
+	}
 
 	return beans.Transaction{
 		ID:         id,
@@ -36,6 +40,7 @@ func Transaction(d db.Transaction) (beans.Transaction, error) {
 		Amount:     amount,
 		Date:       PgToDate(d.Date),
 		Notes:      beans.TransactionNotes{NullString: PgToNullString(d.Notes)},
+		TransferID: transferID,
 	}, nil
 }
 
@@ -58,6 +63,18 @@ func GetTransactionsForBudgetRow(d db.GetTransactionsForBudgetRow) (beans.Transa
 
 	if d.AccountOffBudget {
 		transactionWithRelations.Variant = beans.TransactionOffBudget
+	} else if !transaction.TransferID.Empty() {
+		transactionWithRelations.Variant = beans.TransactionTransfer
+
+		transferAccountID, err := PgToID(d.TransferAccountID)
+		if err != nil {
+			return beans.TransactionWithRelations{}, err
+		}
+
+		transactionWithRelations.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{
+			ID:   transferAccountID,
+			Name: beans.Name(PgToNullString(d.TransferAccountName).String()),
+		})
 	} else {
 		transactionWithRelations.Variant = beans.TransactionStandard
 	}

@@ -11,6 +11,9 @@ type Transaction struct {
 	Amount   beans.Amount             `json:"amount"`
 	Date     beans.Date               `json:"date"`
 	Notes    beans.TransactionNotes   `json:"notes"`
+
+	TransferID      beans.ID           `json:"transferID"`
+	TransferAccount *AssociatedAccount `json:"transferAccount"`
 }
 
 type CreateTransactionResponse Data[ID]

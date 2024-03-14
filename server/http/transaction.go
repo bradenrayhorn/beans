@@ -27,6 +27,14 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 		}
 	}
 
+	var transferAccount *response.AssociatedAccount
+	if a, ok := transaction.TransferAccount.Value(); ok {
+		transferAccount = &response.AssociatedAccount{
+			ID:   a.ID,
+			Name: a.Name,
+		}
+	}
+
 	return response.Transaction{
 		ID:      transaction.ID,
 		Variant: transaction.Variant,
@@ -34,11 +42,13 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 			ID:   transaction.AccountID,
 			Name: transaction.Account.Name,
 		},
-		Category: category,
-		Payee:    payee,
-		Amount:   transaction.Amount,
-		Date:     transaction.Date,
-		Notes:    transaction.Notes,
+		Category:        category,
+		Payee:           payee,
+		Amount:          transaction.Amount,
+		Date:            transaction.Date,
+		Notes:           transaction.Notes,
+		TransferID:      transaction.TransferID,
+		TransferAccount: transferAccount,
 	}
 }
 
@@ -51,6 +61,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 		}
 
 		transactionID, err := s.contracts.Transaction.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
+			TransferAccountID: req.TransferAccountID,
 			TransactionParams: beans.TransactionParams{
 				AccountID:  req.AccountID,
 				CategoryID: req.CategoryID,

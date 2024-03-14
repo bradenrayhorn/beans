@@ -18,46 +18,75 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 	transactionRepository := ds.TransactionRepository()
 	ctx := context.Background()
 
-	t.Run("can create", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-		account := factory.Account(beans.Account{BudgetID: budget.ID})
-		payee := factory.Payee(beans.Payee{BudgetID: budget.ID})
-		category := factory.Category(beans.Category{BudgetID: budget.ID})
+	t.Run("create and get", func(t *testing.T) {
+		t.Run("can create", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+			payee := factory.Payee(beans.Payee{BudgetID: budget.ID})
+			category := factory.Category(beans.Category{BudgetID: budget.ID})
 
-		err := transactionRepository.Create(
-			ctx,
-			beans.Transaction{
-				ID:         beans.NewID(),
-				AccountID:  account.ID,
-				CategoryID: category.ID,
-				PayeeID:    payee.ID,
-				Amount:     beans.NewAmount(5, 0),
-				Date:       beans.NewDate(time.Now()),
-				Notes:      beans.NewTransactionNotes("notes"),
-			},
-		)
-		require.Nil(t, err)
-	})
+			err := transactionRepository.Create(
+				ctx,
+				[]beans.Transaction{{
+					ID:         beans.NewID(),
+					AccountID:  account.ID,
+					CategoryID: category.ID,
+					PayeeID:    payee.ID,
+					Amount:     beans.NewAmount(5, 0),
+					Date:       beans.NewDate(time.Now()),
+					Notes:      beans.NewTransactionNotes("notes"),
+				}},
+			)
+			require.Nil(t, err)
+		})
 
-	t.Run("can create with empty optional fields", func(t *testing.T) {
-		budget, _ := factory.MakeBudgetAndUser()
-		account := factory.Account(beans.Account{BudgetID: budget.ID})
+		t.Run("can create with empty optional fields", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
 
-		transaction1 := beans.Transaction{
-			ID:        beans.NewID(),
-			AccountID: account.ID,
-			Amount:    beans.NewAmount(5, 0),
-			Date:      testutils.NewDate(t, "2022-08-28"),
-		}
-		require.Nil(t, transactionRepository.Create(ctx, transaction1))
+			transaction := beans.Transaction{
+				ID:        beans.NewID(),
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2022-08-28"),
+			}
+			require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
 
-		transactions, err := transactionRepository.GetForBudget(ctx, budget.ID)
-		require.Nil(t, err)
-		assert.Len(t, transactions, 1)
+			transactions, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.Nil(t, err)
+			assert.Len(t, transactions, 1)
 
-		assert.True(t, transactions[0].CategoryID.Empty())
-		assert.True(t, transactions[0].PayeeID.Empty())
-		assert.True(t, transactions[0].Notes.Empty())
+			assert.True(t, transactions[0].CategoryID.Empty())
+			assert.True(t, transactions[0].PayeeID.Empty())
+			assert.True(t, transactions[0].Notes.Empty())
+		})
+
+		t.Run("can create then get multiple transactions, with a transfer_id", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			account1 := factory.Account(beans.Account{BudgetID: budget.ID})
+			account2 := factory.Account(beans.Account{BudgetID: budget.ID})
+
+			id1 := beans.NewID()
+			id2 := beans.NewID()
+			account1Transaction := beans.Transaction{
+				ID:        id1,
+				AccountID: account1.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      beans.NewDate(time.Now()),
+			}
+			account2Transaction := beans.Transaction{
+				ID:        id2,
+				AccountID: account2.ID,
+				Amount:    beans.NewAmount(-5, 0),
+				Date:      beans.NewDate(time.Now()),
+			}
+
+			err := transactionRepository.Create(
+				ctx,
+				[]beans.Transaction{account1Transaction, account2Transaction},
+			)
+			require.Nil(t, err)
+		})
 	})
 
 	t.Run("cannot get nonexistant", func(t *testing.T) {
@@ -90,7 +119,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
 		}
-		require.Nil(t, transactionRepository.Create(ctx, transaction))
+		require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
 
 		res, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
 		require.Nil(t, err)
@@ -116,7 +145,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
 		}
-		require.Nil(t, transactionRepository.Create(ctx, transaction))
+		require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
 
 		transaction.AccountID = account2.ID
 		transaction.CategoryID = category2.ID
@@ -125,7 +154,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 		transaction.Date = testutils.NewDate(t, "2022-08-30")
 		transaction.Notes = beans.NewTransactionNotes("notes 5")
 
-		require.Nil(t, transactionRepository.Update(ctx, transaction))
+		require.Nil(t, transactionRepository.Update(ctx, []beans.Transaction{transaction}))
 
 		res, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
 		require.Nil(t, err)
@@ -133,32 +162,52 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 		assert.True(t, reflect.DeepEqual(transaction, res))
 	})
 
-	t.Run("can delete", func(t *testing.T) {
-		budget1, _ := factory.MakeBudgetAndUser()
-		budget2, _ := factory.MakeBudgetAndUser()
+	t.Run("delete", func(t *testing.T) {
 
-		transaction1 := factory.Transaction(budget1.ID, beans.Transaction{})
-		transaction2 := factory.Transaction(budget1.ID, beans.Transaction{})
-		transaction3 := factory.Transaction(budget1.ID, beans.Transaction{})
-		transaction4 := factory.Transaction(budget2.ID, beans.Transaction{})
+		t.Run("can delete", func(t *testing.T) {
+			budget1, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
 
-		err := transactionRepository.Delete(ctx, budget1.ID, []beans.ID{transaction1.ID, transaction2.ID, transaction4.ID})
-		require.Nil(t, err)
+			transaction1 := factory.Transaction(budget1.ID, beans.Transaction{})
+			transaction2 := factory.Transaction(budget1.ID, beans.Transaction{})
+			transaction3 := factory.Transaction(budget1.ID, beans.Transaction{})
+			transaction4 := factory.Transaction(budget2.ID, beans.Transaction{})
 
-		// transaction1 and transaction2 should be deleted, they are passed in and part of budget 1.
-		// transaction3 should not be deleted, it is not passed in.
-		// transaction4 should not be deleted, it is passed in but not part of budget 1.
-		_, err = transactionRepository.Get(ctx, budget1.ID, transaction1.ID)
-		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			err := transactionRepository.Delete(ctx, budget1.ID, []beans.ID{transaction1.ID, transaction2.ID, transaction4.ID})
+			require.NoError(t, err)
 
-		_, err = transactionRepository.Get(ctx, budget1.ID, transaction2.ID)
-		testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			// transaction1 and transaction2 should be deleted, they are passed in and part of budget 1.
+			// transaction3 should not be deleted, it is not passed in.
+			// transaction4 should not be deleted, it is passed in but not part of budget 1.
+			_, err = transactionRepository.Get(ctx, budget1.ID, transaction1.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		_, err = transactionRepository.Get(ctx, budget1.ID, transaction3.ID)
-		assert.Nil(t, err)
+			_, err = transactionRepository.Get(ctx, budget1.ID, transaction2.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 
-		_, err = transactionRepository.Get(ctx, budget2.ID, transaction4.ID)
-		assert.Nil(t, err)
+			_, err = transactionRepository.Get(ctx, budget1.ID, transaction3.ID)
+			assert.NoError(t, err)
+
+			_, err = transactionRepository.Get(ctx, budget2.ID, transaction4.ID)
+			assert.NoError(t, err)
+		})
+
+		t.Run("deleting transfer deletes both ends", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			accountA := factory.Account(beans.Account{BudgetID: budget.ID})
+			accountB := factory.Account(beans.Account{BudgetID: budget.ID})
+			transactions := factory.Transfer(budget.ID, accountA, accountB, beans.NewAmount(5, 0))
+
+			err := transactionRepository.Delete(ctx, budget.ID, []beans.ID{transactions[0].ID})
+			require.NoError(t, err)
+
+			// both transactions should be deleted
+			_, err = transactionRepository.Get(ctx, budget.ID, transactions[0].ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			_, err = transactionRepository.Get(ctx, budget.ID, transactions[1].ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
 	})
 
 	t.Run("get all for budget", func(t *testing.T) {
@@ -180,7 +229,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			factory.Transaction(budget2.ID, beans.Transaction{})
 
 			transactions, err := transactionRepository.GetForBudget(ctx, budget1.ID)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Len(t, transactions, 1)
 
 			assert.Equal(t, beans.TransactionWithRelations{
@@ -200,7 +249,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			transaction := factory.Transaction(budget.ID, beans.Transaction{AccountID: account.ID})
 
 			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Equal(t, 1, len(res))
 
 			assert.Equal(t, beans.TransactionWithRelations{
@@ -210,6 +259,113 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				Category:    beans.Optional[beans.RelatedCategory]{},
 				Payee:       beans.Optional[beans.RelatedPayee]{},
 			}, res[0])
+		})
+
+		t.Run("maps transfer", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			accountA := factory.Account(beans.Account{BudgetID: budget.ID})
+			accountB := factory.Account(beans.Account{BudgetID: budget.ID})
+
+			transactions := factory.Transfer(budget.ID, accountA, accountB, beans.NewAmount(5, 0))
+
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(res))
+
+			assert.ElementsMatch(t, []beans.TransactionWithRelations{
+				{
+					Transaction:     transactions[0],
+					Variant:         beans.TransactionTransfer,
+					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}),
+				},
+				{
+					Transaction:     transactions[1],
+					Variant:         beans.TransactionTransfer,
+					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}),
+				},
+			}, res)
+		})
+	})
+
+	t.Run("get with relations", func(t *testing.T) {
+
+		t.Run("can get", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+			payee := factory.Payee(beans.Payee{BudgetID: budget.ID})
+			category := factory.Category(beans.Category{BudgetID: budget.ID})
+
+			transaction := factory.Transaction(budget.ID, beans.Transaction{
+				AccountID:  account.ID,
+				PayeeID:    payee.ID,
+				CategoryID: category.ID,
+			})
+
+			res, err := transactionRepository.GetWithRelations(ctx, budget.ID, transaction.ID)
+			require.NoError(t, err)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction: transaction,
+				Variant:     beans.TransactionStandard,
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
+				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
+			}, res)
+		})
+
+		t.Run("maps off-budget variant", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			account := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+			transaction := factory.Transaction(budget.ID, beans.Transaction{AccountID: account.ID})
+
+			res, err := transactionRepository.GetWithRelations(ctx, budget.ID, transaction.ID)
+			require.NoError(t, err)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction: transaction,
+				Variant:     beans.TransactionOffBudget,
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+			}, res)
+		})
+
+		t.Run("maps transfer", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			accountA := factory.Account(beans.Account{BudgetID: budget.ID})
+			accountB := factory.Account(beans.Account{BudgetID: budget.ID})
+			transactions := factory.Transfer(budget.ID, accountA, accountB, beans.NewAmount(7, 0))
+
+			res, err := transactionRepository.GetWithRelations(ctx, budget.ID, transactions[0].ID)
+			require.NoError(t, err)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction:     transactions[0],
+				Variant:         beans.TransactionTransfer,
+				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name},
+				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}),
+			}, res)
+		})
+
+		t.Run("filters by budget", func(t *testing.T) {
+			budget1, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
+
+			transaction := factory.Transaction(budget2.ID, beans.Transaction{})
+
+			_, err := transactionRepository.GetWithRelations(ctx, budget1.ID, transaction.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+
+		t.Run("cannot get non existent", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			_, err := transactionRepository.GetWithRelations(ctx, budget.ID, beans.NewID())
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 	})
 

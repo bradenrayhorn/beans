@@ -14,6 +14,8 @@ type Transaction struct {
 	Amount Amount
 	Date   Date
 	Notes  TransactionNotes
+
+	TransferID ID
 }
 
 type TransactionWithRelations struct {
@@ -24,6 +26,8 @@ type TransactionWithRelations struct {
 	Account  RelatedAccount
 	Category Optional[RelatedCategory]
 	Payee    Optional[RelatedPayee]
+
+	TransferAccount Optional[RelatedAccount]
 }
 
 type TransactionNotes struct{ NullString }
@@ -37,6 +41,7 @@ type TransactionVariant string
 const (
 	TransactionStandard  TransactionVariant = "standard"
 	TransactionOffBudget TransactionVariant = "off_budget"
+	TransactionTransfer  TransactionVariant = "transfer"
 )
 
 type TransactionContract interface {
@@ -57,13 +62,15 @@ type TransactionContract interface {
 }
 
 type TransactionRepository interface {
-	Create(ctx context.Context, transaction Transaction) error
+	Create(ctx context.Context, transactions []Transaction) error
 
-	Update(ctx context.Context, transaction Transaction) error
+	Update(ctx context.Context, transactions []Transaction) error
 
 	Delete(ctx context.Context, budgetID ID, transactionIDs []ID) error
 
 	GetForBudget(ctx context.Context, budgetID ID) ([]TransactionWithRelations, error)
+
+	GetWithRelations(ctx context.Context, budgetID ID, id ID) (TransactionWithRelations, error)
 
 	// Get transaction.
 	Get(ctx context.Context, budgetID ID, id ID) (Transaction, error)
@@ -85,7 +92,20 @@ type TransactionParams struct {
 }
 
 type TransactionCreateParams struct {
+	TransferAccountID ID
 	TransactionParams
+}
+
+func (t TransactionCreateParams) ValidateAll() error {
+	if err := t.TransactionParams.ValidateAll(); err != nil {
+		return err
+	}
+
+	if !t.TransferAccountID.Empty() && (!t.PayeeID.Empty() || !t.CategoryID.Empty()) {
+		return NewError(EINVALID, "cannot set a payee or category on transfer")
+	}
+
+	return nil
 }
 
 type TransactionUpdateParams struct {

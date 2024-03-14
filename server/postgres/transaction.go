@@ -12,27 +12,46 @@ type TransactionRepository struct{ repository }
 
 var _ beans.TransactionRepository = (*TransactionRepository)(nil)
 
-func (r *TransactionRepository) Create(ctx context.Context, transaction beans.Transaction) error {
-	return r.DB(nil).CreateTransaction(ctx, db.CreateTransactionParams{
-		ID:         transaction.ID.String(),
-		AccountID:  transaction.AccountID.String(),
-		CategoryID: mapper.IDToPg(transaction.CategoryID),
-		PayeeID:    mapper.IDToPg(transaction.PayeeID),
-		Date:       mapper.DateToPg(transaction.Date),
-		Amount:     mapper.AmountToNumeric(transaction.Amount),
-		Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
+func (r *TransactionRepository) Create(ctx context.Context, transactions []beans.Transaction) error {
+	params, err := mapper.MapSlice(transactions, func(transaction beans.Transaction) (db.CreateTransactionParams, error) {
+		return db.CreateTransactionParams{
+			ID:         transaction.ID.String(),
+			AccountID:  transaction.AccountID.String(),
+			CategoryID: mapper.IDToPg(transaction.CategoryID),
+			PayeeID:    mapper.IDToPg(transaction.PayeeID),
+			Date:       mapper.DateToPg(transaction.Date),
+			Amount:     mapper.AmountToNumeric(transaction.Amount),
+			Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
+			TransferID: mapper.IDToPg(transaction.TransferID),
+		}, nil
 	})
+	if err != nil {
+		return err
+	}
+
+	_, err = r.DB(nil).CreateTransaction(ctx, params)
+	return err
 }
 
-func (r *TransactionRepository) Update(ctx context.Context, transaction beans.Transaction) error {
-	return r.DB(nil).UpdateTransaction(ctx, db.UpdateTransactionParams{
-		ID:         transaction.ID.String(),
-		AccountID:  transaction.AccountID.String(),
-		CategoryID: mapper.IDToPg(transaction.CategoryID),
-		PayeeID:    mapper.IDToPg(transaction.PayeeID),
-		Date:       mapper.DateToPg(transaction.Date),
-		Amount:     mapper.AmountToNumeric(transaction.Amount),
-		Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
+func (r *TransactionRepository) Update(ctx context.Context, transactions []beans.Transaction) error {
+	return beans.ExecTxNil(ctx, NewTxManager(r.pool), func(tx beans.Tx) error {
+
+		for _, transaction := range transactions {
+			err := r.DB(tx).UpdateTransaction(ctx, db.UpdateTransactionParams{
+				ID:         transaction.ID.String(),
+				AccountID:  transaction.AccountID.String(),
+				CategoryID: mapper.IDToPg(transaction.CategoryID),
+				PayeeID:    mapper.IDToPg(transaction.PayeeID),
+				Date:       mapper.DateToPg(transaction.Date),
+				Amount:     mapper.AmountToNumeric(transaction.Amount),
+				Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 }
 
@@ -55,6 +74,18 @@ func (r *TransactionRepository) Get(ctx context.Context, budgetID beans.ID, id b
 	}
 
 	return mapper.Transaction(t)
+}
+
+func (r *TransactionRepository) GetWithRelations(ctx context.Context, budgetID beans.ID, id beans.ID) (beans.TransactionWithRelations, error) {
+	t, err := r.DB(nil).GetTransactionWithRelations(ctx, db.GetTransactionWithRelationsParams{
+		ID:       id.String(),
+		BudgetID: budgetID.String(),
+	})
+	if err != nil {
+		return beans.TransactionWithRelations{}, mapPostgresError(err)
+	}
+
+	return mapper.GetTransactionsForBudgetRow(t)
 }
 
 func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.TransactionWithRelations, error) {
