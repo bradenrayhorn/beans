@@ -2,7 +2,7 @@ package mapper
 
 import (
 	"github.com/bradenrayhorn/beans/server/beans"
-	"github.com/bradenrayhorn/beans/server/internal/db"
+	"github.com/bradenrayhorn/beans/server/postgres/db"
 )
 
 func Transaction(d db.Transaction) (beans.Transaction, error) {
@@ -44,7 +44,7 @@ func Transaction(d db.Transaction) (beans.Transaction, error) {
 	}, nil
 }
 
-func GetTransactionsForBudgetRow(d db.GetTransactionsForBudgetRow) (beans.TransactionWithRelations, error) {
+func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.TransactionWithRelations, error) {
 	transaction, err := Transaction(d.Transaction)
 	if err != nil {
 		return beans.TransactionWithRelations{}, err
