@@ -57,7 +57,7 @@
     isDisabled={!!transaction?.transferAccount}
   />
 
-  {#if $transferAccount !== undefined}
+  {#if $transferAccount && ($transferAccount.offBudget === $account?.offBudget || !$account)}
     <Placeholder field="Category" value="Transfer" />
   {:else if $account?.offBudget}
     <Placeholder field="Category" value="Off-Budget" />

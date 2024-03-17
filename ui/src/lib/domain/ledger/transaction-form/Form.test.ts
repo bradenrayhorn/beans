@@ -13,6 +13,7 @@ const accounts: Account[] = [
   { id: "1", name: "Checking", offBudget: false },
   { id: "2", name: "Savings", offBudget: false },
   { id: "3", name: "401k", offBudget: true },
+  { id: "4", name: "IRA", offBudget: true },
 ];
 const categoryGroups: CategoryGroup[] = [];
 const payees: Payee[] = [];
@@ -78,6 +79,89 @@ describe("transfers", () => {
       "aria-disabled",
       "true",
     );
+  });
+
+  test("on-on budget", async () => {
+    const user = userEvent.setup();
+    render(Form, { accounts, categoryGroups, payees });
+
+    // select Savings as payee
+    await user.click(screen.getByLabelText("Payee"));
+    await user.click(screen.getByRole("option", { name: "Savings" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+
+    // select Checking as account
+    await user.click(screen.getByLabelText("Account"));
+    await user.click(screen.getByRole("option", { name: "Checking" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+  });
+
+  test("on-off budget", async () => {
+    const user = userEvent.setup();
+    render(Form, { accounts, categoryGroups, payees });
+
+    // select Savings as payee
+    await user.click(screen.getByLabelText("Payee"));
+    await user.click(screen.getByRole("option", { name: "Savings" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+
+    // select 401k as account
+    await user.click(screen.getByLabelText("Account"));
+    await user.click(screen.getByRole("option", { name: "401k" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Off-Budget");
+  });
+
+  test("off-off budget", async () => {
+    const user = userEvent.setup();
+    render(Form, { accounts, categoryGroups, payees });
+
+    // select 401k as payee
+    await user.click(screen.getByLabelText("Payee"));
+    await user.click(screen.getByRole("option", { name: "401k" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+
+    // select 401k as account
+    await user.click(screen.getByLabelText("Account"));
+    await user.click(screen.getByRole("option", { name: "IRA" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+  });
+
+  test("off-on budget", async () => {
+    const user = userEvent.setup();
+    render(Form, { accounts, categoryGroups, payees });
+
+    // select 401k as payee
+    await user.click(screen.getByLabelText("Payee"));
+    await user.click(screen.getByRole("option", { name: "401k" }));
+
+    // category is disabled
+    expect(screen.getByLabelText("Category")).toBeDisabled();
+    expect(screen.getByLabelText("Category")).toHaveValue("Transfer");
+
+    // select Checking as account
+    await user.click(screen.getByLabelText("Account"));
+    await user.click(screen.getByRole("option", { name: "Checking" }));
+
+    // can pick a category
+    expect(screen.getByLabelText("Category")).toBeEnabled();
   });
 });
 

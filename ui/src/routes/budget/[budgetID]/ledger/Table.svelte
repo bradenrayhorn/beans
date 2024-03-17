@@ -35,7 +35,7 @@
         >
         <td>{transaction.date}</td>
 
-        {#if transaction.variant === "transfer"}
+        {#if transaction.transferAccount}
           <td class="pr-2 truncate"
             >{transaction.transferAccount?.name ?? ""}</td
           >

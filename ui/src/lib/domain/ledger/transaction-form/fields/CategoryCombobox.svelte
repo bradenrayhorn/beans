@@ -47,7 +47,9 @@
     : categoryGroups;
 </script>
 
-<input name="category_id" type="hidden" value={$selected?.value} />
+{#if $selected?.value}
+  <input name="category_id" type="hidden" value={$selected?.value} />
+{/if}
 
 <ComboboxInput label="Category" />
 

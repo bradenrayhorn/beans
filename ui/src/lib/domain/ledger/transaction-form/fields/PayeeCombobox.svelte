@@ -75,14 +75,14 @@
     : accounts;
 </script>
 
-{#if $transferAccount === undefined}
+{#if $transferAccount}
+  <input name="transferAccountID" type="hidden" value={$transferAccount.id} />
+{:else if $selected}
   <input
     name="payee_id"
     type="hidden"
-    value={$selected?.value?.replaceAll("payee-", "")}
+    value={$selected.value?.replaceAll("payee-", "")}
   />
-{:else}
-  <input name="transferAccountID" type="hidden" value={$transferAccount.id} />
 {/if}
 
 <ComboboxInput label="Payee" {isDisabled} />

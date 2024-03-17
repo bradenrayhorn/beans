@@ -21,7 +21,7 @@
           })}
         >
           <div class="flex justify-between">
-            {#if transaction.variant === "transfer"}
+            {#if transaction.transferAccount}
               <div>
                 {transaction.transferAccount?.name ?? ""}
               </div>
