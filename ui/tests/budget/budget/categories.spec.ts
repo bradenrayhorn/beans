@@ -18,15 +18,12 @@ test("can edit categories", async ({ budget: { id }, page, request }) => {
   const categoryID = await createCategory(id, groupID, "Electric", request);
   const accountID = await createAccount(id, request, { name: "Checking" });
   const currentDate = new Date().toISOString().substring(0, 10);
-  await createTransaction(
-    id,
-    null,
-    categoryID,
+  await createTransaction(id, request, {
+    date: currentDate,
     accountID,
-    "-20",
-    currentDate,
-    request,
-  );
+    categoryID,
+    amount: "-20",
+  });
 
   const toBudgetButton = page.getByRole("button", { name: "To Budget" });
   const toBudget = page.getByRole("dialog", { name: "To budget breakdown" });

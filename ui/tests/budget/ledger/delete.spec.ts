@@ -9,28 +9,16 @@ import {
 
 test("can delete transaction", async ({ budget: { id }, page, request }) => {
   const account = await createAccount(id, request, { name: "Checking" });
-  const groupID = await createCategoryGroup(
-    id,
-    "Bills",
-    page.context().request,
-  );
-  const category = await createCategory(
-    id,
-    groupID,
-    "Electric",
-    page.context().request,
-  );
-  await createCategory(id, groupID, "Home", page.context().request);
+  const groupID = await createCategoryGroup(id, "Bills", request);
+  const category = await createCategory(id, groupID, "Electric", request);
+  await createCategory(id, groupID, "Home", request);
 
-  await createTransaction(
-    id,
-    null,
-    category,
-    account,
-    "10.72",
-    "2022-10-11",
-    page.context().request,
-  );
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: account,
+    categoryID: category,
+    amount: "10.72",
+  });
 
   // go to transactions page
   await page.goto(`/budget/${id}`);

@@ -12,8 +12,3 @@ export type Account = {
   name: string;
   offBudget: boolean;
 };
-
-export type RelatedAccount = {
-  id: string;
-  name: string;
-};

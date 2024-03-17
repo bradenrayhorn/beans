@@ -3,7 +3,7 @@
   import { page } from "$app/stores";
   import { paths, withParameter } from "$lib/paths";
   import { selectedRows } from "../../selected-state";
-  import TransactionForm from "../TransactionForm.svelte";
+  import Form from "$lib/domain/ledger/transaction-form/Form.svelte";
   import IconBack from "~icons/mdi/ChevronLeft";
 
   export let data: PageData;
@@ -23,7 +23,7 @@
   <b>Add Transaction</b>
 </div>
 
-<TransactionForm
+<Form
   categoryGroups={data.categoryGroups}
   accounts={data.accounts}
   payees={data.payees}

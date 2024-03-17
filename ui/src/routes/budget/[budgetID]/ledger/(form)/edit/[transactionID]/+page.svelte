@@ -3,17 +3,15 @@
   import { page, navigating } from "$app/stores";
   import { paths, withParameter } from "$lib/paths";
   import { selectedRows } from "../../../selected-state";
-  import TransactionForm from "../../TransactionForm.svelte";
+  import Form from "$lib/domain/ledger/transaction-form/Form.svelte";
   import IconBack from "~icons/mdi/ChevronLeft";
   import { enhance } from "$app/forms";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
 
   export let data: PageData;
 
-  $: transactionID = $page.params.transactionID as string;
-
+  $: transactionID = data.transaction.id;
   $: $selectedRows = { [transactionID]: true };
-  $: transaction = data.transactions.find((t) => t.id === transactionID);
 
   let isSubmitting = false;
   $: isLoading = !!$navigating || isSubmitting;
@@ -31,11 +29,11 @@
   <b>Edit Transaction</b>
 </div>
 
-<TransactionForm
+<Form
   categoryGroups={data.categoryGroups}
   accounts={data.accounts}
   payees={data.payees}
-  {transaction}
+  transaction={data.transaction}
 />
 
 <form

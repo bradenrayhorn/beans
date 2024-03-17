@@ -121,12 +121,22 @@ export const createCategory = async (
 
 export const createTransaction = async (
   budgetID: string,
-  payeeID: string | null,
-  categoryID: string | null,
-  accountID: string,
-  amount: string,
-  date: string,
   request: APIRequestContext,
+  {
+    payeeID,
+    categoryID,
+    amount,
+    date,
+    accountID,
+    transferAccountID,
+  }: {
+    payeeID?: string;
+    categoryID?: string;
+    accountID: string;
+    amount: string;
+    date: string;
+    transferAccountID?: string;
+  },
 ) => {
   const response = await request.post(`/api/v1/transactions`, {
     data: {
@@ -134,6 +144,7 @@ export const createTransaction = async (
       payee_id: payeeID,
       category_id: categoryID,
       account_id: accountID,
+      transferAccountID,
       amount,
     },
     headers: { "Budget-ID": budgetID },

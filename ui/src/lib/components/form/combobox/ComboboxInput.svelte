@@ -5,6 +5,7 @@
   import { getComboboxCtx } from "./combobox";
 
   export let label: string;
+  export let isDisabled: boolean = false;
 
   const {
     elements: { label: labelEl, input },
@@ -27,6 +28,7 @@
     <input
       use:melt={$input}
       class="input input-bordered cursor-pointer input-sm w-full"
+      disabled={isDisabled}
     />
 
     <div

@@ -12,6 +12,7 @@
     "lint": "prettier --plugin prettier-plugin-svelte --check . && eslint .",
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "test:integration": "playwright test",
+    "test:integration:local": "TEST_ENV=local playwright test --ui",
     "test:unit": "vitest"
   },
   "devDependencies": {
