@@ -3,8 +3,9 @@ package response
 import "github.com/bradenrayhorn/beans/server/beans"
 
 type AssociatedAccount struct {
-	ID   beans.ID   `json:"id"`
-	Name beans.Name `json:"name"`
+	ID        beans.ID   `json:"id"`
+	Name      beans.Name `json:"name"`
+	OffBudget bool       `json:"offBudget"`
 }
 
 type Account struct {

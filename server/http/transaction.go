@@ -30,8 +30,9 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 	var transferAccount *response.AssociatedAccount
 	if a, ok := transaction.TransferAccount.Value(); ok {
 		transferAccount = &response.AssociatedAccount{
-			ID:   a.ID,
-			Name: a.Name,
+			ID:        a.ID,
+			Name:      a.Name,
+			OffBudget: a.OffBudget,
 		}
 	}
 
@@ -39,8 +40,9 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 		ID:      transaction.ID,
 		Variant: transaction.Variant,
 		Account: response.AssociatedAccount{
-			ID:   transaction.AccountID,
-			Name: transaction.Account.Name,
+			ID:        transaction.AccountID,
+			Name:      transaction.Account.Name,
+			OffBudget: transaction.Account.OffBudget,
 		},
 		Category:        category,
 		Payee:           payee,

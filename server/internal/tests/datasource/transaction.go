@@ -235,7 +235,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Equal(t, beans.TransactionWithRelations{
 				Transaction: transaction1,
 				Variant:     beans.TransactionStandard,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
 				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
 				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
 			}, transactions[0])
@@ -255,7 +255,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Equal(t, beans.TransactionWithRelations{
 				Transaction: transaction,
 				Variant:     beans.TransactionOffBudget,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
 				Category:    beans.Optional[beans.RelatedCategory]{},
 				Payee:       beans.Optional[beans.RelatedPayee]{},
 			}, res[0])
@@ -277,14 +277,14 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				{
 					Transaction:     transactions[0],
 					Variant:         beans.TransactionTransfer,
-					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name},
-					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}),
+					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}),
 				},
 				{
 					Transaction:     transactions[1],
 					Variant:         beans.TransactionTransfer,
-					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name},
-					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}),
+					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false}),
 				},
 			}, res)
 		})
@@ -311,7 +311,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Equal(t, beans.TransactionWithRelations{
 				Transaction: transaction,
 				Variant:     beans.TransactionStandard,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
 				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
 				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
 			}, res)
@@ -329,7 +329,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Equal(t, beans.TransactionWithRelations{
 				Transaction: transaction,
 				Variant:     beans.TransactionOffBudget,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name},
+				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
 			}, res)
 		})
 
@@ -346,8 +346,8 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Equal(t, beans.TransactionWithRelations{
 				Transaction:     transactions[0],
 				Variant:         beans.TransactionTransfer,
-				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name},
-				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}),
+				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false},
+				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}),
 			}, res)
 		})
 
