@@ -7,10 +7,11 @@
     ComboboxMenu,
     ComboboxNoResults,
     createComboboxCtx,
-  } from "./combobox";
+  } from "$lib/components/form/combobox";
+  import { getTransactionFormCtx } from "../form-context";
 
   export let categoryGroups: CategoryGroup[];
-  export let defaultCategory: Category | null | undefined = undefined;
+  const { category } = getTransactionFormCtx();
 
   const toOption = (category: Category): ComboboxOptionProps<string> => ({
     value: category.id,
@@ -20,9 +21,18 @@
   const {
     elements: { groupLabel, group },
     states: { inputValue, touchedInput, selected },
-  } = createComboboxCtx(
-    defaultCategory ? toOption(defaultCategory) : undefined,
-  );
+  } = createComboboxCtx($category ? toOption($category) : undefined);
+
+  // sync to transaction ctx
+  selected.subscribe((newValue) => {
+    if ($category?.id !== newValue?.value) {
+      category.update(() =>
+        categoryGroups
+          .flatMap((group) => group.categories)
+          .find((category) => category.id === newValue?.value),
+      );
+    }
+  });
 
   // Filter based on the input value
   $: filteredCategoryGroups = $touchedInput

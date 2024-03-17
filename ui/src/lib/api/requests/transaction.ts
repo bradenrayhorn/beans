@@ -10,6 +10,11 @@ type APITransaction = Omit<Transaction, "amount"> & {
   amount: APIAmount;
 };
 
+const mapTransaction = (transaction: APITransaction): Transaction => ({
+  ...transaction,
+  amount: new Amount(transaction.amount),
+});
+
 export const getTransactions = async ({
   fetch: _fetch,
   params,
@@ -20,10 +25,28 @@ export const getTransactions = async ({
     return await getError(res);
   }
 
-  return await res.json().then((json: DataWrapped<Array<APITransaction>>) =>
-    json.data.map((transaction) => ({
-      ...transaction,
-      amount: new Amount(transaction.amount),
-    })),
+  return await res
+    .json()
+    .then((json: DataWrapped<Array<APITransaction>>) =>
+      json.data.map(mapTransaction),
+    );
+};
+
+export const getTransaction = async ({
+  fetch: _fetch,
+  id,
+  params,
+}: WithFetch & WithBudgetID & { id: string }): Promise<Transaction> => {
+  const res = await _fetch(
+    api(`/v1/transactions/${id}`),
+    withBudgetHeader(params),
   );
+
+  if (!res.ok) {
+    return await getError(res);
+  }
+
+  return await res
+    .json()
+    .then((json: DataWrapped<APITransaction>) => mapTransaction(json.data));
 };

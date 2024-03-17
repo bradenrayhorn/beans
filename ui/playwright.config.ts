@@ -1,7 +1,7 @@
 import type { PlaywrightTestConfig } from "@playwright/test";
 import { devices } from "@playwright/test";
 
-const config: PlaywrightTestConfig = {
+const ciConfig: PlaywrightTestConfig = {
   webServer: [
     {
       command: "npm run build && npm run preview",
@@ -31,5 +31,15 @@ const config: PlaywrightTestConfig = {
     },
   ],
 };
+
+const localConfig: PlaywrightTestConfig = {
+  ...ciConfig,
+  webServer: [],
+  use: {
+    baseURL: "http://localhost:5173",
+  },
+};
+
+const config = process.env.TEST_ENV === "local" ? localConfig : ciConfig;
 
 export default config;

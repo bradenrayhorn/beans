@@ -18,15 +18,12 @@ test("can edit transaction", async ({ budget: { id }, page, request }) => {
   await createCategory(id, groupID, "Home", request);
   await createPayee(id, "Workplace", request);
 
-  await createTransaction(
-    id,
-    null,
-    category,
-    account,
-    "10.72",
-    "2022-10-11",
-    request,
-  );
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: account,
+    categoryID: category,
+    amount: "10.72",
+  });
 
   // go to transactions page
   await page.goto(`/budget/${id}`);
@@ -61,15 +58,13 @@ test("can edit payee to blank", async ({ budget: { id }, page, request }) => {
   await createCategory(id, groupID, "Home", request);
   const payeeID = await createPayee(id, "Workplace", request);
 
-  await createTransaction(
-    id,
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: account,
+    categoryID: category,
     payeeID,
-    category,
-    account,
-    "10.72",
-    "2022-10-11",
-    request,
-  );
+    amount: "10.72",
+  });
 
   // go to transactions page
   await page.goto(`/budget/${id}`);
@@ -98,15 +93,11 @@ test("can edit transaction to off-budget account", async ({
   });
   await createAccount(id, request, { name: "401k", offBudget: true });
 
-  await createTransaction(
-    id,
-    null,
-    null,
-    checkingAccount,
-    "10.72",
-    "2022-10-11",
-    request,
-  );
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: checkingAccount,
+    amount: "10.72",
+  });
 
   // go to transactions page
   await page.goto(`/budget/${id}`);
@@ -133,4 +124,61 @@ test("can edit transaction to off-budget account", async ({
 
   const cells = page.getByRole("row").nth(1).getByRole("cell");
   await expect(cells.nth(3)).toHaveText("Off-Budget");
+});
+
+test("can edit transfer transaction", async ({
+  budget: { id },
+  page,
+  request,
+}) => {
+  const checkingAccount = await createAccount(id, request, {
+    name: "Checking",
+  });
+  const savingsAccount = await createAccount(id, request, {
+    name: "Savings",
+  });
+  await createAccount(id, request, {
+    name: "T-Bills",
+  });
+
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: checkingAccount,
+    transferAccountID: savingsAccount,
+    amount: "10.72",
+  });
+
+  // go to transactions page
+  await page.goto(`/budget/${id}`);
+  await page.getByRole("link", { name: "ledger" }).click();
+
+  // select and edit transaction
+  await page.getByRole("row").nth(1).getByRole("checkbox").focus();
+  await page.getByRole("row").nth(1).getByRole("checkbox").press("Space");
+  await page.getByRole("link", { name: "edit" }).click();
+
+  // change account & amount
+  await selectOption(page, "Account", "T-Bills");
+  await page.getByRole("textbox", { name: "Amount" }).fill("15");
+
+  // save changes
+  await page.getByRole("button", { name: "Save" }).click();
+
+  const tBills = page
+    .getByRole("row")
+    .filter({ has: page.getByRole("cell").nth(4).getByText("T-Bills") })
+    .getByRole("cell");
+  await expect(tBills.nth(2)).toHaveText("Savings");
+  await expect(tBills.nth(3)).toHaveText("Transfer");
+  await expect(tBills.nth(4)).toHaveText("T-Bills");
+  await expect(tBills.nth(6)).toHaveText("$15.00");
+
+  const savings = page
+    .getByRole("row")
+    .filter({ has: page.getByRole("cell").nth(4).getByText("Savings") })
+    .getByRole("cell");
+  await expect(savings.nth(2)).toHaveText("T-Bills");
+  await expect(savings.nth(3)).toHaveText("Transfer");
+  await expect(savings.nth(4)).toHaveText("Savings");
+  await expect(savings.nth(6)).toHaveText("-$15.00");
 });

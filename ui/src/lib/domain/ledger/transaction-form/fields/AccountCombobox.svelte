@@ -6,26 +6,30 @@
     ComboboxMenu,
     ComboboxNoResults,
     createComboboxCtx,
-  } from "./combobox";
-  import type { Account, RelatedAccount } from "$lib/types/account";
+  } from "$lib/components/form/combobox";
+  import type { Account } from "$lib/types/account";
+  import { getTransactionFormCtx } from "../form-context";
 
   export let accounts: Account[];
-  export let defaultAccount: RelatedAccount | null | undefined = undefined;
-  export let account: Account | undefined = undefined;
+  const { account, transferAccount } = getTransactionFormCtx();
 
-  const toOption = (
-    account: Account | RelatedAccount,
-  ): ComboboxOptionProps<string> => ({
+  const toOption = (account: Account): ComboboxOptionProps<string> => ({
     value: account.id,
     label: account.name,
+    disabled: $transferAccount?.id === account.id,
   });
 
   const {
     elements: { group, groupLabel },
     states: { inputValue, touchedInput, selected },
-  } = createComboboxCtx(defaultAccount ? toOption(defaultAccount) : undefined);
+  } = createComboboxCtx($account ? toOption($account) : undefined);
 
-  $: account = accounts.find((a) => a.id === $selected?.value);
+  // sync to transaction ctx
+  selected.subscribe((newValue) => {
+    if ($account?.id !== newValue?.value) {
+      account.update(() => accounts.find((a) => a.id === newValue?.value));
+    }
+  });
 
   // Filter based on the input value
   $: filteredAccounts = $touchedInput

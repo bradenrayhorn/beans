@@ -3,21 +3,23 @@
   import { navigating } from "$app/stores";
   import FormError from "$lib/components/FormError.svelte";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
-  import AccountCombobox from "$lib/components/form/AccountCombobox.svelte";
-  import AmountInput from "$lib/components/form/AmountInput.svelte";
-  import CategoryCombobox from "$lib/components/form/CategoryCombobox.svelte";
-  import PayeeCombobox from "$lib/components/form/PayeeCombobox.svelte";
+  import AmountInput from "./fields/AmountInput.svelte";
   import type { Account } from "$lib/types/account";
   import type { CategoryGroup } from "$lib/types/category";
   import type { Payee } from "$lib/types/payee";
   import type { Transaction } from "$lib/types/transaction";
+  import AccountCombobox from "./fields/AccountCombobox.svelte";
+  import CategoryCombobox from "./fields/CategoryCombobox.svelte";
+  import PayeeCombobox from "./fields/PayeeCombobox.svelte";
+  import Placeholder from "./fields/Placeholder.svelte";
+  import { createTransactionFormCtx } from "./form-context";
 
   export let categoryGroups: Array<CategoryGroup>;
   export let accounts: Array<Account>;
   export let payees: Array<Payee>;
   export let transaction: Transaction | undefined = undefined;
 
-  let selectedAccount: Account | undefined;
+  const { account, transferAccount } = createTransactionFormCtx(transaction);
 
   let isSubmitting = false;
   $: isLoading = !!$navigating || isSubmitting;
@@ -49,31 +51,21 @@
     />
   </label>
 
-  <PayeeCombobox {payees} defaultPayee={transaction?.payee} />
+  <PayeeCombobox
+    {payees}
+    {accounts}
+    isDisabled={!!transaction?.transferAccount}
+  />
 
-  {#if selectedAccount?.offBudget}
-    <label>
-      <span class="label label-text">Category</span>
-      <input
-        name="category-placeholder"
-        type="text"
-        class="input input-sm input-bordered w-full"
-        disabled
-        value="Off-Budget"
-      />
-    </label>
+  {#if $transferAccount !== undefined}
+    <Placeholder field="Category" value="Transfer" />
+  {:else if $account?.offBudget}
+    <Placeholder field="Category" value="Off-Budget" />
   {:else}
-    <CategoryCombobox
-      {categoryGroups}
-      defaultCategory={transaction?.category}
-    />
+    <CategoryCombobox {categoryGroups} />
   {/if}
 
-  <AccountCombobox
-    {accounts}
-    defaultAccount={transaction?.account}
-    bind:account={selectedAccount}
-  />
+  <AccountCombobox {accounts} />
 
   <label>
     <span class="label label-text">Notes</span>
