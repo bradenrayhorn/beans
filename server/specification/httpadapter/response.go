@@ -113,8 +113,9 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 		},
 		Variant: t.Variant,
 		Account: beans.RelatedAccount{
-			ID:   t.Account.ID,
-			Name: t.Account.Name,
+			ID:        t.Account.ID,
+			Name:      t.Account.Name,
+			OffBudget: t.Account.OffBudget,
 		},
 	}
 
@@ -127,7 +128,11 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 		transaction.Payee = beans.OptionalWrap(beans.RelatedPayee{ID: t.Payee.ID, Name: t.Payee.Name})
 	}
 	if t.TransferAccount != nil {
-		transaction.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{ID: t.TransferAccount.ID, Name: t.TransferAccount.Name})
+		transaction.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{
+			ID:        t.TransferAccount.ID,
+			Name:      t.TransferAccount.Name,
+			OffBudget: t.TransferAccount.OffBudget,
+		})
 	}
 
 	return transaction

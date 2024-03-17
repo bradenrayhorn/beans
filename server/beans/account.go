@@ -18,8 +18,9 @@ type AccountWithBalance struct {
 }
 
 type RelatedAccount struct {
-	ID   ID
-	Name Name
+	ID        ID
+	Name      Name
+	OffBudget bool
 }
 
 // repository

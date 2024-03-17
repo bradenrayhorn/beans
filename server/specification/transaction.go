@@ -39,6 +39,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			res, err := interactor.TransactionGet(t, c.ctx, transaction.ID)
 			require.NoError(t, err)
 			assert.Equal(t, beans.TransactionOffBudget, res.Variant)
+			assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true}, res.Account)
 		})
 
 		t.Run("can get transfer", func(t *testing.T) {
@@ -55,7 +56,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			require.NoError(t, err)
 			assert.Equal(t, beans.TransactionTransfer, res.Variant)
 			assert.Equal(t, transactions[1].ID, res.TransferID)
-			assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}), res.TransferAccount)
+			assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}), res.TransferAccount)
 		})
 	})
 
@@ -718,7 +719,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, beans.NewTransactionNotes("hey"), it.Notes)
 
 				assert.Equal(t, beans.TransactionStandard, it.Variant)
-				assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name}, it.Account)
+				assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false}, it.Account)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}), it.Category)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}), it.Payee)
 			})
@@ -739,6 +740,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, 1, len(res))
 			findTransaction(t, res, transaction.ID, func(it beans.TransactionWithRelations) {
 				assert.Equal(t, beans.TransactionOffBudget, it.Variant)
+				assert.Equal(t, beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true}, it.Account)
 			})
 		})
 

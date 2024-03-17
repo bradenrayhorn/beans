@@ -236,7 +236,7 @@ func (r *transactionRepository) mapWithRelations(it beans.Transaction) beans.Tra
 	}
 
 	account := r.database.accounts[it.AccountID]
-	t.Account = beans.RelatedAccount{ID: account.ID, Name: account.Name}
+	t.Account = beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: account.OffBudget}
 
 	if account.OffBudget {
 		t.Variant = beans.TransactionOffBudget
@@ -245,7 +245,7 @@ func (r *transactionRepository) mapWithRelations(it beans.Transaction) beans.Tra
 		transferAccount := r.database.accounts[transfer.AccountID]
 
 		t.Variant = beans.TransactionTransfer
-		t.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{ID: transferAccount.ID, Name: transferAccount.Name})
+		t.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{ID: transferAccount.ID, Name: transferAccount.Name, OffBudget: transferAccount.OffBudget})
 	} else {
 		t.Variant = beans.TransactionStandard
 	}

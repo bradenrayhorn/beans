@@ -56,8 +56,9 @@ func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.Trans
 	transactionWithRelations := beans.TransactionWithRelations{
 		Transaction: transaction,
 		Account: beans.RelatedAccount{
-			ID:   transaction.AccountID,
-			Name: beans.Name(d.AccountName),
+			ID:        transaction.AccountID,
+			Name:      beans.Name(d.AccountName),
+			OffBudget: d.AccountOffBudget,
 		},
 	}
 
