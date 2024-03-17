@@ -17,19 +17,17 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		return beans.EmptyID(), err
 	}
 
-	account, err := c.validateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
+	account, err := c.getAndValidateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
 	if err != nil {
 		return beans.EmptyID(), err
 	}
 
-	if err = c.validateCategory(ctx, auth, account, data.CategoryID); err != nil {
+	// validate relations
+	if err := c.validateRelations(ctx, auth, account, data.TransferAccountID, data.PayeeID, data.CategoryID); err != nil {
 		return beans.EmptyID(), err
 	}
 
-	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
-		return beans.EmptyID(), err
-	}
-
+	// make new transaction
 	transaction := beans.Transaction{
 		ID:         beans.NewID(),
 		AccountID:  data.AccountID,
@@ -44,11 +42,6 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 
 	// check if initiating transfer
 	if !data.TransferAccountID.Empty() {
-
-		if _, err := c.validateAccount(ctx, auth, data.TransferAccountID, "Invalid Transfer Account"); err != nil {
-			return beans.EmptyID(), err
-		}
-
 		// copy transaction
 		transactionB := beans.Transaction{
 			ID:         beans.NewID(),
@@ -79,26 +72,29 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		return err
 	}
 
+	// load transaction
 	transaction, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), data.ID)
 	if err != nil {
 		return err
 	}
 
-	account, err := c.validateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
+	// load and validate account
+	account, err := c.getAndValidateAccount(ctx, auth, data.AccountID, "Invalid Account ID")
 	if err != nil {
 		return err
 	}
 
-	// cannot set payee or category on transfer
-	if !transaction.TransferID.Empty() && (!data.CategoryID.Empty() || !data.PayeeID.Empty()) {
-		return beans.NewError(beans.EINVALID, "cannot set a payee or category on transfer")
+	// load transfer
+	transactionB := beans.Transaction{}
+	if !transaction.TransferID.Empty() {
+		transactionB, err = c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), transaction.TransferID)
+		if err != nil {
+			return fmt.Errorf("could not get transfer: %w", err)
+		}
 	}
 
-	if err = c.validateCategory(ctx, auth, account, data.CategoryID); err != nil {
-		return err
-	}
-
-	if err = c.validatePayee(ctx, auth, data.PayeeID); err != nil {
+	// validate relations
+	if err := c.validateRelations(ctx, auth, account, transactionB.AccountID, data.PayeeID, data.CategoryID); err != nil {
 		return err
 	}
 
@@ -114,11 +110,6 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 
 	// update transfer, if it exists
 	if !transaction.TransferID.Empty() {
-		transactionB, err := c.ds().TransactionRepository().Get(ctx, auth.BudgetID(), transaction.TransferID)
-		if err != nil {
-			return fmt.Errorf("could not get transfer: %w", err)
-		}
-
 		transactionB.Amount = beans.Arithmetic.Negate(data.Amount)
 		transactionB.Date = data.Date
 		transactionB.Notes = data.Notes
@@ -145,7 +136,54 @@ func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthCon
 	return c.ds().TransactionRepository().GetWithRelations(ctx, auth.BudgetID(), id)
 }
 
-func (c *transactionContract) validatePayee(ctx context.Context, auth *beans.BudgetAuthContext, payeeID beans.ID) error {
+func (c *transactionContract) getAndValidateAccount(ctx context.Context, auth *beans.BudgetAuthContext, accountID beans.ID, msg string) (beans.Account, error) {
+	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), accountID)
+	if err != nil {
+		if errors.Is(err, beans.ErrorNotFound) {
+			return beans.Account{}, beans.NewError(beans.EINVALID, msg)
+		}
+
+		return beans.Account{}, err
+	}
+
+	return account, nil
+}
+
+func (c *transactionContract) validateRelations(
+	ctx context.Context,
+	auth *beans.BudgetAuthContext,
+	account beans.Account,
+	transferAccountID beans.ID,
+	payeeID beans.ID,
+	categoryID beans.ID,
+) error {
+	// load transfer account
+	transferAccount := beans.Optional[beans.RelatedAccount]{}
+	if !transferAccountID.Empty() {
+		got, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), transferAccountID)
+		if err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Transfer Account")
+			}
+			return fmt.Errorf("could not get transfer account: %w", err)
+		}
+		transferAccount = beans.OptionalWrap(got.ToRelated())
+	}
+
+	// load variant
+	variant := beans.GetTransactionVariant(account.ToRelated(), transferAccount)
+
+	// cannot set category unless standard
+	if variant != beans.TransactionStandard && !categoryID.Empty() {
+		return beans.NewError(beans.EINVALID, "category can only be set on standard transaction")
+	}
+
+	// cannot set payee on transfer
+	if !transferAccount.Empty() && !payeeID.Empty() {
+		return beans.NewError(beans.EINVALID, "cannot set a payee on transfer")
+	}
+
+	// validate payee
 	if !payeeID.Empty() {
 		if _, err := c.ds().PayeeRepository().Get(ctx, auth.BudgetID(), payeeID); err != nil {
 			if errors.Is(err, beans.ErrorNotFound) {
@@ -157,15 +195,8 @@ func (c *transactionContract) validatePayee(ctx context.Context, auth *beans.Bud
 
 	}
 
-	return nil
-}
-
-func (c *transactionContract) validateCategory(ctx context.Context, auth *beans.BudgetAuthContext, account beans.Account, categoryID beans.ID) error {
+	// validate category
 	if !categoryID.Empty() {
-		if account.OffBudget {
-			return beans.NewError(beans.EINVALID, "Cannot assign category with off-budget account")
-		}
-
 		if _, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, categoryID, auth.BudgetID()); err != nil {
 			if errors.Is(err, beans.ErrorNotFound) {
 				return beans.NewError(beans.EINVALID, "Invalid Category ID")
@@ -176,17 +207,4 @@ func (c *transactionContract) validateCategory(ctx context.Context, auth *beans.
 	}
 
 	return nil
-}
-
-func (c *transactionContract) validateAccount(ctx context.Context, auth *beans.BudgetAuthContext, accountID beans.ID, msg string) (beans.Account, error) {
-	account, err := c.ds().AccountRepository().Get(ctx, auth.BudgetID(), accountID)
-	if err != nil {
-		if errors.Is(err, beans.ErrorNotFound) {
-			return beans.Account{}, beans.NewError(beans.EINVALID, msg)
-		}
-
-		return beans.Account{}, err
-	}
-
-	return account, nil
 }

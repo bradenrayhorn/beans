@@ -71,34 +71,6 @@ func TestTransactionCreateParamsValidation(t *testing.T) {
 		},
 	}
 
-	t.Run("cannot transfer with payee", func(t *testing.T) {
-		params := params
-		params.CategoryID = EmptyID()
-		params.TransferAccountID = NewID()
-
-		_, msg := params.ValidateAll().(Error).BeansError()
-		assert.Equal(t, "cannot set a payee or category on transfer", msg)
-	})
-
-	t.Run("cannot transfer with category", func(t *testing.T) {
-		params := params
-		params.PayeeID = EmptyID()
-		params.TransferAccountID = NewID()
-
-		_, msg := params.ValidateAll().(Error).BeansError()
-		assert.Equal(t, "cannot set a payee or category on transfer", msg)
-	})
-
-	t.Run("can transfer with no payee and no cateogry", func(t *testing.T) {
-		params := params
-		params.CategoryID = EmptyID()
-		params.PayeeID = EmptyID()
-		params.TransferAccountID = NewID()
-
-		err := params.ValidateAll()
-		assert.NoError(t, err)
-	})
-
 	t.Run("validates other params", func(t *testing.T) {
 		params := params
 		params.AccountID = EmptyID()
@@ -136,4 +108,32 @@ func TestTransactionUpdateParamsValidation(t *testing.T) {
 		_, msg := params.ValidateAll().(Error).BeansError()
 		assert.Equal(t, "Account ID is required.", msg)
 	})
+}
+
+func TestGetTransactionVariant(t *testing.T) {
+	accountOnBudgetA := RelatedAccount{ID: NewID(), Name: "onA", OffBudget: false}
+	accountOnBudgetB := RelatedAccount{ID: NewID(), Name: "onB", OffBudget: false}
+	accountOffBudgetA := RelatedAccount{ID: NewID(), Name: "offA", OffBudget: true}
+	accountOffBudgetB := RelatedAccount{ID: NewID(), Name: "offB", OffBudget: true}
+
+	var tests = []struct {
+		name            string
+		account         RelatedAccount
+		transferAccount Optional[RelatedAccount]
+		expected        TransactionVariant
+	}{
+		{"on-budget, no transfer", accountOnBudgetA, Optional[RelatedAccount]{}, TransactionStandard},
+		{"off-budget, no transfer", accountOffBudgetA, Optional[RelatedAccount]{}, TransactionOffBudget},
+		{"on-budget from on-budget", accountOnBudgetA, OptionalWrap(accountOnBudgetB), TransactionTransfer},
+		{"on-budget from off-budget", accountOnBudgetA, OptionalWrap(accountOffBudgetA), TransactionStandard},
+		{"off-budget from on-budget", accountOffBudgetA, OptionalWrap(accountOnBudgetA), TransactionOffBudget},
+		{"off-budget from off-budget", accountOffBudgetA, OptionalWrap(accountOffBudgetB), TransactionTransfer},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			variant := GetTransactionVariant(test.account, test.transferAccount)
+			assert.Equal(t, test.expected, variant)
+		})
+	}
 }

@@ -288,6 +288,34 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				},
 			}, res)
 		})
+
+		t.Run("maps off-budget transfer", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			accountA := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+			accountB := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+
+			transactions := factory.Transfer(budget.ID, accountA, accountB, beans.NewAmount(5, 0))
+
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(res))
+
+			assert.ElementsMatch(t, []beans.TransactionWithRelations{
+				{
+					Transaction:     transactions[0],
+					Variant:         beans.TransactionTransfer,
+					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true}),
+				},
+				{
+					Transaction:     transactions[1],
+					Variant:         beans.TransactionTransfer,
+					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true},
+					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true}),
+				},
+			}, res)
+		})
 	})
 
 	t.Run("get with relations", func(t *testing.T) {
@@ -348,6 +376,24 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				Variant:         beans.TransactionTransfer,
 				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false},
 				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}),
+			}, res)
+		})
+
+		t.Run("maps off-budget transfer", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			accountA := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+			accountB := factory.Account(beans.Account{BudgetID: budget.ID, OffBudget: true})
+			transactions := factory.Transfer(budget.ID, accountA, accountB, beans.NewAmount(7, 0))
+
+			res, err := transactionRepository.GetWithRelations(ctx, budget.ID, transactions[0].ID)
+			require.NoError(t, err)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				Transaction:     transactions[0],
+				Variant:         beans.TransactionTransfer,
+				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true},
+				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true}),
 			}, res)
 		})
 

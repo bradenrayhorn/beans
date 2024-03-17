@@ -54,3 +54,12 @@ type CategoryRepository interface {
 	GetForBudget(ctx context.Context, budgetID ID) ([]Category, error)
 	GetGroupsForBudget(ctx context.Context, budgetID ID) ([]CategoryGroup, error)
 }
+
+// helpers
+
+func (c Category) ToRelated() RelatedCategory {
+	return RelatedCategory{
+		ID:   c.ID,
+		Name: c.Name,
+	}
+}
