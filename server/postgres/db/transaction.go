@@ -206,12 +206,13 @@ func (e *Executor) GetActivityByCategory(ctx context.Context, params GetActivity
 
 type TransactionWithRelationships struct {
 	Transaction
-	AccountName         string
-	CategoryName        pgtype.Text
-	PayeeName           pgtype.Text
-	AccountOffBudget    bool
-	TransferAccountID   pgtype.Text
-	TransferAccountName pgtype.Text
+	AccountName              string
+	CategoryName             pgtype.Text
+	PayeeName                pgtype.Text
+	AccountOffBudget         bool
+	TransferAccountID        pgtype.Text
+	TransferAccountName      pgtype.Text
+	TransferAccountOffBudget pgtype.Bool
 }
 
 type GetTransactionWithRelationshipsParams struct {
@@ -234,6 +235,7 @@ func getTransactionWithRelationshipsQuery(budgetID string) squirrel.SelectBuilde
 			"accounts.off_budget as account_off_budget",
 			"transfer_account.id as transfer_account_id",
 			"transfer_account.name as transfer_account_name",
+			"transfer_account.off_budget as transfer_account_off_budget",
 		).
 		From("transactions").
 		Join("accounts ON transactions.account_id = accounts.id AND accounts.budget_id = ?", budgetID).

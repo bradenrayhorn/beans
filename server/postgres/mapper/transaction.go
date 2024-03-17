@@ -62,23 +62,23 @@ func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.Trans
 		},
 	}
 
-	if d.AccountOffBudget {
-		transactionWithRelations.Variant = beans.TransactionOffBudget
-	} else if !transaction.TransferID.Empty() {
-		transactionWithRelations.Variant = beans.TransactionTransfer
-
+	if !transaction.TransferID.Empty() {
 		transferAccountID, err := PgToID(d.TransferAccountID)
 		if err != nil {
 			return beans.TransactionWithRelations{}, err
 		}
 
 		transactionWithRelations.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{
-			ID:   transferAccountID,
-			Name: beans.Name(PgToNullString(d.TransferAccountName).String()),
+			ID:        transferAccountID,
+			Name:      beans.Name(PgToNullString(d.TransferAccountName).String()),
+			OffBudget: d.TransferAccountOffBudget.Valid && d.TransferAccountOffBudget.Bool,
 		})
-	} else {
-		transactionWithRelations.Variant = beans.TransactionStandard
 	}
+
+	transactionWithRelations.Variant = beans.GetTransactionVariant(
+		transactionWithRelations.Account,
+		transactionWithRelations.TransferAccount,
+	)
 
 	if !categoryName.Empty() {
 		transactionWithRelations.Category = beans.OptionalWrap(beans.RelatedCategory{

@@ -52,3 +52,13 @@ type AccountCreate struct {
 	Name      Name
 	OffBudget bool
 }
+
+// helpers
+
+func (a Account) ToRelated() RelatedAccount {
+	return RelatedAccount{
+		ID:        a.ID,
+		Name:      a.Name,
+		OffBudget: a.OffBudget,
+	}
+}

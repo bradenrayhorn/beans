@@ -96,18 +96,6 @@ type TransactionCreateParams struct {
 	TransactionParams
 }
 
-func (t TransactionCreateParams) ValidateAll() error {
-	if err := t.TransactionParams.ValidateAll(); err != nil {
-		return err
-	}
-
-	if !t.TransferAccountID.Empty() && (!t.PayeeID.Empty() || !t.CategoryID.Empty()) {
-		return NewError(EINVALID, "cannot set a payee or category on transfer")
-	}
-
-	return nil
-}
-
 type TransactionUpdateParams struct {
 	ID ID
 	TransactionParams
@@ -128,4 +116,25 @@ func (t TransactionParams) ValidateAll() error {
 		Field("Date", Required(t.Date)),
 		Field("Notes", Max(t.Notes, 255, "characters")),
 	)
+}
+
+// helpers
+
+func GetTransactionVariant(
+	account RelatedAccount,
+	transferAccount Optional[RelatedAccount],
+) TransactionVariant {
+	if transferAccount, ok := transferAccount.Value(); ok {
+
+		// only a transfer variant if both accounts have same on/off budget
+		if transferAccount.OffBudget == account.OffBudget {
+			return TransactionTransfer
+		}
+	}
+
+	if account.OffBudget {
+		return TransactionOffBudget
+	} else {
+		return TransactionStandard
+	}
 }
