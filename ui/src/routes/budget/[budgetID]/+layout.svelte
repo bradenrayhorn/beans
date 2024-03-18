@@ -1,6 +1,6 @@
 <script lang="ts">
   import IconBudget from "~icons/mdi/wallet";
-  import IconLedger from "~icons/mdi/invoice";
+  import IconLedger from "~icons/mdi/invoice-text-outline";
   import IconAccounts from "~icons/mdi/account-balance";
   import IconSettings from "~icons/mdi/settings";
   import { paths, withParameter } from "$lib/paths";
