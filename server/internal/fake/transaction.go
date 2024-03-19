@@ -232,7 +232,10 @@ func (r *transactionRepository) GetIncomeBetween(ctx context.Context, budgetID b
 
 func (r *transactionRepository) mapWithRelations(it beans.Transaction) beans.TransactionWithRelations {
 	t := beans.TransactionWithRelations{
-		Transaction: it,
+		ID:     it.ID,
+		Amount: it.Amount,
+		Date:   it.Date,
+		Notes:  it.Notes,
 	}
 
 	account := r.database.accounts[it.AccountID]

@@ -40,7 +40,7 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 		ID:      transaction.ID,
 		Variant: transaction.Variant,
 		Account: response.AssociatedAccount{
-			ID:        transaction.AccountID,
+			ID:        transaction.Account.ID,
 			Name:      transaction.Account.Name,
 			OffBudget: transaction.Account.OffBudget,
 		},
@@ -49,7 +49,6 @@ func responseFromTransaction(transaction beans.TransactionWithRelations) respons
 		Amount:          transaction.Amount,
 		Date:            transaction.Date,
 		Notes:           transaction.Notes,
-		TransferID:      transaction.TransferID,
 		TransferAccount: transferAccount,
 	}
 }

@@ -54,7 +54,10 @@ func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.Trans
 	payeeName := PgToNullString(d.PayeeName)
 
 	transactionWithRelations := beans.TransactionWithRelations{
-		Transaction: transaction,
+		ID:     transaction.ID,
+		Amount: transaction.Amount,
+		Date:   transaction.Date,
+		Notes:  transaction.Notes,
 		Account: beans.RelatedAccount{
 			ID:        transaction.AccountID,
 			Name:      beans.Name(d.AccountName),

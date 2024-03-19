@@ -55,7 +55,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			res, err := interactor.TransactionGet(t, c.ctx, transactions[0].ID)
 			require.NoError(t, err)
 			assert.Equal(t, beans.TransactionTransfer, res.Variant)
-			assert.Equal(t, transactions[1].ID, res.TransferID)
 			assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}), res.TransferAccount)
 		})
 	})
@@ -107,9 +106,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			require.NoError(t, err)
 
 			assert.False(t, transaction.ID.Empty())
-			assert.Equal(t, account.ID, transaction.AccountID)
-			assert.Equal(t, category.ID, transaction.CategoryID)
-			assert.Equal(t, payee.ID, transaction.PayeeID)
 			assert.Equal(t, beans.NewAmount(7, 0), transaction.Amount)
 			assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 			assert.Equal(t, beans.NewTransactionNotes("My Notes"), transaction.Notes)
@@ -142,9 +138,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			require.NoError(t, err)
 
 			assert.False(t, transaction.ID.Empty())
-			assert.Equal(t, account.ID, transaction.AccountID)
-			assert.Equal(t, beans.EmptyID(), transaction.CategoryID)
-			assert.Equal(t, beans.EmptyID(), transaction.PayeeID)
 			assert.Equal(t, beans.NewAmount(7, 0), transaction.Amount)
 			assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 			assert.Equal(t, beans.TransactionNotes{}, transaction.Notes)
@@ -182,13 +175,9 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				require.NoError(t, err)
 
 				assert.False(t, transaction.ID.Empty())
-				assert.Equal(t, accountA.ID, transaction.AccountID)
-				assert.Equal(t, true, transaction.CategoryID.Empty())
-				assert.Equal(t, true, transaction.PayeeID.Empty())
 				assert.Equal(t, beans.NewAmount(7, 0), transaction.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 				assert.Equal(t, true, transaction.Notes.Empty())
-				assert.Equal(t, false, transaction.TransferID.Empty())
 
 				assert.Equal(t, beans.TransactionTransfer, transaction.Variant)
 				assert.Equal(t, beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}, transaction.Account)
@@ -197,17 +186,12 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				assert.Equal(t, beans.OptionalWrap(accountB.ToRelated()), transaction.TransferAccount)
 
 				// verify other side
-				transaction, err = interactor.TransactionGet(t, c.ctx, transaction.TransferID)
-				require.NoError(t, err)
+				transaction = c.findTransferOpposite(transaction)
 
 				assert.False(t, transaction.ID.Empty())
-				assert.Equal(t, accountB.ID, transaction.AccountID)
-				assert.Equal(t, true, transaction.CategoryID.Empty())
-				assert.Equal(t, true, transaction.PayeeID.Empty())
 				assert.Equal(t, beans.NewAmount(-7, 0), transaction.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), transaction.Date)
 				assert.Equal(t, true, transaction.Notes.Empty())
-				assert.Equal(t, false, transaction.TransferID.Empty())
 
 				assert.Equal(t, beans.TransactionTransfer, transaction.Variant)
 				assert.Equal(t, beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}, transaction.Account)
@@ -241,13 +225,13 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				transaction, err := interactor.TransactionGet(t, c.ctx, id)
 				require.NoError(t, err)
 
-				assert.Equal(t, category.ID, transaction.CategoryID)
+				relatedCategory, _ := transaction.Category.Value()
+				assert.Equal(t, category.ID, relatedCategory.ID)
 
 				// verify other side
-				transaction, err = interactor.TransactionGet(t, c.ctx, transaction.TransferID)
-				require.NoError(t, err)
+				transaction = c.findTransferOpposite(transaction)
 
-				assert.Equal(t, true, transaction.CategoryID.Empty())
+				assert.Equal(t, true, transaction.Category.Empty())
 			})
 
 			t.Run("transfer account validation", func(t *testing.T) {
@@ -509,9 +493,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				require.NoError(t, err)
 
 				assert.Equal(t, transaction.ID, res.ID)
-				assert.Equal(t, account2.ID, res.AccountID)
-				assert.Equal(t, category2.ID, res.CategoryID)
-				assert.Equal(t, payee2.ID, res.PayeeID)
 				assert.Equal(t, beans.NewAmount(6, 0), res.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes("My Notes"), res.Notes)
@@ -548,9 +529,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				require.NoError(t, err)
 
 				assert.Equal(t, transaction.ID, res.ID)
-				assert.Equal(t, account2.ID, res.AccountID)
-				assert.Equal(t, beans.EmptyID(), res.CategoryID)
-				assert.Equal(t, beans.EmptyID(), res.PayeeID)
 				assert.Equal(t, beans.NewAmount(6, 0), res.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes(""), res.Notes)
@@ -589,7 +567,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				res, err := interactor.TransactionGet(t, c.ctx, transactionA.ID)
 				require.NoError(t, err)
 
-				assert.Equal(t, transactionA.AccountID, res.AccountID)
+				assert.Equal(t, transactionA.Account.ID, res.Account.ID)
 				assert.Equal(t, beans.NewAmount(-6, 0), res.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes("hey there"), res.Notes)
@@ -598,7 +576,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				res, err = interactor.TransactionGet(t, c.ctx, transactionB.ID)
 				require.NoError(t, err)
 
-				assert.Equal(t, newAccount.ID, res.AccountID)
+				assert.Equal(t, newAccount.ID, res.Account.ID)
 				assert.Equal(t, beans.NewAmount(6, 0), res.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-06-07"), res.Date)
 				assert.Equal(t, beans.NewTransactionNotes("hey there"), res.Notes)
@@ -621,7 +599,7 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				params := beans.TransactionUpdateParams{
 					ID: transactionA.ID,
 					TransactionParams: beans.TransactionParams{
-						AccountID:  transactionA.AccountID,
+						AccountID:  transactionA.Account.ID,
 						Amount:     transactionA.Amount,
 						Date:       transactionA.Date,
 						CategoryID: category.ID,
@@ -634,13 +612,14 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				res, err := interactor.TransactionGet(t, c.ctx, transactionA.ID)
 				require.NoError(t, err)
 
-				assert.Equal(t, category.ID, res.CategoryID)
+				relatedCategory, _ := res.Category.Value()
+				assert.Equal(t, category.ID, relatedCategory.ID)
 
 				// get and verify transaction B
 				res, err = interactor.TransactionGet(t, c.ctx, transactionB.ID)
 				require.NoError(t, err)
 
-				assert.Equal(t, true, res.CategoryID.Empty())
+				assert.Equal(t, true, res.Category.Empty())
 			})
 		})
 
@@ -888,9 +867,6 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, 1, len(res))
 			findTransaction(t, res, transaction.ID, func(it beans.TransactionWithRelations) {
 				assert.Equal(t, transaction.ID, it.ID)
-				assert.Equal(t, account.ID, it.AccountID)
-				assert.Equal(t, category.ID, it.CategoryID)
-				assert.Equal(t, payee.ID, it.PayeeID)
 				assert.Equal(t, beans.NewAmount(7, 0), it.Amount)
 				assert.Equal(t, testutils.NewDate(t, "2022-04-05"), it.Date)
 				assert.Equal(t, beans.NewTransactionNotes("hey"), it.Notes)
@@ -939,10 +915,12 @@ func testTransaction(t *testing.T, interactor Interactor) {
 
 			findTransaction(t, res, transactions[0].ID, func(it beans.TransactionWithRelations) {
 				assert.Equal(t, beans.TransactionTransfer, it.Variant)
-				assert.Equal(t, transactions[1].ID, it.TransferID)
 				assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name}), it.TransferAccount)
 			})
-			findTransaction(t, res, transactions[1].ID, func(it beans.TransactionWithRelations) {})
+			findTransaction(t, res, transactions[1].ID, func(it beans.TransactionWithRelations) {
+				assert.Equal(t, beans.TransactionTransfer, it.Variant)
+				assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name}), it.TransferAccount)
+			})
 		})
 
 		t.Run("filters by budget", func(t *testing.T) {

@@ -51,14 +51,6 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				Date:      testutils.NewDate(t, "2022-08-28"),
 			}
 			require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
-
-			transactions, err := transactionRepository.GetForBudget(ctx, budget.ID)
-			require.Nil(t, err)
-			assert.Len(t, transactions, 1)
-
-			assert.True(t, transactions[0].CategoryID.Empty())
-			assert.True(t, transactions[0].PayeeID.Empty())
-			assert.True(t, transactions[0].Notes.Empty())
 		})
 
 		t.Run("can create then get multiple transactions, with a transfer_id", func(t *testing.T) {
@@ -233,11 +225,14 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			assert.Len(t, transactions, 1)
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction: transaction1,
-				Variant:     beans.TransactionStandard,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
-				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
-				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
+				ID:       transaction1.ID,
+				Date:     transaction1.Date,
+				Amount:   transaction1.Amount,
+				Notes:    transaction1.Notes,
+				Variant:  beans.TransactionStandard,
+				Account:  beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
+				Category: beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
+				Payee:    beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
 			}, transactions[0])
 		})
 
@@ -253,11 +248,14 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.Equal(t, 1, len(res))
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction: transaction,
-				Variant:     beans.TransactionOffBudget,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
-				Category:    beans.Optional[beans.RelatedCategory]{},
-				Payee:       beans.Optional[beans.RelatedPayee]{},
+				ID:       transaction.ID,
+				Date:     transaction.Date,
+				Amount:   transaction.Amount,
+				Notes:    transaction.Notes,
+				Variant:  beans.TransactionOffBudget,
+				Account:  beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
+				Category: beans.Optional[beans.RelatedCategory]{},
+				Payee:    beans.Optional[beans.RelatedPayee]{},
 			}, res[0])
 		})
 
@@ -275,13 +273,19 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 
 			assert.ElementsMatch(t, []beans.TransactionWithRelations{
 				{
-					Transaction:     transactions[0],
+					ID:              transactions[0].ID,
+					Date:            transactions[0].Date,
+					Amount:          transactions[0].Amount,
+					Notes:           transactions[0].Notes,
 					Variant:         beans.TransactionTransfer,
 					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false},
 					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}),
 				},
 				{
-					Transaction:     transactions[1],
+					ID:              transactions[1].ID,
+					Date:            transactions[1].Date,
+					Amount:          transactions[1].Amount,
+					Notes:           transactions[1].Notes,
 					Variant:         beans.TransactionTransfer,
 					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false},
 					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false}),
@@ -303,13 +307,19 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 
 			assert.ElementsMatch(t, []beans.TransactionWithRelations{
 				{
-					Transaction:     transactions[0],
+					ID:              transactions[0].ID,
+					Date:            transactions[0].Date,
+					Amount:          transactions[0].Amount,
+					Notes:           transactions[0].Notes,
 					Variant:         beans.TransactionTransfer,
 					Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true},
 					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true}),
 				},
 				{
-					Transaction:     transactions[1],
+					ID:              transactions[1].ID,
+					Date:            transactions[1].Date,
+					Amount:          transactions[1].Amount,
+					Notes:           transactions[1].Notes,
 					Variant:         beans.TransactionTransfer,
 					Account:         beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true},
 					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true}),
@@ -337,11 +347,14 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.NoError(t, err)
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction: transaction,
-				Variant:     beans.TransactionStandard,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
-				Category:    beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
-				Payee:       beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
+				ID:       transaction.ID,
+				Date:     transaction.Date,
+				Amount:   transaction.Amount,
+				Notes:    transaction.Notes,
+				Variant:  beans.TransactionStandard,
+				Account:  beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: false},
+				Category: beans.OptionalWrap(beans.RelatedCategory{ID: category.ID, Name: category.Name}),
+				Payee:    beans.OptionalWrap(beans.RelatedPayee{ID: payee.ID, Name: payee.Name}),
 			}, res)
 		})
 
@@ -355,9 +368,12 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.NoError(t, err)
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction: transaction,
-				Variant:     beans.TransactionOffBudget,
-				Account:     beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
+				ID:      transaction.ID,
+				Date:    transaction.Date,
+				Amount:  transaction.Amount,
+				Notes:   transaction.Notes,
+				Variant: beans.TransactionOffBudget,
+				Account: beans.RelatedAccount{ID: account.ID, Name: account.Name, OffBudget: true},
 			}, res)
 		})
 
@@ -372,7 +388,10 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.NoError(t, err)
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction:     transactions[0],
+				ID:              transactions[0].ID,
+				Date:            transactions[0].Date,
+				Amount:          transactions[0].Amount,
+				Notes:           transactions[0].Notes,
 				Variant:         beans.TransactionTransfer,
 				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false},
 				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}),
@@ -390,7 +409,10 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.NoError(t, err)
 
 			assert.Equal(t, beans.TransactionWithRelations{
-				Transaction:     transactions[0],
+				ID:              transactions[0].ID,
+				Date:            transactions[0].Date,
+				Amount:          transactions[0].Amount,
+				Notes:           transactions[0].Notes,
 				Variant:         beans.TransactionTransfer,
 				Account:         beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: true},
 				TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: true}),
