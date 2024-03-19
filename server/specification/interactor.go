@@ -213,7 +213,7 @@ func (u *userAndBudget) Payee(opt PayeeOpts) beans.Payee {
 	return payee
 }
 
-func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {
+func (u *userAndBudget) Transaction(opt TransactionOpts) beans.TransactionWithRelations {
 	params := beans.TransactionParams{}
 
 	// account
@@ -260,10 +260,10 @@ func (u *userAndBudget) Transaction(opt TransactionOpts) beans.Transaction {
 	transaction, err := u.interactor.TransactionGet(u.t, u.ctx, id)
 	require.NoError(u.t, err)
 
-	return transaction.Transaction
+	return transaction
 }
 
-func (u *userAndBudget) Transfer(opt TransferOpts) []beans.Transaction {
+func (u *userAndBudget) Transfer(opt TransferOpts) []beans.TransactionWithRelations {
 	params := beans.TransactionParams{}
 	createParams := beans.TransactionCreateParams{}
 
@@ -301,10 +301,9 @@ func (u *userAndBudget) Transfer(opt TransferOpts) []beans.Transaction {
 	require.NoError(u.t, err)
 	transactionA, err := u.interactor.TransactionGet(u.t, u.ctx, id)
 	require.NoError(u.t, err)
-	transactionB, err := u.interactor.TransactionGet(u.t, u.ctx, transactionA.TransferID)
-	require.NoError(u.t, err)
+	transactionB := u.findTransferOpposite(transactionA)
 
-	return []beans.Transaction{transactionA.Transaction, transactionB.Transaction}
+	return []beans.TransactionWithRelations{transactionA, transactionB}
 }
 
 // Other helpers
@@ -333,4 +332,23 @@ func (u *userAndBudget) setAssigned(month beans.Month, category beans.Category, 
 
 	err := u.interactor.MonthSetCategoryAmount(u.t, u.ctx, month.ID, category.ID, amountObj)
 	require.NoError(u.t, err)
+}
+
+func (u *userAndBudget) findTransferOpposite(transaction beans.TransactionWithRelations) beans.TransactionWithRelations {
+	transactions, err := u.interactor.TransactionGetAll(u.t, u.ctx)
+	require.NoError(u.t, err)
+
+	for _, t := range transactions {
+		transferAccount, _ := transaction.TransferAccount.Value()
+		if t.Account.ID == transferAccount.ID &&
+			t.Amount == beans.Arithmetic.Negate(transaction.Amount) &&
+			t.Date == transaction.Date &&
+			t.Notes == transaction.Notes {
+			return t
+		}
+	}
+
+	u.t.Fatal("could not find opposite transaction")
+
+	return beans.TransactionWithRelations{}
 }

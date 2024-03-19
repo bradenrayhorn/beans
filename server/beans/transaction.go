@@ -19,14 +19,16 @@ type Transaction struct {
 }
 
 type TransactionWithRelations struct {
-	Transaction
+	ID     ID
+	Amount Amount
+	Date   Date
+	Notes  TransactionNotes
 
 	Variant TransactionVariant
 
-	Account  RelatedAccount
-	Category Optional[RelatedCategory]
-	Payee    Optional[RelatedPayee]
-
+	Account         RelatedAccount
+	Category        Optional[RelatedCategory]
+	Payee           Optional[RelatedPayee]
 	TransferAccount Optional[RelatedAccount]
 }
 
