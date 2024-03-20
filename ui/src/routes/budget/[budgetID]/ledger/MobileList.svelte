@@ -36,7 +36,9 @@
           </div>
 
           <div class="flex justify-between">
-            {#if transaction.variant === "off_budget"}
+            {#if transaction.variant === "split"}
+              <div class="italic">Split</div>
+            {:else if transaction.variant === "off_budget"}
               <div class="italic">Off-Budget</div>
             {:else if transaction.variant === "transfer"}
               <div class="italic">Transfer</div>

@@ -129,6 +129,7 @@ export const createTransaction = async (
     date,
     accountID,
     transferAccountID,
+    splits,
   }: {
     payeeID?: string;
     categoryID?: string;
@@ -136,6 +137,7 @@ export const createTransaction = async (
     amount: string;
     date: string;
     transferAccountID?: string;
+    splits?: Array<{ amount: string; categoryID: string }>;
   },
 ) => {
   const response = await request.post(`/api/v1/transactions`, {
@@ -146,6 +148,10 @@ export const createTransaction = async (
       account_id: accountID,
       transferAccountID,
       amount,
+      splits: splits?.map((split) => ({
+        amount: split.amount,
+        category_id: split.categoryID,
+      })),
     },
     headers: { "Budget-ID": budgetID },
   });
