@@ -50,6 +50,18 @@ func (a Amount) OrZero() Amount {
 	return a
 }
 
+func (a Amount) Compare(b Amount) int {
+	if a.set && b.set {
+		return a.decimal.Cmp(&b.decimal)
+	} else if !a.set && !b.set {
+		return 0
+	} else if a.set {
+		return 1
+	} else {
+		return -1
+	}
+}
+
 func (a *Amount) String() string {
 	if !a.set {
 		return ""

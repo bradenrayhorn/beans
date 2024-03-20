@@ -131,3 +131,12 @@ func mapTransactionWithRelations(t response.Transaction) beans.TransactionWithRe
 
 	return transaction
 }
+
+func mapSplit(t response.Split) beans.Split {
+	return beans.Split{
+		ID:       t.ID,
+		Amount:   t.Amount,
+		Category: beans.RelatedCategory(t.Category),
+		Notes:    t.Notes,
+	}
+}

@@ -23,6 +23,8 @@ func (r *TransactionRepository) Create(ctx context.Context, transactions []beans
 			Amount:     mapper.AmountToNumeric(transaction.Amount),
 			Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
 			TransferID: mapper.IDToPg(transaction.TransferID),
+			SplitID:    mapper.IDToPg(transaction.SplitID),
+			IsSplit:    transaction.IsSplit,
 		}, nil
 	})
 	if err != nil {
@@ -44,6 +46,7 @@ func (r *TransactionRepository) Update(ctx context.Context, transactions []beans
 				Date:       mapper.DateToPg(transaction.Date),
 				Amount:     mapper.AmountToNumeric(transaction.Amount),
 				Notes:      mapper.NullStringToPg(transaction.Notes.NullString),
+				IsSplit:    transaction.IsSplit,
 			})
 			if err != nil {
 				return err
@@ -93,6 +96,17 @@ func (r *TransactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		return nil, mapPostgresError(err)
 	}
 	return mapper.MapSlice(res, mapper.GetTransactionsForBudgetRow)
+}
+
+func (r *TransactionRepository) GetSplits(ctx context.Context, budgetID beans.ID, transactionID beans.ID) ([]beans.TransactionAsSplit, error) {
+	res, err := r.db(nil).GetSplits(ctx, db.GetSplitsParams{
+		BudgetID:      budgetID.String(),
+		TransactionID: transactionID.String(),
+	})
+	if err != nil {
+		return nil, mapPostgresError(err)
+	}
+	return mapper.MapSlice(res, mapper.Split)
 }
 
 func (r *TransactionRepository) GetActivityByCategory(ctx context.Context, budgetID beans.ID, from beans.Date, to beans.Date) (map[beans.ID]beans.Amount, error) {

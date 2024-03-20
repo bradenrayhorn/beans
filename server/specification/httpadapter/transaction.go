@@ -22,6 +22,13 @@ func (a *httpAdapter) TransactionCreate(t *testing.T, ctx specification.Context,
 			Date:              params.Date,
 			Notes:             params.Notes,
 			TransferAccountID: params.TransferAccountID,
+			Splits: mapAll(params.Splits, func(p beans.SplitParams) request.Split {
+				return request.Split{
+					Amount:     p.Amount,
+					CategoryID: p.CategoryID,
+					Notes:      p.Notes,
+				}
+			}),
 		}),
 		Context: ctx,
 	})
@@ -57,6 +64,13 @@ func (a *httpAdapter) TransactionUpdate(t *testing.T, ctx specification.Context,
 			Amount:     params.Amount,
 			Date:       params.Date,
 			Notes:      params.Notes,
+			Splits: mapAll(params.Splits, func(p beans.SplitParams) request.Split {
+				return request.Split{
+					Amount:     p.Amount,
+					CategoryID: p.CategoryID,
+					Notes:      p.Notes,
+				}
+			}),
 		}),
 		Context: ctx,
 	})
@@ -85,4 +99,18 @@ func (a *httpAdapter) TransactionGetAll(t *testing.T, ctx specification.Context)
 	}
 
 	return mapAll(resp.Data, mapTransactionWithRelations), nil
+}
+
+func (a *httpAdapter) TransactionGetSplits(t *testing.T, ctx specification.Context, id beans.ID) ([]beans.Split, error) {
+	r := a.Request(t, HTTPRequest{
+		Method:  "GET",
+		Path:    fmt.Sprintf("/api/v1/transactions/%s/splits", id),
+		Context: ctx,
+	})
+	resp, err := MustParseResponse[response.GetSplitsResponse](t, r.Response)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAll(resp.Data, mapSplit), nil
 }

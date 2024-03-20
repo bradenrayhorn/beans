@@ -16,8 +16,17 @@ type Transaction struct {
 	TransferAccount *AssociatedAccount `json:"transferAccount"`
 }
 
+type Split struct {
+	ID       beans.ID               `json:"id"`
+	Category AssociatedCategory     `json:"category"`
+	Amount   beans.Amount           `json:"amount"`
+	Notes    beans.TransactionNotes `json:"notes"`
+}
+
 type CreateTransactionResponse Data[ID]
 
 type ListTransactionsResponse Data[[]Transaction]
 
 type GetTransactionResponse Data[Transaction]
+
+type GetSplitsResponse Data[[]Split]

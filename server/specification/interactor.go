@@ -46,6 +46,7 @@ type Interactor interface {
 	TransactionUpdate(t *testing.T, ctx Context, params beans.TransactionUpdateParams) error
 	TransactionDelete(t *testing.T, ctx Context, ids []beans.ID) error
 	TransactionGetAll(t *testing.T, ctx Context) ([]beans.TransactionWithRelations, error)
+	TransactionGetSplits(t *testing.T, ctx Context, id beans.ID) ([]beans.Split, error)
 
 	// User
 	UserRegister(t *testing.T, ctx Context, username beans.Username, password beans.Password) error
@@ -92,6 +93,20 @@ type TransferOpts struct {
 	Amount string
 	Date   string
 	Notes  string
+}
+
+type SplitOpts struct {
+	Account beans.Account
+	Payee   beans.Payee
+	Date    string
+
+	Splits []SplitOpt
+}
+
+type SplitOpt struct {
+	Amount   string
+	Category beans.Category
+	Notes    string
 }
 
 type PayeeOpts struct{}
@@ -304,6 +319,77 @@ func (u *userAndBudget) Transfer(opt TransferOpts) []beans.TransactionWithRelati
 	transactionB := u.findTransferOpposite(transactionA)
 
 	return []beans.TransactionWithRelations{transactionA, transactionB}
+}
+
+func (u *userAndBudget) Split(opt SplitOpts) (beans.TransactionWithRelations, []beans.Split) {
+	params := beans.TransactionParams{}
+
+	// account
+	if opt.Account.ID.Empty() {
+		params.AccountID = u.Account(AccountOpts{}).ID
+	} else {
+		params.AccountID = opt.Account.ID
+	}
+
+	// payee
+	if !opt.Payee.ID.Empty() {
+		params.PayeeID = opt.Payee.ID
+	}
+
+	// date
+	if opt.Date == "" {
+		params.Date = beans.NewDate(testutils.RandomTime())
+	} else {
+		params.Date = testutils.NewDate(u.t, opt.Date)
+	}
+
+	params.Splits = make([]beans.SplitParams, len(opt.Splits))
+	sum := beans.NewAmount(0, 0)
+	for i, split := range opt.Splits {
+		// category
+		if !split.Category.ID.Empty() {
+			params.Splits[i].CategoryID = split.Category.ID
+		} else {
+			params.Splits[i].CategoryID = u.Category(CategoryOpts{}).ID
+		}
+
+		// amount
+		require.NoError(u.t, json.Unmarshal([]byte(split.Amount), &params.Splits[i].Amount))
+
+		// notes
+		if split.Notes != "" {
+			params.Splits[i].Notes = beans.NewTransactionNotes(split.Notes)
+		}
+
+		total, err := beans.Arithmetic.Add(sum, params.Splits[i].Amount)
+		require.NoError(u.t, err)
+		sum = total
+	}
+	params.Amount = sum
+
+	// create
+	id, err := u.interactor.TransactionCreate(u.t, u.ctx, beans.TransactionCreateParams{
+		TransactionParams: params,
+	})
+	require.NoError(u.t, err)
+	transaction, err := u.interactor.TransactionGet(u.t, u.ctx, id)
+	require.NoError(u.t, err)
+	dbSplits, err := u.interactor.TransactionGetSplits(u.t, u.ctx, id)
+	require.NoError(u.t, err)
+
+	// sort splits so that they are in the same order they were passed in
+	sortedSplits := make([]beans.Split, len(dbSplits))
+	for i, split := range params.Splits {
+		for _, dbSplit := range dbSplits {
+			if dbSplit.Amount.Compare(split.Amount) == 0 &&
+				dbSplit.Category.ID == split.CategoryID &&
+				dbSplit.Notes == split.Notes {
+				sortedSplits[i] = dbSplit
+			}
+		}
+	}
+
+	return transaction, sortedSplits
 }
 
 // Other helpers

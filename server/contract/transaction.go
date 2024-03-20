@@ -22,8 +22,10 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		return beans.EmptyID(), err
 	}
 
+	isSplit := len(data.Splits) > 0
+
 	// validate relations
-	if err := c.validateRelations(ctx, auth, account, data.TransferAccountID, data.PayeeID, data.CategoryID); err != nil {
+	if err := c.validateRelations(ctx, auth, account, data.TransferAccountID, isSplit, data.PayeeID, data.CategoryID); err != nil {
 		return beans.EmptyID(), err
 	}
 
@@ -36,9 +38,29 @@ func (c *transactionContract) Create(ctx context.Context, auth *beans.BudgetAuth
 		Amount:     data.Amount,
 		Date:       data.Date,
 		Notes:      data.Notes,
+		IsSplit:    isSplit,
 	}
 
 	transactions := []beans.Transaction{transaction}
+
+	// add splits if split
+	for _, split := range data.Splits {
+		if err := c.validateCategory(ctx, auth, split.CategoryID); err != nil {
+			return beans.EmptyID(), err
+		}
+
+		transactions = append(transactions, beans.Transaction{
+			ID:        beans.NewID(),
+			AccountID: data.AccountID,
+			PayeeID:   data.PayeeID,
+			Date:      data.Date,
+			SplitID:   transaction.ID,
+
+			CategoryID: split.CategoryID,
+			Amount:     split.Amount,
+			Notes:      split.Notes,
+		})
+	}
 
 	// check if initiating transfer
 	if !data.TransferAccountID.Empty() {
@@ -93,8 +115,24 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 		}
 	}
 
+	// load splits
+	splits, err := c.ds().TransactionRepository().GetSplits(ctx, auth.BudgetID(), data.ID)
+	if err != nil {
+		return err
+	}
+
+	// cannot edit a split itself
+	if !transaction.SplitID.Empty() {
+		return beans.NewError(beans.EINVALID, "cannot update a split directly")
+	}
+
+	// cannot edit splits
+	if len(data.Splits) != len(splits) {
+		return beans.NewError(beans.EINVALID, "cannot add or remove split")
+	}
+
 	// validate relations
-	if err := c.validateRelations(ctx, auth, account, transactionB.AccountID, data.PayeeID, data.CategoryID); err != nil {
+	if err := c.validateRelations(ctx, auth, account, transactionB.AccountID, transaction.IsSplit, data.PayeeID, data.CategoryID); err != nil {
 		return err
 	}
 
@@ -107,6 +145,24 @@ func (c *transactionContract) Update(ctx context.Context, auth *beans.BudgetAuth
 	transaction.Notes = data.Notes
 
 	updates := []beans.Transaction{transaction}
+
+	// update splits
+	for i, split := range data.Splits {
+		if err := c.validateCategory(ctx, auth, split.CategoryID); err != nil {
+			return err
+		}
+
+		t := splits[i].Transaction
+		t.AccountID = data.AccountID
+		t.PayeeID = data.PayeeID
+		t.Date = data.Date
+
+		t.CategoryID = split.CategoryID
+		t.Amount = split.Amount
+		t.Notes = split.Notes
+
+		updates = append(updates, t)
+	}
 
 	// update transfer, if it exists
 	if !transaction.TransferID.Empty() {
@@ -132,6 +188,18 @@ func (c *transactionContract) GetAll(ctx context.Context, auth *beans.BudgetAuth
 	return c.ds().TransactionRepository().GetForBudget(ctx, auth.BudgetID())
 }
 
+func (c *transactionContract) GetSplits(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) ([]beans.Split, error) {
+	res, err := c.ds().TransactionRepository().GetSplits(ctx, auth.BudgetID(), id)
+	if err != nil {
+		return nil, err
+	}
+	splits := make([]beans.Split, len(res))
+	for i, s := range res {
+		splits[i] = s.Split
+	}
+	return splits, nil
+}
+
 func (c *transactionContract) Get(ctx context.Context, auth *beans.BudgetAuthContext, id beans.ID) (beans.TransactionWithRelations, error) {
 	return c.ds().TransactionRepository().GetWithRelations(ctx, auth.BudgetID(), id)
 }
@@ -149,14 +217,43 @@ func (c *transactionContract) getAndValidateAccount(ctx context.Context, auth *b
 	return account, nil
 }
 
+func (c *transactionContract) validateCategory(
+	ctx context.Context,
+	auth *beans.BudgetAuthContext,
+	categoryID beans.ID,
+) error {
+	if !categoryID.Empty() {
+		if _, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, categoryID, auth.BudgetID()); err != nil {
+			if errors.Is(err, beans.ErrorNotFound) {
+				return beans.NewError(beans.EINVALID, "Invalid Category ID")
+			}
+
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *transactionContract) validateRelations(
 	ctx context.Context,
 	auth *beans.BudgetAuthContext,
 	account beans.Account,
 	transferAccountID beans.ID,
+	isSplitParent bool,
 	payeeID beans.ID,
 	categoryID beans.ID,
 ) error {
+	if isSplitParent {
+		// cannot transfer on split parent
+		if !transferAccountID.Empty() {
+			return beans.NewError(beans.EINVALID, "Cannot transfer on split")
+		}
+		// cannot split with off-budget account
+		if account.OffBudget {
+			return beans.NewError(beans.EINVALID, "Cannot split on off-budget")
+		}
+	}
+
 	// load transfer account
 	transferAccount := beans.Optional[beans.RelatedAccount]{}
 	if !transferAccountID.Empty() {
@@ -171,7 +268,7 @@ func (c *transactionContract) validateRelations(
 	}
 
 	// load variant
-	variant := beans.GetTransactionVariant(account.ToRelated(), transferAccount)
+	variant := beans.GetTransactionVariant(account.ToRelated(), transferAccount, isSplitParent)
 
 	// cannot set category unless standard
 	if variant != beans.TransactionStandard && !categoryID.Empty() {
@@ -196,14 +293,8 @@ func (c *transactionContract) validateRelations(
 	}
 
 	// validate category
-	if !categoryID.Empty() {
-		if _, err := c.ds().CategoryRepository().GetSingleForBudget(ctx, categoryID, auth.BudgetID()); err != nil {
-			if errors.Is(err, beans.ErrorNotFound) {
-				return beans.NewError(beans.EINVALID, "Invalid Category ID")
-			}
-
-			return err
-		}
+	if err := c.validateCategory(ctx, auth, categoryID); err != nil {
+		return err
 	}
 
 	return nil

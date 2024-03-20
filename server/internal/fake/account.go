@@ -54,6 +54,7 @@ func (r *accountRepository) GetWithBalance(ctx context.Context, budgetID beans.I
 		transactions := filter(values(r.database.transactions), func(t beans.Transaction) bool {
 			return t.AccountID == it.ID
 		})
+		transactions = filter(transactions, func(it beans.Transaction) bool { return !it.IsSplit })
 
 		balance := reduce(transactions, beans.NewAmount(0, 0), func(it beans.Transaction, acc beans.Amount) beans.Amount {
 			r, err := beans.Arithmetic.Add(acc, it.Amount)

@@ -61,6 +61,7 @@ SELECT accounts.id, accounts.name, accounts.budget_id, accounts.off_budget, acco
   FROM accounts
   LEFT JOIN transactions ON
     accounts.id = transactions.account_id
+    AND transactions.is_split = false
   WHERE budget_id = $1
   GROUP BY (
     accounts.id,

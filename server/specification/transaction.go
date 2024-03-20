@@ -57,6 +57,16 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			assert.Equal(t, beans.TransactionTransfer, res.Variant)
 			assert.Equal(t, beans.OptionalWrap(beans.RelatedAccount{ID: accountB.ID, Name: accountB.Name, OffBudget: false}), res.TransferAccount)
 		})
+
+		t.Run("can get split variant", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			parent, _ := c.Split(SplitOpts{Splits: []SplitOpt{{Amount: "1"}}})
+
+			res, err := interactor.TransactionGet(t, c.ctx, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, beans.TransactionSplit, res.Variant)
+		})
 	})
 
 	t.Run("create", func(t *testing.T) {
@@ -260,6 +270,183 @@ func testTransaction(t *testing.T, interactor Interactor) {
 				})
 			})
 
+		})
+
+		t.Run("splits", func(t *testing.T) {
+
+			t.Run("can create split", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// make account and category
+				account := c.Account(AccountOpts{})
+				category := c.Category(CategoryOpts{})
+
+				// create transaction
+				params := beans.TransactionCreateParams{
+					TransactionParams: beans.TransactionParams{
+						AccountID: account.ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: category.ID,
+								Amount:     beans.NewAmount(7, 0),
+								Notes:      beans.NewTransactionNotes("good"),
+							},
+						},
+					},
+				}
+
+				id, err := interactor.TransactionCreate(t, c.ctx, params)
+				require.NoError(t, err)
+
+				// verify split
+				splits, err := interactor.TransactionGetSplits(t, c.ctx, id)
+				require.NoError(t, err)
+				require.Equal(t, 1, len(splits))
+
+				assert.Equal(t, false, splits[0].ID.Empty())
+				assert.Equal(t, beans.NewAmount(7, 0), splits[0].Amount)
+				assert.Equal(t, beans.NewTransactionNotes("good"), splits[0].Notes)
+				assert.Equal(t, category.ToRelated(), splits[0].Category)
+			})
+
+			t.Run("cannot create split for off-budget account", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				params := beans.TransactionCreateParams{
+					TransactionParams: beans.TransactionParams{
+						AccountID: c.Account(AccountOpts{OffBudget: true}).ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: c.Category(CategoryOpts{}).ID,
+								Amount:     beans.NewAmount(7, 0),
+							},
+						},
+					},
+				}
+
+				_, err := interactor.TransactionCreate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot split on off-budget")
+			})
+
+			t.Run("cannot create split and transfer", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				params := beans.TransactionCreateParams{
+					TransferAccountID: c.Account(AccountOpts{}).ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: c.Account(AccountOpts{}).ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: c.Category(CategoryOpts{}).ID,
+								Amount:     beans.NewAmount(7, 0),
+							},
+						},
+					},
+				}
+
+				_, err := interactor.TransactionCreate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot transfer on split")
+			})
+
+			t.Run("cannot create split with a category", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				params := beans.TransactionCreateParams{
+					TransactionParams: beans.TransactionParams{
+						AccountID:  c.Account(AccountOpts{}).ID,
+						CategoryID: c.Category(CategoryOpts{}).ID,
+						Amount:     beans.NewAmount(7, 0),
+						Date:       testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: c.Category(CategoryOpts{}).ID,
+								Amount:     beans.NewAmount(7, 0),
+							},
+						},
+					},
+				}
+
+				_, err := interactor.TransactionCreate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "category can only be set on standard transaction")
+			})
+
+			t.Run("cannot create split with an invalid category", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+				c2 := makeUserAndBudget(t, interactor)
+
+				params := beans.TransactionCreateParams{
+					TransactionParams: beans.TransactionParams{
+						AccountID: c.Account(AccountOpts{}).ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: c2.Category(CategoryOpts{}).ID,
+								Amount:     beans.NewAmount(7, 0),
+							},
+						},
+					},
+				}
+
+				_, err := interactor.TransactionCreate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Category ID")
+			})
+
+			t.Run("uses parent's date", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+				c.Split(SplitOpts{
+					Date:   "2024-03-01",
+					Splits: []SplitOpt{{Amount: "6", Category: c.findIncomeCategory()}},
+				})
+
+				// one of the ways date is used is to compute monthly income
+
+				// march should have $6 income from the split
+				march, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-03-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(6, 0), march.Income)
+
+				// but april has none
+				april, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-04-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(0, 0), april.Income)
+
+				// and february has none
+				february, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-02-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(0, 0), february.Income)
+			})
+
+			t.Run("uses parent's account", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// make accounts
+				accountA := c.Account(AccountOpts{})
+				accountB := c.Account(AccountOpts{})
+
+				// make split transaction
+				c.Split(SplitOpts{
+					Account: accountA,
+					Splits:  []SplitOpt{{Amount: "6"}},
+				})
+
+				// the amount in the split should have gone to accountA
+				res, err := interactor.AccountList(t, c.ctx)
+				require.NoError(t, err)
+
+				findAccountWithBalance(t, res, accountA.ID, func(it beans.AccountWithBalance) {
+					assert.Equal(t, beans.NewAmount(6, 0), it.Balance)
+				})
+				findAccountWithBalance(t, res, accountB.ID, func(it beans.AccountWithBalance) {
+					assert.Equal(t, beans.NewAmount(0, 0), it.Balance)
+				})
+			})
 		})
 
 		t.Run("validates related models", func(t *testing.T) {
@@ -623,6 +810,313 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			})
 		})
 
+		t.Run("splits", func(t *testing.T) {
+
+			t.Run("can update split", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// make account and category
+				account := c.Account(AccountOpts{})
+				category := c.Category(CategoryOpts{})
+				category2 := c.Category(CategoryOpts{})
+
+				// create transaction
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1", Category: category, Notes: ":)"}},
+				})
+
+				// update all split fields
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: account.ID,
+						Amount:    beans.NewAmount(7, 0),
+						Date:      testutils.NewDate(t, "2022-06-07"),
+						Splits: []beans.SplitParams{
+							{
+								CategoryID: category2.ID,
+								Amount:     beans.NewAmount(7, 0),
+								Notes:      beans.NewTransactionNotes(":O"),
+							},
+						},
+					},
+				}
+
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				require.NoError(t, err)
+
+				// verify split
+				res, err := interactor.TransactionGetSplits(t, c.ctx, parent.ID)
+				require.NoError(t, err)
+				require.Equal(t, 1, len(splits))
+
+				findSplit(t, res, splits[0].ID, func(it beans.Split) {
+					assert.Equal(t, beans.NewAmount(7, 0), it.Amount)
+					assert.Equal(t, beans.NewTransactionNotes(":O"), it.Notes)
+					assert.Equal(t, category2.ToRelated(), it.Category)
+				})
+
+			})
+
+			t.Run("cannot update a split child directly", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// create split
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1"}},
+				})
+
+				// try to add update the child
+				params := beans.TransactionUpdateParams{
+					ID: splits[0].ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: parent.Account.ID,
+						Amount:    beans.NewAmount(4, 0),
+						Date:      parent.Date,
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "cannot update a split directly")
+			})
+
+			t.Run("cannot update to have different amount of splits", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// create split
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1"}},
+				})
+
+				// try to add a second split to parent
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: parent.Account.ID,
+						Amount:    beans.NewAmount(4, 0),
+						Date:      parent.Date,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     beans.NewAmount(1, 0),
+								CategoryID: splits[0].Category.ID,
+							},
+							{
+								Amount:     beans.NewAmount(3, 0),
+								CategoryID: splits[0].Category.ID,
+							},
+						},
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "cannot add or remove split")
+			})
+
+			t.Run("cannot update split with off-budget account", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// create split
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1"}},
+				})
+
+				// try to add off-budget account to parent
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: c.Account(AccountOpts{OffBudget: true}).ID,
+						Amount:    parent.Amount,
+						Date:      parent.Date,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     splits[0].Amount,
+								CategoryID: splits[0].Category.ID,
+							},
+						},
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Cannot split on off-budget")
+			})
+
+			t.Run("cannot update transfer with split", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// create transfer
+				transactions := c.Transfer(TransferOpts{})
+
+				// try to add a split to a transfer
+				params := beans.TransactionUpdateParams{
+					ID: transactions[0].ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: transactions[0].Account.ID,
+						Amount:    transactions[0].Amount,
+						Date:      transactions[0].Date,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     transactions[0].Amount,
+								CategoryID: c.Category(CategoryOpts{}).ID,
+							},
+						},
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "cannot add or remove split")
+			})
+
+			t.Run("cannot update split with a category", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// create split
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1"}},
+				})
+
+				// try to add category to parent
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID:  parent.Account.ID,
+						Amount:     parent.Amount,
+						Date:       parent.Date,
+						CategoryID: c.Category(CategoryOpts{}).ID,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     splits[0].Amount,
+								CategoryID: splits[0].Category.ID,
+							},
+						},
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "category can only be set on standard transaction")
+			})
+
+			t.Run("cannot update split with invalid category", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+				c2 := makeUserAndBudget(t, interactor)
+
+				// create split
+				parent, splits := c.Split(SplitOpts{
+					Splits: []SplitOpt{{Amount: "1"}},
+				})
+
+				// try to update split
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: parent.Account.ID,
+						Amount:    parent.Amount,
+						Date:      parent.Date,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     splits[0].Amount,
+								CategoryID: c2.Category(CategoryOpts{}).ID,
+							},
+						},
+					},
+				}
+
+				// should fail
+				err := interactor.TransactionUpdate(t, c.ctx, params)
+				testutils.AssertErrorAndCode(t, err, beans.EINVALID, "Invalid Category ID")
+			})
+
+			t.Run("updates with parent's date", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+				parent, splits := c.Split(SplitOpts{
+					Date:   "2024-02-01",
+					Splits: []SplitOpt{{Amount: "6", Category: c.findIncomeCategory()}},
+				})
+
+				// update transaction to move to march
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: parent.Account.ID,
+						Amount:    parent.Amount,
+						Date:      testutils.NewDate(t, "2024-03-01"),
+						Splits: []beans.SplitParams{
+							{
+								Amount:     beans.NewAmount(6, 0),
+								CategoryID: splits[0].Category.ID,
+							},
+						},
+					},
+				}
+
+				require.NoError(t, interactor.TransactionUpdate(t, c.ctx, params))
+
+				// one of the ways date is used is to compute monthly income
+
+				// march should have $6 income from the split
+				march, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-03-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(6, 0), march.Income)
+
+				// but april has none
+				april, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-04-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(0, 0), april.Income)
+
+				// and february has none
+				february, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2024-02-01"))
+				require.NoError(t, err)
+				assert.Equal(t, beans.NewAmount(0, 0), february.Income)
+			})
+
+			t.Run("updates with parent's account", func(t *testing.T) {
+				c := makeUserAndBudget(t, interactor)
+
+				// make accounts
+				accountA := c.Account(AccountOpts{})
+				accountB := c.Account(AccountOpts{})
+
+				// make split transaction
+				parent, splits := c.Split(SplitOpts{
+					Account: accountA,
+					Splits:  []SplitOpt{{Amount: "6"}},
+				})
+
+				// update split to accountB
+				params := beans.TransactionUpdateParams{
+					ID: parent.ID,
+					TransactionParams: beans.TransactionParams{
+						AccountID: accountB.ID,
+						Amount:    parent.Amount,
+						Date:      parent.Date,
+						Splits: []beans.SplitParams{
+							{
+								Amount:     beans.NewAmount(6, 0),
+								CategoryID: splits[0].Category.ID,
+							},
+						},
+					},
+				}
+
+				require.NoError(t, interactor.TransactionUpdate(t, c.ctx, params))
+
+				// the amount in the split should have gone to accountB now
+				res, err := interactor.AccountList(t, c.ctx)
+				require.NoError(t, err)
+
+				findAccountWithBalance(t, res, accountA.ID, func(it beans.AccountWithBalance) {
+					assert.Equal(t, beans.NewAmount(0, 0), it.Balance)
+				})
+				findAccountWithBalance(t, res, accountB.ID, func(it beans.AccountWithBalance) {
+					assert.Equal(t, beans.NewAmount(6, 0), it.Balance)
+				})
+			})
+		})
+
 		t.Run("validates related models", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 			c2 := makeUserAndBudget(t, interactor)
@@ -839,6 +1333,40 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			_, err = interactor.TransactionGet(t, c.ctx, transfer[1].ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
+
+		t.Run("deleting parents deletes all split children", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			account := c.Account(AccountOpts{})
+			parent, _ := c.Split(SplitOpts{
+				Account: account,
+				Splits:  []SplitOpt{{Amount: "1"}, {Amount: "2"}},
+			})
+
+			// delete the parent
+			err := interactor.TransactionDelete(t, c.ctx, []beans.ID{parent.ID})
+			require.NoError(t, err)
+
+			// splits are gone
+			res, err := interactor.TransactionGetSplits(t, c.ctx, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, len(res))
+		})
+
+		t.Run("cannot delete a split directly", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			parent, splits := c.Split(SplitOpts{Splits: []SplitOpt{{Amount: "1"}, {Amount: "2"}}})
+
+			// delete the first split
+			err := interactor.TransactionDelete(t, c.ctx, []beans.ID{splits[0].ID})
+			require.NoError(t, err)
+
+			// there should still be two splits
+			res, err := interactor.TransactionGetSplits(t, c.ctx, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 2, len(res))
+		})
 	})
 
 	t.Run("get all", func(t *testing.T) {
@@ -897,6 +1425,24 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			})
 		})
 
+		t.Run("can get split variant", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			// make split
+			parent, _ := c.Split(SplitOpts{Splits: []SplitOpt{
+				{Amount: "10.72"},
+				{Amount: "1.43"},
+			}})
+
+			// only the parent is returned
+			res, err := interactor.TransactionGetAll(t, c.ctx)
+			require.NoError(t, err)
+
+			assert.Equal(t, 1, len(res))
+			assert.Equal(t, parent.ID, res[0].ID)
+			assert.Equal(t, beans.TransactionSplit, res[0].Variant)
+		})
+
 		t.Run("can get transfer", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
@@ -935,6 +1481,65 @@ func testTransaction(t *testing.T, interactor Interactor) {
 			require.NoError(t, err)
 
 			assert.Equal(t, 0, len(res))
+		})
+	})
+
+	t.Run("get splits", func(t *testing.T) {
+
+		t.Run("can get splits", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			// make some categories
+			category1 := c.Category(CategoryOpts{})
+			category2 := c.Category(CategoryOpts{})
+
+			// make split transaction
+			parent, splits := c.Split(SplitOpts{Splits: []SplitOpt{
+				{Amount: "10.72", Category: category1, Notes: ":0)"},
+				{Amount: "1.43", Category: category2, Notes: ":)"},
+			}})
+
+			// get splits for parent
+			res, err := interactor.TransactionGetSplits(t, c.ctx, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 2, len(res))
+
+			findSplit(t, res, splits[0].ID, func(it beans.Split) {
+				assert.Equal(t, beans.NewAmount(1072, -2), it.Amount)
+				assert.Equal(t, beans.NewTransactionNotes(":0)"), it.Notes)
+				assert.Equal(t, category1.ToRelated(), it.Category)
+			})
+			findSplit(t, res, splits[1].ID, func(it beans.Split) {
+				assert.Equal(t, beans.NewAmount(143, -2), it.Amount)
+				assert.Equal(t, beans.NewTransactionNotes(":)"), it.Notes)
+				assert.Equal(t, category2.ToRelated(), it.Category)
+			})
+		})
+
+		t.Run("filters by budget", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+			c2 := makeUserAndBudget(t, interactor)
+
+			// make split transaction
+			parent, _ := c.Split(SplitOpts{Splits: []SplitOpt{{Amount: "2"}, {Amount: "1"}}})
+
+			// get splits for parent, but budget 2
+			res, err := interactor.TransactionGetSplits(t, c2.ctx, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, len(res))
+		})
+
+		t.Run("filters by transaction", func(t *testing.T) {
+			c := makeUserAndBudget(t, interactor)
+
+			// make split transactions
+			c.Split(SplitOpts{Splits: []SplitOpt{{Amount: "2"}, {Amount: "1"}}})
+			parent1, _ := c.Split(SplitOpts{Splits: []SplitOpt{{Amount: "2"}, {Amount: "1"}}})
+
+			// only two splits are returned
+			res, err := interactor.TransactionGetSplits(t, c.ctx, parent1.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 2, len(res))
 		})
 	})
 }

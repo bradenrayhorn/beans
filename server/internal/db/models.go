@@ -72,6 +72,8 @@ type Transaction struct {
 	PayeeID    pgtype.Text
 	CategoryID pgtype.Text
 	TransferID pgtype.Text
+	SplitID    pgtype.Text
+	IsSplit    bool
 	Date       pgtype.Date
 	Amount     pgtype.Numeric
 	Notes      pgtype.Text

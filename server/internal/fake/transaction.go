@@ -49,7 +49,8 @@ func (r *transactionRepository) Delete(ctx context.Context, budgetID beans.ID, t
 	defer r.database.accountsMU.RUnlock()
 
 	transactions := filter(values(r.database.transactions), func(it beans.Transaction) bool {
-		return slices.Contains(transactionIDs, it.ID)
+		return (it.SplitID.Empty() && slices.Contains(transactionIDs, it.ID)) ||
+			(!it.SplitID.Empty() && slices.Contains(transactionIDs, it.SplitID))
 	})
 
 	for _, v := range transactions {
@@ -109,6 +110,10 @@ func (r *transactionRepository) GetForBudget(ctx context.Context, budgetID beans
 		return false
 	})
 
+	transactions = filter(transactions, func(it beans.Transaction) bool {
+		return it.SplitID.Empty()
+	})
+
 	return mapVals(transactions, r.mapWithRelations), nil
 }
 
@@ -134,6 +139,53 @@ func (r *transactionRepository) GetWithRelations(ctx context.Context, budgetID b
 	}
 
 	return beans.TransactionWithRelations{}, beans.NewError(beans.ENOTFOUND, "not found")
+}
+
+func (r *transactionRepository) GetSplits(ctx context.Context, budgetID beans.ID, transactionID beans.ID) ([]beans.TransactionAsSplit, error) {
+	r.acquire(func() {
+		r.database.transactionsMU.RLock()
+		r.database.accountsMU.RLock()
+		r.database.categoriesMU.RLock()
+		r.database.payeesMU.RLock()
+	})
+	defer r.database.transactionsMU.RUnlock()
+	defer r.database.accountsMU.RUnlock()
+	defer r.database.categoriesMU.RUnlock()
+	defer r.database.payeesMU.RUnlock()
+
+	// filter to in-budget transactions
+	transactions := filter(values(r.database.transactions), func(it beans.Transaction) bool {
+		if account, ok := r.database.accounts[it.AccountID]; ok {
+			if account.BudgetID == budgetID {
+				return true
+			}
+		}
+		return false
+	})
+	// filter to splits for transaction
+	transactions = filter(transactions, func(it beans.Transaction) bool {
+		return it.SplitID == transactionID
+	})
+
+	// ensure category is not null
+	for _, t := range transactions {
+		if t.CategoryID.Empty() {
+			return nil, errors.New("category null on split")
+		}
+	}
+
+	return mapVals(mapVals(transactions, r.mapWithRelations), func(it beans.TransactionWithRelations) beans.TransactionAsSplit {
+		category, _ := it.Category.Value()
+		return beans.TransactionAsSplit{
+			Transaction: r.database.transactions[it.ID],
+			Split: beans.Split{
+				ID:       it.ID,
+				Amount:   it.Amount,
+				Notes:    it.Notes,
+				Category: category,
+			},
+		}
+	}), nil
 }
 
 func (r *transactionRepository) GetActivityByCategory(ctx context.Context, budgetID beans.ID, from beans.Date, to beans.Date) (map[beans.ID]beans.Amount, error) {
@@ -248,7 +300,7 @@ func (r *transactionRepository) mapWithRelations(it beans.Transaction) beans.Tra
 		t.TransferAccount = beans.OptionalWrap(beans.RelatedAccount{ID: transferAccount.ID, Name: transferAccount.Name, OffBudget: transferAccount.OffBudget})
 	}
 
-	t.Variant = beans.GetTransactionVariant(t.Account, t.TransferAccount)
+	t.Variant = beans.GetTransactionVariant(t.Account, t.TransferAccount, it.IsSplit)
 
 	if !it.CategoryID.Empty() {
 		category := r.database.categories[it.CategoryID]

@@ -16,6 +16,8 @@ type Transaction struct {
 	PayeeID    pgtype.Text      `db:"payee_id"`
 	CategoryID pgtype.Text      `db:"category_id"`
 	TransferID pgtype.Text      `db:"transfer_id"`
+	SplitID    pgtype.Text      `db:"split_id"`
+	IsSplit    bool             `db:"is_split"`
 	Date       pgtype.Date      `db:"date"`
 	Amount     pgtype.Numeric   `db:"amount"`
 	Notes      pgtype.Text      `db:"notes"`
@@ -33,13 +35,15 @@ type CreateTransactionParams struct {
 	Amount     pgtype.Numeric
 	Notes      pgtype.Text
 	TransferID pgtype.Text
+	SplitID    pgtype.Text
+	IsSplit    bool
 }
 
 func (e *Executor) CreateTransactions(ctx context.Context, params []CreateTransactionParams) error {
 	_, err := e.db.CopyFrom(
 		ctx,
 		pgx.Identifier{"transactions"},
-		[]string{"id", "account_id", "payee_id", "category_id", "date", "amount", "notes", "transfer_id"},
+		[]string{"id", "account_id", "payee_id", "category_id", "date", "amount", "notes", "transfer_id", "split_id", "is_split"},
 		pgx.CopyFromSlice(len(params), func(i int) ([]any, error) {
 			return []any{
 				params[i].ID,
@@ -50,6 +54,8 @@ func (e *Executor) CreateTransactions(ctx context.Context, params []CreateTransa
 				params[i].Amount,
 				params[i].Notes,
 				params[i].TransferID,
+				params[i].SplitID,
+				params[i].IsSplit,
 			}, nil
 		}),
 	)
@@ -60,8 +66,8 @@ func (e *Executor) CreateTransactions(ctx context.Context, params []CreateTransa
 
 const updateTransactionSQL = `
 UPDATE transactions
-  SET account_id=$1, category_id=$2, payee_id=$3, date=$4, amount=$5, notes=$6
-  WHERE id=$7;
+  SET account_id=$1, category_id=$2, payee_id=$3, date=$4, amount=$5, notes=$6, is_split=$7
+  WHERE id=$8;
 `
 
 type UpdateTransactionParams struct {
@@ -71,6 +77,7 @@ type UpdateTransactionParams struct {
 	Date       pgtype.Date
 	Amount     pgtype.Numeric
 	Notes      pgtype.Text
+	IsSplit    bool
 	ID         string
 }
 
@@ -82,6 +89,7 @@ func (e *Executor) UpdateTransaction(ctx context.Context, params UpdateTransacti
 		params.Date,
 		params.Amount,
 		params.Notes,
+		params.IsSplit,
 		params.ID,
 	)
 	return err
@@ -96,6 +104,7 @@ DELETE FROM transactions
     accounts.id = transactions.account_id
     AND accounts.budget_id=$1
     AND transactions.id = ANY($2)
+	AND transactions.split_id IS NULL
 `
 
 type DeleteTransactionsParams struct {
@@ -224,6 +233,11 @@ type GetTransactionsWithRelationshipsParams struct {
 	BudgetID string
 }
 
+type GetSplitsParams struct {
+	TransactionID string
+	BudgetID      string
+}
+
 func getTransactionWithRelationshipsQuery(budgetID string) squirrel.SelectBuilder {
 	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	return psql.
@@ -258,7 +272,19 @@ func (e *Executor) GetTransactionWithRelationships(ctx context.Context, params G
 }
 
 func (e *Executor) GetTransactionsWithRelationships(ctx context.Context, params GetTransactionsWithRelationshipsParams) ([]TransactionWithRelationships, error) {
-	q := getTransactionWithRelationshipsQuery(params.BudgetID)
+	q := getTransactionWithRelationshipsQuery(params.BudgetID).
+		Where("transactions.split_id IS NULL")
+	sql, args, err := q.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows, _ := e.db.Query(ctx, sql, args...)
+	return pgx.CollectRows(rows, pgx.RowToStructByName[TransactionWithRelationships])
+}
+
+func (e *Executor) GetSplits(ctx context.Context, params GetSplitsParams) ([]TransactionWithRelationships, error) {
+	q := getTransactionWithRelationshipsQuery(params.BudgetID).
+		Where("transactions.split_id = ?", params.TransactionID)
 	sql, args, err := q.ToSql()
 	if err != nil {
 		return nil, err
