@@ -77,7 +77,42 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 				ctx,
 				[]beans.Transaction{account1Transaction, account2Transaction},
 			)
-			require.Nil(t, err)
+			require.NoError(t, err)
+		})
+
+		t.Run("can create", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+
+			parent := beans.Transaction{
+				ID:        beans.NewID(),
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      beans.NewDate(time.Now()),
+				IsSplit:   true,
+			}
+			split1 := beans.Transaction{
+				ID:         beans.NewID(),
+				AccountID:  account.ID,
+				CategoryID: factory.Category(beans.Category{}).ID,
+				Amount:     beans.NewAmount(2, 0),
+				Date:       beans.NewDate(time.Now()),
+				SplitID:    parent.ID,
+			}
+			split2 := beans.Transaction{
+				ID:         beans.NewID(),
+				AccountID:  account.ID,
+				CategoryID: factory.Category(beans.Category{}).ID,
+				Amount:     beans.NewAmount(3, 0),
+				Date:       beans.NewDate(time.Now()),
+				SplitID:    parent.ID,
+			}
+
+			err := transactionRepository.Create(
+				ctx,
+				[]beans.Transaction{parent, split1, split2},
+			)
+			require.NoError(t, err)
 		})
 	})
 
@@ -200,6 +235,46 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			_, err = transactionRepository.Get(ctx, budget.ID, transactions[1].ID)
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
+
+		t.Run("deleting parent deletes split children", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			child := factory.Transaction(budget.ID, beans.Transaction{
+				SplitID: parent.ID,
+			})
+
+			err := transactionRepository.Delete(ctx, budget.ID, []beans.ID{parent.ID})
+			require.NoError(t, err)
+
+			// both transactions should be deleted
+			_, err = transactionRepository.Get(ctx, budget.ID, parent.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+			_, err = transactionRepository.Get(ctx, budget.ID, child.ID)
+			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+
+		t.Run("cannot delete split directly", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			child := factory.Transaction(budget.ID, beans.Transaction{
+				SplitID: parent.ID,
+			})
+
+			err := transactionRepository.Delete(ctx, budget.ID, []beans.ID{child.ID})
+			require.NoError(t, err)
+
+			// nothing should be deleted
+			_, err = transactionRepository.Get(ctx, budget.ID, parent.ID)
+			assert.NoError(t, err)
+			_, err = transactionRepository.Get(ctx, budget.ID, child.ID)
+			assert.NoError(t, err)
+		})
 	})
 
 	t.Run("get all for budget", func(t *testing.T) {
@@ -259,6 +334,26 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			}, res[0])
 		})
 
+		t.Run("maps split variant", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+			transaction := factory.Transaction(budget.ID, beans.Transaction{IsSplit: true, AccountID: account.ID})
+
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(res))
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				ID:      transaction.ID,
+				Date:    transaction.Date,
+				Amount:  transaction.Amount,
+				Notes:   transaction.Notes,
+				Variant: beans.TransactionSplit,
+				Account: account.ToRelated(),
+			}, res[0])
+		})
+
 		t.Run("maps transfer", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 
@@ -291,6 +386,19 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 					TransferAccount: beans.OptionalWrap(beans.RelatedAccount{ID: accountA.ID, Name: accountA.Name, OffBudget: false}),
 				},
 			}, res)
+		})
+
+		t.Run("excludes splits", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{IsSplit: true})
+			factory.Transaction(budget.ID, beans.Transaction{SplitID: parent.ID})
+
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(res))
+
+			assert.Equal(t, parent.ID, res[0].ID)
 		})
 
 		t.Run("maps off-budget transfer", func(t *testing.T) {
@@ -377,6 +485,25 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			}, res)
 		})
 
+		t.Run("maps split variant", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+			transaction := factory.Transaction(budget.ID, beans.Transaction{IsSplit: true, AccountID: account.ID})
+
+			res, err := transactionRepository.GetWithRelations(ctx, budget.ID, transaction.ID)
+			require.NoError(t, err)
+
+			assert.Equal(t, beans.TransactionWithRelations{
+				ID:      transaction.ID,
+				Date:    transaction.Date,
+				Amount:  transaction.Amount,
+				Notes:   transaction.Notes,
+				Variant: beans.TransactionSplit,
+				Account: account.ToRelated(),
+			}, res)
+		})
+
 		t.Run("maps transfer", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 
@@ -434,6 +561,88 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 
 			_, err := transactionRepository.GetWithRelations(ctx, budget.ID, beans.NewID())
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
+		})
+	})
+
+	t.Run("get splits", func(t *testing.T) {
+
+		t.Run("filters by budget", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+			budget2, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				SplitID: parent.ID,
+			})
+
+			res, err := transactionRepository.GetSplits(ctx, budget2.ID, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, len(res))
+		})
+
+		t.Run("filters by transaction", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			realParent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				SplitID: realParent.ID,
+			})
+
+			res, err := transactionRepository.GetSplits(ctx, budget.ID, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 0, len(res))
+		})
+
+		t.Run("can get splits", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			category := factory.Category(beans.Category{BudgetID: budget.ID})
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+
+			child := factory.Transaction(budget.ID, beans.Transaction{
+				SplitID:    parent.ID,
+				CategoryID: category.ID,
+				Amount:     beans.NewAmount(5, 0),
+				Notes:      beans.NewTransactionNotes("hi"),
+			})
+
+			res, err := transactionRepository.GetSplits(ctx, budget.ID, parent.ID)
+			require.NoError(t, err)
+			assert.Equal(t, 1, len(res))
+
+			assert.Equal(t, beans.TransactionAsSplit{
+				Transaction: child,
+				Split: beans.Split{
+					ID:       child.ID,
+					Amount:   beans.NewAmount(5, 0),
+					Notes:    beans.NewTransactionNotes("hi"),
+					Category: category.ToRelated(),
+				},
+			}, res[0])
+		})
+
+		t.Run("errors if missing category", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				IsSplit: true,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				SplitID: parent.ID,
+			})
+
+			_, err := transactionRepository.GetSplits(ctx, budget.ID, parent.ID)
+			assert.ErrorContains(t, err, "category null")
 		})
 	})
 

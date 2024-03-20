@@ -17,6 +17,7 @@ SELECT sqlc.embed(accounts), sum(transactions.amount)::numeric as balance
   FROM accounts
   LEFT JOIN transactions ON
     accounts.id = transactions.account_id
+    AND transactions.is_split = false
   WHERE budget_id = $1
   GROUP BY (
     accounts.id,

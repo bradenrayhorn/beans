@@ -4,6 +4,8 @@ CREATE TABLE transactions (
     payee_id CHAR(27) REFERENCES payees(id) ON DELETE CASCADE,
     category_id CHAR(27) REFERENCES categories(id) ON DELETE CASCADE,
     transfer_id CHAR(27) REFERENCES transactions(id) ON DELETE CASCADE,
+    split_id CHAR(27) REFERENCES transactions(id) ON DELETE CASCADE,
+    is_split BOOLEAN NOT NULL,
     date DATE NOT NULL,
     amount NUMERIC NOT NULL,
     notes VARCHAR(255),

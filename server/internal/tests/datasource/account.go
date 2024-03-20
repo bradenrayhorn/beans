@@ -119,6 +119,30 @@ func testAccount(t *testing.T, ds beans.DataSource) {
 
 			assert.Equal(t, account.ID, res[0].ID)
 		})
+
+		t.Run("excludes split parent from sum", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			account := factory.Account(beans.Account{BudgetID: budget.ID})
+			parent := factory.Transaction(budget.ID, beans.Transaction{
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2022-05-20"),
+				IsSplit:   true,
+			})
+			factory.Transaction(budget.ID, beans.Transaction{
+				AccountID: account.ID,
+				Amount:    beans.NewAmount(5, 0),
+				Date:      testutils.NewDate(t, "2022-05-20"),
+				SplitID:   parent.ID,
+			})
+
+			res, err := accountRepository.GetWithBalance(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(res))
+
+			assert.Equal(t, beans.NewAmount(5, 0), res[0].Balance)
+		})
 	})
 
 	t.Run("get transactable", func(t *testing.T) {

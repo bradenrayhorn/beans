@@ -254,6 +254,14 @@ func (i *contractsAdapter) TransactionGetAll(t *testing.T, ctx specification.Con
 	return i.contracts.Transaction.GetAll(context.Background(), auth)
 }
 
+func (i *contractsAdapter) TransactionGetSplits(t *testing.T, ctx specification.Context, id beans.ID) ([]beans.Split, error) {
+	auth, err := i.budgetAuthContext(t, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return i.contracts.Transaction.GetSplits(context.Background(), auth, id)
+}
+
 // User
 
 func (i *contractsAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {

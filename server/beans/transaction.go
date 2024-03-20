@@ -16,6 +16,20 @@ type Transaction struct {
 	Notes  TransactionNotes
 
 	TransferID ID
+	SplitID    ID
+	IsSplit    bool
+}
+
+type Split struct {
+	ID       ID
+	Amount   Amount
+	Notes    TransactionNotes
+	Category RelatedCategory
+}
+
+type TransactionAsSplit struct {
+	Transaction
+	Split
 }
 
 type TransactionWithRelations struct {
@@ -44,14 +58,18 @@ const (
 	TransactionStandard  TransactionVariant = "standard"
 	TransactionOffBudget TransactionVariant = "off_budget"
 	TransactionTransfer  TransactionVariant = "transfer"
+	TransactionSplit     TransactionVariant = "split"
 )
 
 type TransactionContract interface {
 	// Creates a transaction.
 	Create(ctx context.Context, auth *BudgetAuthContext, params TransactionCreateParams) (ID, error)
 
-	// Gets all transactions for budget.
+	// Gets all transactions for budget. Excludes splits.
 	GetAll(ctx context.Context, auth *BudgetAuthContext) ([]TransactionWithRelations, error)
+
+	// Get splits for a transaction.
+	GetSplits(ctx context.Context, auth *BudgetAuthContext, id ID) ([]Split, error)
 
 	// Edits a transaction.
 	Update(ctx context.Context, auth *BudgetAuthContext, params TransactionUpdateParams) error
@@ -70,9 +88,14 @@ type TransactionRepository interface {
 
 	Delete(ctx context.Context, budgetID ID, transactionIDs []ID) error
 
+	// Gets all transactions for budget. Excludes splits.
 	GetForBudget(ctx context.Context, budgetID ID) ([]TransactionWithRelations, error)
 
+	// Gets a single transaction for budget.
 	GetWithRelations(ctx context.Context, budgetID ID, id ID) (TransactionWithRelations, error)
+
+	// Gets all splits for a transaction.
+	GetSplits(ctx context.Context, budgetID ID, transactionID ID) ([]TransactionAsSplit, error)
 
 	// Get transaction.
 	Get(ctx context.Context, budgetID ID, id ID) (Transaction, error)
@@ -90,6 +113,13 @@ type TransactionParams struct {
 	PayeeID    ID
 	Amount     Amount
 	Date       Date
+	Notes      TransactionNotes
+	Splits     []SplitParams
+}
+
+type SplitParams struct {
+	Amount     Amount
+	CategoryID ID
 	Notes      TransactionNotes
 }
 
@@ -112,12 +142,37 @@ func (t TransactionUpdateParams) ValidateAll() error {
 }
 
 func (t TransactionParams) ValidateAll() error {
-	return ValidateFields(
+	err := ValidateFields(
 		Field("Account ID", Required(t.AccountID)),
 		Field("Amount", Required(&t.Amount), MaxPrecision(t.Amount)),
 		Field("Date", Required(t.Date)),
 		Field("Notes", Max(t.Notes, 255, "characters")),
 	)
+	if err != nil {
+		return err
+	}
+
+	sum := NewAmount(0, 0)
+	for _, s := range t.Splits {
+		err := ValidateFields(
+			Field("Category ID", Required(s.CategoryID)),
+			Field("Amount", Required(&s.Amount), MaxPrecision(s.Amount)),
+			Field("Notes", Max(s.Notes, 255, "characters")),
+		)
+		if err != nil {
+			return err
+		}
+		sum, err = Arithmetic.Add(sum, s.Amount)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(t.Splits) > 0 && sum.Compare(t.Amount) != 0 {
+		return NewError(EINVALID, "Splits must sum to transaction.")
+	}
+
+	return nil
 }
 
 // helpers
@@ -125,7 +180,12 @@ func (t TransactionParams) ValidateAll() error {
 func GetTransactionVariant(
 	account RelatedAccount,
 	transferAccount Optional[RelatedAccount],
+	isSplit bool,
 ) TransactionVariant {
+	if isSplit {
+		return TransactionSplit
+	}
+
 	if transferAccount, ok := transferAccount.Value(); ok {
 
 		// only a transfer variant if both accounts have same on/off budget

@@ -108,6 +108,7 @@ func NewServer(
 				r.Post("/delete", s.handleTransactionDelete())
 				r.Put("/{transactionID}", s.handleTransactionUpdate())
 				r.Get("/{transactionID}", s.handleTransactionGet())
+				r.Get("/{transactionID}/splits", s.handleTransactionGetSplits())
 			})
 
 		})

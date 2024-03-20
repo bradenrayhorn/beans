@@ -19,12 +19,12 @@ func mustFind[T any](t *testing.T, items []T, matches func(a T) bool) T {
 	return empty
 }
 
-func findAccountWithBalance(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(account beans.AccountWithBalance)) {
+func findAccountWithBalance(t *testing.T, items []beans.AccountWithBalance, id beans.ID, do func(it beans.AccountWithBalance)) {
 	res := mustFind(t, items, func(a beans.AccountWithBalance) bool { return a.ID == id })
 	do(res)
 }
 
-func findAccount(t *testing.T, items []beans.Account, id beans.ID, do func(account beans.Account)) {
+func findAccount(t *testing.T, items []beans.Account, id beans.ID, do func(it beans.Account)) {
 	res := mustFind(t, items, func(a beans.Account) bool { return a.ID == id })
 	do(res)
 }
@@ -41,6 +41,11 @@ func findMonthCategory(t *testing.T, items []beans.MonthCategoryWithDetails, cat
 
 func findPayee(t *testing.T, items []beans.Payee, id beans.ID, do func(it beans.Payee)) {
 	res := mustFind(t, items, func(a beans.Payee) bool { return a.ID == id })
+	do(res)
+}
+
+func findSplit(t *testing.T, items []beans.Split, id beans.ID, do func(it beans.Split)) {
+	res := mustFind(t, items, func(a beans.Split) bool { return a.ID == id })
 	do(res)
 }
 

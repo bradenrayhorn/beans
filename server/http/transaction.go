@@ -61,6 +61,15 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 			return
 		}
 
+		splits := make([]beans.SplitParams, len(req.Splits))
+		for i, s := range req.Splits {
+			splits[i] = beans.SplitParams{
+				Amount:     s.Amount,
+				CategoryID: s.CategoryID,
+				Notes:      s.Notes,
+			}
+		}
+
 		transactionID, err := s.contracts.Transaction.Create(r.Context(), getBudgetAuth(r), beans.TransactionCreateParams{
 			TransferAccountID: req.TransferAccountID,
 			TransactionParams: beans.TransactionParams{
@@ -70,6 +79,7 @@ func (s *Server) handleTransactionCreate() http.HandlerFunc {
 				Amount:     req.Amount,
 				Date:       req.Date,
 				Notes:      req.Notes,
+				Splits:     splits,
 			},
 		})
 
@@ -98,6 +108,15 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 			return
 		}
 
+		splits := make([]beans.SplitParams, len(req.Splits))
+		for i, s := range req.Splits {
+			splits[i] = beans.SplitParams{
+				Amount:     s.Amount,
+				CategoryID: s.CategoryID,
+				Notes:      s.Notes,
+			}
+		}
+
 		err = s.contracts.Transaction.Update(r.Context(), getBudgetAuth(r), beans.TransactionUpdateParams{
 			ID: transactionID,
 			TransactionParams: beans.TransactionParams{
@@ -107,6 +126,7 @@ func (s *Server) handleTransactionUpdate() http.HandlerFunc {
 				Amount:     req.Amount,
 				Date:       req.Date,
 				Notes:      req.Notes,
+				Splits:     splits,
 			},
 		})
 
@@ -167,5 +187,33 @@ func (s *Server) handleTransactionGet() http.HandlerFunc {
 		jsonResponse(w,
 			response.GetTransactionResponse{Data: responseFromTransaction(transaction)},
 			http.StatusOK)
+	}
+}
+
+func (s *Server) handleTransactionGetSplits() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := beans.IDFromString(chi.URLParam(r, "transactionID"))
+		if err != nil {
+			Error(w, beans.WrapError(err, beans.ErrorNotFound))
+			return
+		}
+
+		splits, err := s.contracts.Transaction.GetSplits(r.Context(), getBudgetAuth(r), id)
+		if err != nil {
+			Error(w, err)
+			return
+		}
+
+		res := response.GetSplitsResponse{Data: make([]response.Split, len(splits))}
+		for i, t := range splits {
+			res.Data[i] = response.Split{
+				ID:       t.ID,
+				Amount:   t.Amount,
+				Category: response.AssociatedCategory(t.Category),
+				Notes:    t.Notes,
+			}
+		}
+
+		jsonResponse(w, res, http.StatusOK)
 	}
 }

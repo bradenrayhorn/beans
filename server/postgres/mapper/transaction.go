@@ -1,6 +1,8 @@
 package mapper
 
 import (
+	"fmt"
+
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/postgres/db"
 )
@@ -31,6 +33,10 @@ func Transaction(d db.Transaction) (beans.Transaction, error) {
 	if err != nil {
 		return beans.Transaction{}, err
 	}
+	splitID, err := PgToID(d.SplitID)
+	if err != nil {
+		return beans.Transaction{}, err
+	}
 
 	return beans.Transaction{
 		ID:         id,
@@ -41,6 +47,8 @@ func Transaction(d db.Transaction) (beans.Transaction, error) {
 		Date:       PgToDate(d.Date),
 		Notes:      beans.TransactionNotes{NullString: PgToNullString(d.Notes)},
 		TransferID: transferID,
+		SplitID:    splitID,
+		IsSplit:    d.IsSplit,
 	}, nil
 }
 
@@ -81,6 +89,7 @@ func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.Trans
 	transactionWithRelations.Variant = beans.GetTransactionVariant(
 		transactionWithRelations.Account,
 		transactionWithRelations.TransferAccount,
+		transaction.IsSplit,
 	)
 
 	if !categoryName.Empty() {
@@ -98,4 +107,28 @@ func GetTransactionsForBudgetRow(d db.TransactionWithRelationships) (beans.Trans
 	}
 
 	return transactionWithRelations, nil
+}
+
+func Split(d db.TransactionWithRelationships) (beans.TransactionAsSplit, error) {
+	transaction, err := Transaction(d.Transaction)
+	if err != nil {
+		return beans.TransactionAsSplit{}, err
+	}
+
+	if transaction.CategoryID.Empty() {
+		return beans.TransactionAsSplit{}, fmt.Errorf("category null on split %s", transaction.ID)
+	}
+
+	return beans.TransactionAsSplit{
+		Transaction: transaction,
+		Split: beans.Split{
+			ID:     transaction.ID,
+			Amount: transaction.Amount,
+			Notes:  transaction.Notes,
+			Category: beans.RelatedCategory{
+				ID:   transaction.CategoryID,
+				Name: beans.Name(PgToNullString(d.CategoryName).String()),
+			},
+		},
+	}, nil
 }
