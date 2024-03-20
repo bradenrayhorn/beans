@@ -182,3 +182,54 @@ test("can edit transfer transaction", async ({
   await expect(savings.nth(4)).toHaveText("Savings");
   await expect(savings.nth(6)).toHaveText("-$15.00");
 });
+
+test("can edit split", async ({ budget: { id }, page, request }) => {
+  const checkingAccount = await createAccount(id, request, {
+    name: "Checking",
+  });
+  const groupID = await createCategoryGroup(id, "Bills", request);
+  const electricID = await createCategory(id, groupID, "Electric", request);
+  await createCategory(id, groupID, "Water", request);
+
+  await createTransaction(id, request, {
+    date: "2022-10-11",
+    accountID: checkingAccount,
+    amount: "10.72",
+    splits: [{ amount: "10.72", categoryID: electricID }],
+  });
+
+  // go to transactions page
+  await page.goto(`/budget/${id}`);
+  await page.getByRole("link", { name: "ledger" }).click();
+
+  // select and edit transaction
+  await page.getByRole("row").nth(1).getByRole("checkbox").focus();
+  await page.getByRole("row").nth(1).getByRole("checkbox").press("Space");
+  await page.getByRole("link", { name: "edit" }).click();
+
+  // change split info
+  const parent = page.getByRole("group", { name: "Parent Transaction" });
+  await parent.getByLabel("Amount").fill("10.78");
+
+  const split = page.getByRole("group", { name: "Split 1" });
+  await split.getByLabel("Amount").fill("10.78");
+  await split.getByLabel("Notes").fill(":)");
+  await selectOption(page, "Category", "Water");
+
+  // save
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toBeHidden();
+
+  const cells = page.getByRole("row").nth(1).getByRole("cell");
+  await expect(cells.nth(3)).toHaveText("Split");
+  await expect(cells.nth(6)).toHaveText("$10.78");
+
+  // open form and check splits
+  await page.getByRole("link", { name: "edit" }).click();
+
+  await expect(split.getByLabel("Amount")).toHaveValue("10.78");
+  await expect(split.getByLabel("Notes")).toHaveValue(":)");
+  await expect(split.getByRole("combobox", { name: "Category" })).toHaveValue(
+    "Water",
+  );
+});

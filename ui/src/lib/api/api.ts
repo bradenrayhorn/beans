@@ -28,6 +28,10 @@ export const doRequest = async ({
       if (obj) {
         if (key.endsWith("[]")) {
           obj[key.slice(0, key.length - 2)] = data.getAll(key);
+        } else if (key.endsWith("[json]")) {
+          obj[key.slice(0, key.length - 6)] = data
+            .getAll(key)
+            .map((value) => JSON.parse(value.toString()));
         } else {
           obj[key] = value.toString();
         }

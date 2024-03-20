@@ -43,7 +43,9 @@
           <td class="pr-2 truncate">{transaction.payee?.name ?? ""}</td>
         {/if}
 
-        {#if transaction.variant === "off_budget"}
+        {#if transaction.variant === "split"}
+          <td class="pr-2 truncate italic">Split</td>
+        {:else if transaction.variant === "off_budget"}
           <td class="pr-2 truncate italic">Off-Budget</td>
         {:else if transaction.variant === "transfer"}
           <td class="pr-2 truncate italic">Transfer</td>

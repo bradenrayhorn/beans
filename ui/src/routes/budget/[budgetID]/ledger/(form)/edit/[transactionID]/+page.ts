@@ -1,4 +1,4 @@
-import { getTransaction } from "$lib/api/requests/transaction";
+import { getSplits, getTransaction } from "$lib/api/requests/transaction";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async ({ fetch, params }) => {
@@ -7,6 +7,11 @@ export const load: PageLoad = async ({ fetch, params }) => {
     fetch,
     params,
   });
+  const splits = await getSplits({
+    id: params.transactionID,
+    fetch,
+    params,
+  });
 
-  return { transaction };
+  return { transaction, splits };
 };

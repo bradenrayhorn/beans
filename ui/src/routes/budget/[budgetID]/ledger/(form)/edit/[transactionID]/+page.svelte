@@ -34,6 +34,7 @@
   accounts={data.accounts}
   payees={data.payees}
   transaction={data.transaction}
+  splits={data.splits}
 />
 
 <form

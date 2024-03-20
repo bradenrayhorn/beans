@@ -129,3 +129,48 @@ test("can add transfer", async ({ budget: { id }, page, request }) => {
   await expect(savings.nth(5)).toHaveText("");
   await expect(savings.nth(6)).toHaveText("-$10.78");
 });
+
+test("can add split", async ({ budget: { id }, page, request }) => {
+  await createAccount(id, request, { name: "Savings" });
+  const groupID = await createCategoryGroup(id, "Bills", request);
+  await createCategory(id, groupID, "Electric", request);
+
+  // go to ledger page
+  await page.goto(`/budget/${id}`);
+  await page.getByRole("link", { name: "ledger" }).click();
+
+  // open modal and add transaction
+  await page.getByRole("link", { name: "Add" }).click();
+
+  await page.getByLabel("Date").locator("visible=true").fill("2022-10-14");
+  await page.getByLabel("Amount").locator("visible=true").fill("10.78");
+  await selectOption(page, "Account", "Savings");
+
+  // split category
+  await page.getByRole("combobox", { name: "Category" }).click();
+  await page.getByRole("button", { name: "Split" }).click();
+
+  // add split details
+  const split = page.getByRole("group", { name: "Split 1" });
+  await split.getByLabel("Amount").fill("10.78");
+  await split.getByLabel("Notes").fill(":)");
+  await split.getByRole("combobox", { name: "Category" }).click();
+  await page.getByRole("option", { name: "Electric" }).click();
+
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toBeHidden();
+
+  // transaction should be added (1 header row and 1 data row)
+  await expect(page.getByRole("row")).toHaveCount(2);
+
+  const checking = page
+    .getByRole("row")
+    .filter({ has: page.getByRole("cell").nth(4).getByText("Savings") })
+    .getByRole("cell");
+  await expect(checking.nth(1)).toHaveText("2022-10-14");
+  await expect(checking.nth(2)).toHaveText("");
+  await expect(checking.nth(3)).toHaveText("Split");
+  await expect(checking.nth(4)).toHaveText("Savings");
+  await expect(checking.nth(5)).toHaveText("");
+  await expect(checking.nth(6)).toHaveText("$10.78");
+});

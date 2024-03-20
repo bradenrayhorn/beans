@@ -8,10 +8,15 @@
     ComboboxNoResults,
     createComboboxCtx,
   } from "$lib/components/form/combobox";
-  import { getTransactionFormCtx } from "../form-context";
+  import { createEventDispatcher } from "svelte";
 
   export let categoryGroups: CategoryGroup[];
-  const { category } = getTransactionFormCtx();
+  export let defaultCategory: Category | undefined;
+  export let value: Category | undefined;
+  export let canSplit: boolean = false;
+
+  const dispatch = createEventDispatcher();
+  const onSplit = () => dispatch("split");
 
   const toOption = (category: Category): ComboboxOptionProps<string> => ({
     value: category.id,
@@ -21,16 +26,16 @@
   const {
     elements: { groupLabel, group },
     states: { inputValue, touchedInput, selected },
-  } = createComboboxCtx($category ? toOption($category) : undefined);
+  } = createComboboxCtx(
+    defaultCategory ? toOption(defaultCategory) : undefined,
+  );
 
   // sync to transaction ctx
   selected.subscribe((newValue) => {
-    if ($category?.id !== newValue?.value) {
-      category.update(() =>
-        categoryGroups
-          .flatMap((group) => group.categories)
-          .find((category) => category.id === newValue?.value),
-      );
+    if (value?.id !== newValue?.value) {
+      value = categoryGroups
+        .flatMap((group) => group.categories)
+        .find((category) => category.id === newValue?.value);
     }
   });
 
@@ -47,10 +52,6 @@
     : categoryGroups;
 </script>
 
-{#if $selected?.value}
-  <input name="category_id" type="hidden" value={$selected?.value} />
-{/if}
-
 <ComboboxInput label="Category" />
 
 <ComboboxMenu>
@@ -64,7 +65,14 @@
         <ComboboxItem item={toOption(category)} />
       {/each}
     </div>
+  {/each}
+
+  {#if filteredCategoryGroups.length > 0}
+    {#if canSplit}
+      <button class="btn btn-ghost btn-xs mt-4" on:click={onSplit}>Split</button
+      >
+    {/if}
   {:else}
     <ComboboxNoResults />
-  {/each}
+  {/if}
 </ComboboxMenu>
