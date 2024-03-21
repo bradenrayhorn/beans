@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE transactions (
     id CHAR(27) PRIMARY KEY,
     account_id CHAR(27) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,

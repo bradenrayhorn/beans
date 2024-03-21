@@ -130,8 +130,6 @@ jobs:
 
       - name: Docker compose up
         run: docker compose up -d
-      - name: Run migrations
-        run: make migrate
       - name: Run Playwright tests
         working-directory: ./ui
         run: npm run test:integration
