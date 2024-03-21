@@ -8,20 +8,17 @@ import (
 )
 
 func main() {
-	slog.Info("starting beans server")
+	slog.Info("starting beansd...")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	application := NewApplication(Config{
-		Postgres: PostgresConfig{
-			Addr:     "127.0.0.1:5432",
-			Username: "postgres",
-			Password: "password",
-			Database: "beans",
-		},
-		Port: "8000",
-	})
+	config, err := LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	application := NewApplication(config)
 
 	if err := application.Start(); err != nil {
 		panic(err)
