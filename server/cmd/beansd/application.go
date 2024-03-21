@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/contract"
@@ -28,13 +29,7 @@ func NewApplication(c Config) *Application {
 }
 
 func (a *Application) Start() error {
-	pool, err := postgres.CreatePool(
-		fmt.Sprintf("postgres://%s:%s@%s/%s",
-			a.config.Postgres.Username,
-			a.config.Postgres.Password,
-			a.config.Postgres.Addr,
-			a.config.Postgres.Database,
-		))
+	pool, err := postgres.CreatePool(a.config.PostgresURL)
 
 	if err != nil {
 		panic(err)
@@ -51,6 +46,8 @@ func (a *Application) Start() error {
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
 		panic(err)
 	}
+
+	slog.Info(fmt.Sprintf("http listening on port :%s", a.config.Port))
 
 	return nil
 }
