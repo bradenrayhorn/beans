@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE users (
     id CHAR(27) PRIMARY KEY,
     username VARCHAR(32) NOT NULL UNIQUE,

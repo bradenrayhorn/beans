@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE month_categories (
     id CHAR(27) PRIMARY KEY,
     month_id CHAR(27) NOT NULL REFERENCES months(id) ON DELETE CASCADE,

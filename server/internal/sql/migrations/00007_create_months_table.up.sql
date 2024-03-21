@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE months (
     id CHAR(27) PRIMARY KEY,
     budget_id CHAR(27) NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,

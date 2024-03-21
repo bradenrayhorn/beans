@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE category_groups (
     id CHAR(27) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
