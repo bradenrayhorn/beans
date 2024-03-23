@@ -9,3 +9,31 @@ services:
       - "POSTGRES_PASSWORD=password"
       - "POSTGRES_DB=beans"
 
+  server:
+    build:
+      context: server
+      dockerfile: Dockerfile
+    depends_on:
+      - proxy
+    environment:
+      - "BEANS_PG_URL=postgres://postgres:password@db:5432/beans"
+
+  ui:
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    depends_on:
+      - proxy
+    environment:
+      - "PUBLIC_BASE_API_URL=http://localhost:9080"
+      - "UNPROXIED_BASE_API_URL=http://server:8080"
+      - "ORIGIN=http://localhost:9080"
+
+  proxy:
+    build:
+      context: proxy
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "9080:9080"

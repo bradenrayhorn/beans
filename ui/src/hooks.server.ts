@@ -1,7 +1,8 @@
 import { api } from "$lib/api/api";
 import { getError } from "$lib/api/fetch-error";
 import { paths } from "$lib/paths";
-import { redirect, type Handle } from "@sveltejs/kit";
+import { redirect, type Handle, type HandleFetch } from "@sveltejs/kit";
+import { env as privateEnv } from "$env/dynamic/private";
 
 export const handle: Handle = async ({ event, resolve }) => {
   if (event.route.id) {
@@ -25,4 +26,19 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   return await resolve(event);
+};
+
+export const handleFetch: HandleFetch = ({ event, request, fetch }) => {
+  const url = new URL(request.url);
+
+  if (privateEnv.UNPROXIED_BASE_API_URL) {
+    request = new Request(
+      `${privateEnv.UNPROXIED_BASE_API_URL ?? ""}${url.pathname}${url.search}`,
+      request,
+    );
+
+    request.headers.set("cookie", event.request.headers.get("cookie") ?? "");
+  }
+
+  return fetch(request);
 };
