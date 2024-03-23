@@ -1,5 +1,5 @@
 import type { Budget } from "$lib/types/budget";
-import { api } from "../api";
+import { api, doRequest } from "../api";
 import { getError } from "../fetch-error";
 import type { DataWrapped } from "./data-wrapped";
 import type { WithFetch } from "./fetch";
@@ -7,7 +7,11 @@ import type { WithFetch } from "./fetch";
 export const getBudgets = async ({
   fetch: _fetch,
 }: WithFetch): Promise<Array<Budget>> => {
-  const res = await _fetch(api("/v1/budgets"));
+  const res = await doRequest({
+    method: "GET",
+    path: "/v1/budgets",
+    fetch: _fetch,
+  });
 
   if (!res.ok) {
     return await getError(res);
