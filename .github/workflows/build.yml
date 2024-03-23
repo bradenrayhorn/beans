@@ -1,0 +1,15 @@
+name: Build images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build.yml
+    permissions:
+      packages: write
+    with:
+      server-tags: ghcr.io/bradenrayhorn/beans-server:next,ghcr.io/bradenrayhorn/beans-server:next-${{ github.sha }}
+      ui-tags: ghcr.io/bradenrayhorn/beans-ui:next,ghcr.io/bradenrayhorn/beans-ui:next-${{ github.sha }}
