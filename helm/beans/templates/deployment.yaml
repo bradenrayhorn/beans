@@ -1,0 +1,92 @@
+{{- $beansImage := "ghcr.io/bradenrayhorn/beans" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "beans.fullname" . }}-server
+  labels:
+    {{- include "beans.labelsServer" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "beans.selectorLabelsServer" . | nindent 6 }}
+  serviceName: {{ include "beans.fullname" . }}-server
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "beans.selectorLabelsServer" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "beans.serviceAccountName" . }}
+      containers:
+        - name: beans-server
+          image: "{{ $beansImage }}-server:{{ .Values.image.beansVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health-check
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /health-check
+              port: 8080
+          {{- with .Values.deployments.server.container.spec }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+      {{- with .Values.deployments.server.spec }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "beans.fullname" . }}-ui
+  labels:
+    {{- include "beans.labelsUI" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "beans.selectorLabelsUI" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "beans.selectorLabelsUI" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "beans.serviceAccountName" . }}
+      containers:
+        - name: beans-ui
+          image: "{{ $beansImage }}-ui:{{ .Values.image.beansVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: UNPROXIED_SERVER_URL
+              value: http://{{ include "beans.fullname" . }}-server:8080
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+          {{- with .Values.deployments.ui.container.spec }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+      {{- with .Values.deployments.ui.spec }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}

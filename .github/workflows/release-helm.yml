@@ -1,0 +1,45 @@
+name: Relase Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Push
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.13.1
+
+      - name: Package and release
+        working-directory: ./helm/beans
+        run: |
+          RUN_NUMBER=${{github.run_number}}
+          EVENT_NAME=${{ github.event_name }}
+          VERSION=$(helm show chart . | yq '.version')
+          if [[ $EVENT_NAME == "workflow_dispatch" ]]
+          then
+            VERSION="0.0.0-alpha.$RUN_NUMBER"
+            yq -i e ".version |= \"$VERSION\"" Chart.yaml
+          fi
+          PACKAGE=beans-helm-$VERSION.tgz
+
+          helm package .
+
+          echo ${{secrets.GITHUB_TOKEN}} | helm registry login ghcr.io/bradenrayhorn --username ${{github.actor}} --password-stdin
+
+          helm push ./$PACKAGE oci://ghcr.io/bradenrayhorn
+
+

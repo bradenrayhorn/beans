@@ -136,3 +136,17 @@ jobs:
       - name: Docker compose down
         run: docker compose down -v
 
+  lint-helm:
+    name: Lint Helm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.13.1
+
+      - name: Lint helm
+        run: helm lint .
+        working-directory: ./helm/beans
