@@ -7,4 +7,10 @@ type User struct {
 	Username string   `json:"username"`
 }
 
-type GetMeResponse User
+type SessionID struct {
+	SessionID beans.SessionID `json:"sessionID"`
+}
+
+type GetMe User
+
+type Login Data[SessionID]

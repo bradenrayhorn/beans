@@ -1,15 +1,12 @@
 package httpadapter
 
 import (
-	"errors"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/bradenrayhorn/beans/server/beans"
 	"github.com/bradenrayhorn/beans/server/http/response"
 	"github.com/bradenrayhorn/beans/server/specification"
-	"github.com/stretchr/testify/assert"
 )
 
 func (a *httpAdapter) UserRegister(t *testing.T, ctx specification.Context, username beans.Username, password beans.Password) error {
@@ -29,17 +26,12 @@ func (a *httpAdapter) UserLogin(t *testing.T, ctx specification.Context, usernam
 		Body:    fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password),
 		Context: ctx,
 	})
-	if err := getErrorFromResponse(t, r.Response); err != nil {
+	resp, err := MustParseResponse[response.Login](t, r.Response)
+	if err != nil {
 		return beans.SessionID(""), err
 	}
 
-	for _, v := range r.Response.Cookies() {
-		if v.Name == "session_id" {
-			return beans.SessionID(v.Value), nil
-		}
-	}
-
-	return beans.SessionID(""), errors.New("http adapter: could not find session id cookie")
+	return resp.Data.SessionID, nil
 }
 
 func (a *httpAdapter) UserLogout(t *testing.T, ctx specification.Context) error {
@@ -52,14 +44,7 @@ func (a *httpAdapter) UserLogout(t *testing.T, ctx specification.Context) error 
 		return err
 	}
 
-	for _, v := range r.Response.Cookies() {
-		if v.Name == "session_id" {
-			assert.Less(t, v.Expires, time.Now(), "http adapter: logout did not expire cookie")
-			return nil
-		}
-	}
-
-	return errors.New("http adapter: could not find session id cookie on logout")
+	return nil
 }
 
 func (a *httpAdapter) UserGetMe(t *testing.T, ctx specification.Context) (beans.UserPublic, error) {
@@ -68,7 +53,7 @@ func (a *httpAdapter) UserGetMe(t *testing.T, ctx specification.Context) (beans.
 		Path:    "/api/v1/user/me",
 		Context: ctx,
 	})
-	resp, err := MustParseResponse[response.GetMeResponse](t, r.Response)
+	resp, err := MustParseResponse[response.GetMe](t, r.Response)
 	if err != nil {
 		return beans.UserPublic{}, err
 	}

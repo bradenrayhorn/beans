@@ -1,6 +1,5 @@
 import type { Account, AccountWithBalance } from "$lib/types/account";
 import { Amount, type APIAmount } from "$lib/types/amount";
-import { api } from "../api";
 import { getError } from "../fetch-error";
 import type { DataWrapped } from "./data-wrapped";
 import type { WithFetch } from "./fetch";
@@ -17,7 +16,7 @@ export const getAccounts = async ({
   fetch: _fetch,
   params,
 }: WithFetch & WithBudgetID): Promise<Array<AccountWithBalance>> => {
-  const res = await _fetch(api("/v1/accounts"), withBudgetHeader(params));
+  const res = await _fetch("/api/v1/accounts", withBudgetHeader(params));
 
   if (!res.ok) {
     return await getError(res);
@@ -40,7 +39,7 @@ export const getTransactableAccounts = async ({
   params,
 }: WithFetch & WithBudgetID): Promise<Array<Account>> => {
   const res = await _fetch(
-    api("/v1/accounts/transactable"),
+    "/api/v1/accounts/transactable",
     withBudgetHeader(params),
   );
 

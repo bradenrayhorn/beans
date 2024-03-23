@@ -11,7 +11,6 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/service"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
 )
 
 type Server struct {
@@ -36,13 +35,6 @@ func NewServer(
 	}
 
 	s.sv.Handler = s.router
-	s.router.Use(cors.Handler(cors.Options{
-		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "OPTIONS"},
-		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowCredentials: true,
-
-		AllowedHeaders: []string{"Budget-ID", "Content-Type"},
-	}))
 
 	s.router.Get("/health-check", s.handleHealthCheck)
 	s.router.Route("/api/v1", func(r chi.Router) {
