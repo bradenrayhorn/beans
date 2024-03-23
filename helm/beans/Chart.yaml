@@ -1,0 +1,5 @@
+apiVersion: v2
+name: beans-helm
+description: A Helm chart to release github.com/bradenrayhorn/beans
+version: 0.1.0
+
