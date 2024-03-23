@@ -10,9 +10,4 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },
-  server: {
-    proxy: {
-      "/api": "http://localhost:8000",
-    },
-  },
 });

@@ -10,13 +10,9 @@ import (
 
 func (s *Server) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session_id")
-		if err != nil {
-			Error(w, beans.ErrorUnauthorized)
-			return
-		}
+		sessionID := r.Header.Get("Authorization")
 
-		authCtx, err := s.services.User.GetAuth(r.Context(), beans.SessionID(cookie.Value))
+		authCtx, err := s.services.User.GetAuth(r.Context(), beans.SessionID(sessionID))
 		if err != nil {
 			Error(w, err)
 			return

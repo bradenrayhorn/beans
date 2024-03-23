@@ -1,13 +1,13 @@
-import { doRequest } from "$lib/api/api";
+import { doAction } from "$lib/api/api";
 import { getErrorForAction } from "$lib/api/fetch-error";
 import { paths, withParameter } from "$lib/paths";
 import { redirect, type Actions } from "@sveltejs/kit";
 
 export const actions: Actions = {
   save: async ({ fetch, request, params }) => {
-    const res = await doRequest({
+    const res = await doAction({
       method: "POST",
-      path: `/v1/payees`,
+      path: `/api/v1/payees`,
       request,
       fetch,
       params,

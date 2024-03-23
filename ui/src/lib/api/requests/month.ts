@@ -1,10 +1,9 @@
 import { Amount, type APIAmount } from "$lib/types/amount";
 import type { Month, MonthCategory } from "$lib/types/month";
-import { doRequest } from "../api";
 import { getError } from "../fetch-error";
 import type { DataWrapped } from "./data-wrapped";
 import type { WithFetch } from "./fetch";
-import { type WithBudgetID } from "./with-budget-header";
+import { withBudgetHeader, type WithBudgetID } from "./with-budget-header";
 
 type APIMonth = {
   id: string;
@@ -30,12 +29,7 @@ export const getMonth = async ({
   date,
   params,
 }: WithFetch & WithBudgetID & { date: string }): Promise<Month> => {
-  const res = await doRequest({
-    method: "GET",
-    path: `/v1/months/${date}`,
-    fetch: _fetch,
-    params,
-  });
+  const res = await _fetch(`/api/v1/months/${date}`, withBudgetHeader(params));
 
   if (!res.ok) {
     return await getError(res);

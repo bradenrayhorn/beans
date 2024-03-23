@@ -1,10 +1,4 @@
-import { env } from "$env/dynamic/public";
-
-export function api(path: string): string {
-  return `${env.PUBLIC_BASE_API_URL ?? ""}/api${path}`;
-}
-
-export const doRequest = async ({
+export const doAction = async ({
   method,
   path,
   fetch: internalFetch,
@@ -43,7 +37,7 @@ export const doRequest = async ({
     }
   }
 
-  const res = await internalFetch(api(path), {
+  const res = await internalFetch(path, {
     method,
     body: obj ? JSON.stringify(obj) : null,
     headers: { "Budget-ID": params?.budgetID ?? "" },

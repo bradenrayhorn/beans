@@ -11,7 +11,6 @@ require github.com/go-chi/chi/v5 v5.0.12
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/cockroachdb/apd/v3 v3.2.1
-	github.com/go-chi/cors v1.2.1
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/knadh/koanf/parsers/dotenv v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0

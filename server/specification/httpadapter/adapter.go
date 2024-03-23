@@ -72,10 +72,7 @@ func (a *httpAdapter) Request(t *testing.T, req HTTPRequest) *HTTPResponse {
 
 	// attach session id cookie
 	if len(req.Context.SessionID) != 0 {
-		httpRequest.AddCookie(&http.Cookie{
-			Name:  "session_id",
-			Value: string(req.Context.SessionID),
-		})
+		httpRequest.Header.Add("Authorization", string(req.Context.SessionID))
 	}
 
 	// attach budget id header

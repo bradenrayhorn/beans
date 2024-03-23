@@ -1,6 +1,5 @@
 import { Amount, type APIAmount } from "$lib/types/amount";
 import type { Split, Transaction } from "$lib/types/transaction";
-import { api } from "../api";
 import { getError } from "../fetch-error";
 import type { DataWrapped } from "./data-wrapped";
 import type { WithFetch } from "./fetch";
@@ -23,7 +22,7 @@ export const getTransactions = async ({
   fetch: _fetch,
   params,
 }: WithFetch & WithBudgetID): Promise<Array<Transaction>> => {
-  const res = await _fetch(api("/v1/transactions"), withBudgetHeader(params));
+  const res = await _fetch("/api/v1/transactions", withBudgetHeader(params));
 
   if (!res.ok) {
     return await getError(res);
@@ -42,7 +41,7 @@ export const getTransaction = async ({
   params,
 }: WithFetch & WithBudgetID & { id: string }): Promise<Transaction> => {
   const res = await _fetch(
-    api(`/v1/transactions/${id}`),
+    `/api/v1/transactions/${id}`,
     withBudgetHeader(params),
   );
 
@@ -61,7 +60,7 @@ export const getSplits = async ({
   params,
 }: WithFetch & WithBudgetID & { id: string }): Promise<Array<Split>> => {
   const res = await _fetch(
-    api(`/v1/transactions/${id}/splits`),
+    `/api/v1/transactions/${id}/splits`,
     withBudgetHeader(params),
   );
 
