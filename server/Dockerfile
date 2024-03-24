@@ -8,6 +8,8 @@ RUN CGO_ENABLED=0 go build ./cmd/beansd
 
 FROM alpine
 
+RUN apk update && apk add sqlite
+
 RUN mkdir /app
 COPY --from=buildgo /app/beansd /app/
 
