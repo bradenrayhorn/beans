@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	PostgresURL string
+	DbFilePath string
 
 	Port string
 }
@@ -25,7 +25,7 @@ func LoadConfig() (Config, error) {
 	// load defaults
 	err := k.Load(confmap.Provider(map[string]interface{}{
 		"http.port": "8000",
-		"pg.url":    "postgres://postgres:password@127.0.0.1:5432/beans",
+		"db.path":   "beans.db",
 	}, "."), nil)
 	if err != nil {
 		return Config{}, err
@@ -51,7 +51,7 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		PostgresURL: k.String("pg.url"),
-		Port:        k.String("http.port"),
+		DbFilePath: k.String("db.path"),
+		Port:       k.String("http.port"),
 	}, nil
 }

@@ -1,6 +1,6 @@
 {{- $beansImage := "ghcr.io/bradenrayhorn/beans" -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "beans.fullname" . }}-server
   labels:
@@ -21,10 +21,46 @@ spec:
         {{- include "beans.selectorLabelsServer" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "beans.serviceAccountName" . }}
+      volumes:
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: {{ include "beans.fullname" . }}-data
+        - name: {{ include "beans.fullname" . }}-litestream-config
+          configMap:
+            name: {{ include "beans.fullname" . }}-litestream-config
+      {{- if .Values.litestream.enabled }}
+      initContainers:
+        - name: init-litestream
+          image: litestream/litestream:{{ .Values.litestream.version }}
+          args: ['restore', '-if-db-not-exists', '-if-replica-exists', '-v', '/app-data/beans.db']
+          volumeMounts:
+            - name: app-data
+              mountPath: /app-data/
+            - name: {{ include "beans.fullname" . }}-litestream-config
+              mountPath: /etc/litestream.yml
+              subPath: litestream.yml
+          env:
+            - name: LITESTREAM_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.litestream.secret }}
+                  key: LITESTREAM_ACCESS_KEY_ID
+            - name: LITESTREAM_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.litestream.secret }}
+                  key: LITESTREAM_SECRET_ACCESS_KEY
+      {{- end }}
       containers:
         - name: beans-server
           image: "{{ $beansImage }}-server:{{ .Values.image.beansVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: BEANS_DB_PATH
+              value: "/app-data/beans.db"
+          volumeMounts:
+            - name: app-data
+              mountPath: /app-data/
           ports:
             - name: http
               containerPort: 8080
@@ -42,6 +78,28 @@ spec:
           {{- end }}
       {{- with .Values.deployments.server.spec }}
         {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.litestream.enabled }}
+        - name: litestream
+          image: litestream/litestream:{{ .Values.litestream.version }}
+          args: ['replicate']
+          volumeMounts:
+            - name: app-data
+              mountPath: /app-data/
+            - name: {{ include "beans.fullname" . }}-litestream-config
+              mountPath: /etc/litestream.yml
+              subPath: litestream.yml
+          env:
+            - name: LITESTREAM_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.litestream.secret }}
+                  key: LITESTREAM_ACCESS_KEY_ID
+            - name: LITESTREAM_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.litestream.secret }}
+                  key: LITESTREAM_SECRET_ACCESS_KEY
       {{- end }}
 ---
 apiVersion: apps/v1

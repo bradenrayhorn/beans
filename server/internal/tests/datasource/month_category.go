@@ -27,10 +27,10 @@ func testMonthCategory(t *testing.T, ds beans.DataSource) {
 			CategoryID: category.ID,
 			Amount:     beans.NewAmount(1, 0),
 		}
-		require.Nil(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
+		require.NoError(t, monthCategoryRepository.Create(ctx, nil, monthCategory))
 
 		res, err := monthCategoryRepository.GetForMonth(ctx, month)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, res, 1)
 
 		assert.Equal(t, beans.MonthCategory{

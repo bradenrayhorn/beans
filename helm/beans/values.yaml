@@ -34,6 +34,26 @@ ingress:
   #      - chart-example.local
   #
 
+pvc:
+  storageClassName: local-path
+  storageRequest: 500Mi
+
+# optionally enable litestream for sqlite backup
+litestream:
+  enabled: false
+  version: 0.3.13
+  # this secret must be created outside of the helm chart
+  secret: litestream-creds
+  config:
+    dbs:
+      - path: /app-data/beans.db
+        replicas:
+          - type: s3
+            bucket: mybucket
+            endpoint: s3.example.com
+            retention: 192h
+            snapshot-interval: 12h
+
 deployments:
   server:
     spec: {}

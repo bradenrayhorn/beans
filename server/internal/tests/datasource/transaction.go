@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
 
@@ -53,7 +52,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
 		})
 
-		t.Run("can create then get multiple transactions, with a transfer_id", func(t *testing.T) {
+		t.Run("can create multiple transactions, with a transfer_id", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 			account1 := factory.Account(beans.Account{BudgetID: budget.ID})
 			account2 := factory.Account(beans.Account{BudgetID: budget.ID})
@@ -61,16 +60,18 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			id1 := beans.NewID()
 			id2 := beans.NewID()
 			account1Transaction := beans.Transaction{
-				ID:        id1,
-				AccountID: account1.ID,
-				Amount:    beans.NewAmount(5, 0),
-				Date:      beans.NewDate(time.Now()),
+				ID:         id1,
+				AccountID:  account1.ID,
+				Amount:     beans.NewAmount(5, 0),
+				Date:       beans.NewDate(time.Now()),
+				TransferID: id2,
 			}
 			account2Transaction := beans.Transaction{
-				ID:        id2,
-				AccountID: account2.ID,
-				Amount:    beans.NewAmount(-5, 0),
-				Date:      beans.NewDate(time.Now()),
+				ID:         id2,
+				AccountID:  account2.ID,
+				Amount:     beans.NewAmount(-5, 0),
+				Date:       beans.NewDate(time.Now()),
+				TransferID: id1,
 			}
 
 			err := transactionRepository.Create(
@@ -172,7 +173,7 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			Date:       testutils.NewDate(t, "2022-08-28"),
 			Notes:      beans.NewTransactionNotes("notes"),
 		}
-		require.Nil(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
+		require.NoError(t, transactionRepository.Create(ctx, []beans.Transaction{transaction}))
 
 		transaction.AccountID = account2.ID
 		transaction.CategoryID = category2.ID
@@ -181,12 +182,12 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 		transaction.Date = testutils.NewDate(t, "2022-08-30")
 		transaction.Notes = beans.NewTransactionNotes("notes 5")
 
-		require.Nil(t, transactionRepository.Update(ctx, []beans.Transaction{transaction}))
+		require.NoError(t, transactionRepository.Update(ctx, []beans.Transaction{transaction}))
 
 		res, err := transactionRepository.Get(ctx, budget.ID, transaction.ID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
-		assert.True(t, reflect.DeepEqual(transaction, res))
+		assert.Equal(t, transaction, res)
 	})
 
 	t.Run("delete", func(t *testing.T) {

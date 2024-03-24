@@ -25,10 +25,10 @@ func testAccount(t *testing.T, ds beans.DataSource) {
 			OffBudget: true,
 		}
 		err := accountRepository.Create(ctx, account)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		res, err := accountRepository.Get(context.Background(), budget.ID, account.ID)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, account, res)
 	})
 
@@ -42,7 +42,7 @@ func testAccount(t *testing.T, ds beans.DataSource) {
 		}
 
 		err := accountRepository.Create(ctx, account)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		err = accountRepository.Create(ctx, account)
 		require.NotNil(t, err)
@@ -105,7 +105,7 @@ func testAccount(t *testing.T, ds beans.DataSource) {
 				{Account: account2, Balance: beans.NewAmount(2, 0)},
 			}
 
-			testutils.IsEqualInAnyOrder(t, res, expectedAccounts, testutils.CmpAccountWithBalance)
+			assert.ElementsMatch(t, expectedAccounts, res)
 		})
 
 		t.Run("includes off budget accounts", func(t *testing.T) {

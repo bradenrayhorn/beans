@@ -28,6 +28,10 @@ func NewAmountWithBigInt(coefficient *big.Int, exponent int32) Amount {
 	return Amount{decimal: *apd.NewWithBigInt(bigInt, exponent), set: true}
 }
 
+func (a *Amount) AsInt64() (int64, error) {
+	return a.decimal.Int64()
+}
+
 func (a *Amount) Exponent() int32 {
 	return a.decimal.Exponent
 }
@@ -47,6 +51,12 @@ func (a Amount) OrZero() Amount {
 		return NewAmount(0, 0)
 	}
 
+	return a
+}
+
+func (a Amount) Normalize() Amount {
+	res, _ := a.decimal.Reduce(&a.decimal)
+	a.decimal = *res
 	return a
 }
 

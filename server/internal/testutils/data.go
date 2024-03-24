@@ -209,7 +209,7 @@ func (f *Factory) Transaction(budgetID beans.ID, transaction beans.Transaction) 
 		transaction.Amount = beans.NewAmount(coefficient, exponent)
 	}
 
-	require.Nil(f.tb, f.ds.TransactionRepository().Create(
+	require.NoError(f.tb, f.ds.TransactionRepository().Create(
 		context.Background(),
 		[]beans.Transaction{transaction},
 	))
@@ -236,7 +236,7 @@ func (f *Factory) Transfer(budgetID beans.ID, accountA beans.Account, accountB b
 	transactionA.TransferID = transactionB.ID
 	transactionB.TransferID = transactionA.ID
 
-	require.Nil(f.tb, f.ds.TransactionRepository().Create(
+	require.NoError(f.tb, f.ds.TransactionRepository().Create(
 		context.Background(),
 		[]beans.Transaction{transactionA, transactionB},
 	))

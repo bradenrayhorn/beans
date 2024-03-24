@@ -1,4 +1,4 @@
-.PHONY: default run gensql
+.PHONY: default run
 
 default: run
 
@@ -6,8 +6,4 @@ SERVER_DIR = ./server/
 
 run:
 	cd $(SERVER_DIR) && go run ./cmd/beansd
-
-gensql:
-	cd $(SERVER_DIR) && sqlc generate
-
 
