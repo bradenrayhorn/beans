@@ -32,7 +32,7 @@ spec:
       initContainers:
         - name: init-litestream
           image: litestream/litestream:{{ .Values.litestream.version }}
-          args: ['restore', '-if-db-not-exists', '-if-replica-exists', '-v', '/app-data/beans.db']
+          args: ['restore', '-if-db-not-exists', '-if-replica-exists', '/app-data/beans.db']
           volumeMounts:
             - name: app-data
               mountPath: /app-data/
