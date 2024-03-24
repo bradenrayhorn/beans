@@ -136,11 +136,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8080
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 8080
           {{- with .Values.deployments.ui.container.spec }}
             {{- toYaml . | nindent 10 }}
