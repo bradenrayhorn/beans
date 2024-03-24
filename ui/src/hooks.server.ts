@@ -3,7 +3,11 @@ import { paths } from "$lib/paths";
 import { redirect, type Handle } from "@sveltejs/kit";
 
 export const handle: Handle = async ({ event, resolve }) => {
-  if (event.route.id && !event.route.id.startsWith("/api")) {
+  if (
+    event.route.id &&
+    !event.route.id.startsWith("/api") &&
+    event.route.id !== "/health"
+  ) {
     const res = await event.fetch("/api/v1/user/me");
     let isLoggedIn = true;
 
