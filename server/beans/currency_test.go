@@ -24,6 +24,20 @@ func TestCanCreateNegativeAmount(t *testing.T) {
 	assert.Equal(t, int32(-1), amount.Exponent())
 }
 
+func TestCanNormalizeAmount(t *testing.T) {
+	// $1
+	amount := beans.NewAmount(100, -2).Normalize()
+
+	assert.Equal(t, int64(1), amount.Coefficient().Int64())
+	assert.Equal(t, int32(0), amount.Exponent())
+
+	// $500
+	amount = beans.NewAmount(50000, -2).Normalize()
+
+	assert.Equal(t, int64(5), amount.Coefficient().Int64())
+	assert.Equal(t, int32(2), amount.Exponent())
+}
+
 func TestAmountJSON(t *testing.T) {
 	t.Run("marshal", func(t *testing.T) {
 		var tests = []struct {
