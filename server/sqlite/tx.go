@@ -20,8 +20,7 @@ type Tx struct {
 
 func (t *Tx) Commit(ctx context.Context) error {
 	if !t.released {
-		var err error
-		err = nil
+		var err error = nil
 		t.release(&err)
 		t.returnConn()
 		t.released = true

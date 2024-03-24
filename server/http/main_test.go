@@ -6,14 +6,16 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/http"
 	"github.com/bradenrayhorn/beans/server/inmem"
-	"github.com/bradenrayhorn/beans/server/internal/fake"
+	"github.com/bradenrayhorn/beans/server/internal/testutils"
 	"github.com/bradenrayhorn/beans/server/service"
 	"github.com/bradenrayhorn/beans/server/specification"
 	"github.com/bradenrayhorn/beans/server/specification/httpadapter"
 )
 
 func TestHTTP(t *testing.T) {
-	ds := fake.NewDataSource()
+	ds, done := testutils.TmpDatasource(t)
+	t.Cleanup(done)
+
 	sessionRepository := inmem.NewSessionRepository()
 	httpServer := http.NewServer(
 		contract.NewContracts(ds, sessionRepository),

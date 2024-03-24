@@ -1,7 +1,0 @@
--- +goose Up
-CREATE TABLE payees (
-    id CHAR(27) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    budget_id CHAR(27) NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);

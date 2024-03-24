@@ -128,13 +128,9 @@ jobs:
         run: npm run build
         working-directory: ./ui
 
-      - name: Docker compose up
-        run: docker compose up -d
       - name: Run Playwright tests
         working-directory: ./ui
         run: npm run test:integration
-      - name: Docker compose down
-        run: docker compose down -v
 
   lint-helm:
     name: Lint Helm

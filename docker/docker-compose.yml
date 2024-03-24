@@ -1,20 +1,10 @@
 name: beans-local
 
 services:
-  db:
-    image: postgres:16.0
-    environment:
-      - "POSTGRES_PASSWORD=password"
-      - "POSTGRES_DB=beans"
-
   server:
     build:
       context: ../server
       dockerfile: Dockerfile
-    depends_on:
-      - db
-    environment:
-      - "BEANS_PG_URL=postgres://postgres:password@db:5432/beans"
 
   ui:
     build:

@@ -110,6 +110,9 @@ func (r *TransactionRepository) Delete(ctx context.Context, budgetID beans.ID, t
 		From("transactions").
 		Where(squirrel.Eq{"id": ids}).
 		ToSql()
+	if err != nil {
+		return err
+	}
 
 	return db[any](r.pool).
 		executeWithArgs(ctx, sql, params)

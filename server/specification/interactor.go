@@ -130,11 +130,11 @@ func makeUser(t *testing.T, interactor Interactor) *user {
 	// make new user
 	username := beans.NewID().String()
 	err := interactor.UserRegister(t, ctx, beans.Username(username), beans.Password("password"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// login as user
 	sessionID, err := interactor.UserLogin(t, ctx, beans.Username(username), beans.Password("password"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	ctx.SessionID = sessionID
 
@@ -146,9 +146,9 @@ func makeUserAndBudget(t *testing.T, interactor Interactor) *userAndBudget {
 
 	// make budget
 	budgetID, err := interactor.BudgetCreate(t, user.ctx, beans.Name(beans.NewID().String()))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	budget, err := interactor.BudgetGet(t, user.ctx, budgetID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	user.ctx.BudgetID = budget.ID
 

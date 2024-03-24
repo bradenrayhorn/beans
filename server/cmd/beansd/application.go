@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -8,13 +9,14 @@ import (
 	"github.com/bradenrayhorn/beans/server/contract"
 	"github.com/bradenrayhorn/beans/server/http"
 	"github.com/bradenrayhorn/beans/server/inmem"
-	"github.com/bradenrayhorn/beans/server/postgres"
 	"github.com/bradenrayhorn/beans/server/service"
+	"github.com/bradenrayhorn/beans/server/sqlite"
 )
 
 type Application struct {
 	httpServer *http.Server
-	pool       *postgres.DbPool
+
+	pool *sqlite.Pool
 
 	config Config
 
@@ -29,14 +31,15 @@ func NewApplication(c Config) *Application {
 }
 
 func (a *Application) Start() error {
-	pool, err := postgres.CreatePool(a.config.PostgresURL)
+	pool, err := sqlite.CreatePool(context.Background(), a.config.DbFilePath)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
+
 	a.pool = pool
 
-	a.datasource = postgres.NewDataSource(pool)
+	a.datasource = sqlite.NewDataSource(pool)
 	a.sessionRepository = inmem.NewSessionRepository()
 
 	a.httpServer = http.NewServer(
@@ -44,7 +47,7 @@ func (a *Application) Start() error {
 		service.NewServices(a.datasource, a.sessionRepository),
 	)
 	if err := a.httpServer.Open(":" + a.config.Port); err != nil {
-		panic(err)
+		return err
 	}
 
 	slog.Info(fmt.Sprintf("http listening on port :%s", a.config.Port))
@@ -57,7 +60,9 @@ func (a *Application) Stop() error {
 		return err
 	}
 
-	a.pool.Close()
+	if err := a.pool.Close(context.Background()); err != nil {
+		return err
+	}
 
 	return nil
 }
