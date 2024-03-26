@@ -6,7 +6,7 @@
   import { page } from "$app/stores";
 </script>
 
-<ul class="menu menu-vertical bg-base-200 rounded-box">
+<ul class="menu menu-vertical max-w-sm bg-base-100 rounded">
   <li>
     <a href={withParameter(paths.budget.settings.general, $page.params)}>
       General <IconGeneral />

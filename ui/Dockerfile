@@ -17,4 +17,7 @@ COPY --from=build /app/build /app/package.json /app/entry.js /app/
 
 ENV NODE_ENV=production PORT=8080
 
+ARG GIT_SHA
+ENV PUBLIC_VERSION=${GIT_SHA}
+
 CMD ["node", "/app/entry.js"]

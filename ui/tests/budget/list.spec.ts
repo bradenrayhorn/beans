@@ -9,7 +9,7 @@ test("can add and go to budget", async ({ login: _, page }) => {
   await expect(page.getByText("No existing budgets found.")).toBeVisible();
 
   // go to new budget page, fill out form
-  await page.getByRole("link", { name: "New Budget" }).click();
+  await page.getByRole("link", { name: "Create Budget" }).click();
 
   await page.getByLabel("Name").fill("Test budget");
   await page.getByRole("button", { name: "Save" }).click();

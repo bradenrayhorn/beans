@@ -9,7 +9,7 @@
 <table class="w-full text-sm border-collapse table-fixed">
   <thead>
     <tr
-      class="text-left uppercase text-base-content-light [&>th]:border-b-base-300 [&>th]:border-b"
+      class="text-left uppercase text-base-content-light [&>th]:border-b-base-200 [&>th]:border-b"
     >
       <th class="invisible w-8 overflow-hidden">Checkbox</th>
       <th class="w-28">Date</th>
@@ -30,7 +30,7 @@
             type="checkbox"
             bind:checked={$selectedRows[transaction.id]}
             disabled={disableSelection}
-            class="checkbox checkbox-xs checkbox-secondary rounded-none block"
+            class="checkbox checkbox-xs checkbox-primary rounded-none block"
           /></td
         >
         <td>{transaction.date}</td>
@@ -40,7 +40,9 @@
             >{transaction.transferAccount?.name ?? ""}</td
           >
         {:else}
-          <td class="pr-2 truncate">{transaction.payee?.name ?? ""}</td>
+          <td class="pr-2 truncate" title={transaction.payee?.name ?? ""}
+            >{transaction.payee?.name ?? ""}</td
+          >
         {/if}
 
         {#if transaction.variant === "split"}
@@ -50,11 +52,17 @@
         {:else if transaction.variant === "transfer"}
           <td class="pr-2 truncate italic">Transfer</td>
         {:else}
-          <td class="pr-2 truncate">{transaction.category?.name ?? ""}</td>
+          <td class="pr-2 truncate" title={transaction.category?.name ?? ""}
+            >{transaction.category?.name ?? ""}</td
+          >
         {/if}
 
-        <td class="pr-2 truncate">{transaction.account.name}</td>
-        <td class="pr-2 truncate">{transaction.notes ?? ""}</td>
+        <td class="pr-2 truncate" title={transaction.account.name}
+          >{transaction.account.name}</td
+        >
+        <td class="pr-2 truncate" title={transaction.notes ?? ""}
+          >{transaction.notes ?? ""}</td
+        >
         <td class="text-right pr-0 truncate">{transaction.amount.display}</td>
       </tr>
     {/each}

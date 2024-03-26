@@ -5,6 +5,9 @@
   import IconSettings from "~icons/mdi/settings";
   import { paths, withParameter } from "$lib/paths";
   import { page } from "$app/stores";
+  import NavItem from "$lib/components/NavItem.svelte";
+  import Lightswitch from "$lib/components/Lightswitch.svelte";
+  import { env } from "$env/dynamic/public";
 
   const routes = [
     {
@@ -36,33 +39,39 @@
       isActive: $page.url.pathname.startsWith(path),
     };
   });
+  $: navRoutes = builtRoutes.slice().splice(0, builtRoutes.length - 1);
+  $: settingsRoute = builtRoutes[builtRoutes.length - 1]!;
 </script>
 
 <div class="flex flex-col w-full min-h-screen md:flex-row">
   <!-- Side navigation (desktop) -->
   <div
-    class="hidden md:flex w-16 shadow-md z-10 flex-col bg-neutral text-neutral-content fixed top-0 bottom-0"
+    class="hidden md:flex w-48 shadow-md z-10 flex-col bg-neutral text-neutral-content fixed top-0 bottom-0"
   >
-    <div class="text-sm text-center mb-8 mt-2">beans</div>
+    <div class="px-4 py-4 font-semibold">beans</div>
 
-    <div class="flex flex-col gap-6">
-      {#each builtRoutes as route}
-        <a
-          class="flex flex-col items-center"
-          class:text-accent={route.isActive}
-          href={route.path}
-        >
-          <svelte:component this={route.icon} />
-          <span class="text-xs">{route.name}</span>
-        </a>
-      {/each}
+    <div class="flex flex-col justify-between h-full">
+      <div class="flex flex-col">
+        {#each navRoutes as route}
+          <NavItem {...route} />
+        {/each}
+      </div>
+
+      <div class="flex flex-col">
+        <NavItem {...settingsRoute} />
+
+        <div class="flex justify-between px-4 py-2 items-center">
+          <div class="text-xs">v.{env.PUBLIC_VERSION ?? "da500aa"}</div>
+          <Lightswitch />
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="hidden md:block w-16 h-full shrink-0"></div>
+  <div class="hidden md:block w-48 h-full shrink-0"></div>
 
   <!-- Content -->
-  <div class="grow bg-base-200">
+  <div class="grow bg-base-300">
     <slot />
   </div>
 

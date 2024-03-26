@@ -11,14 +11,14 @@
   );
 </script>
 
-<div class="p-4 md:max-w-md md:mx-auto">
+<div class="p-4 md:p-12 md:max-w-md md:mx-auto">
   <PageTitle class="mb-8">Accounts</PageTitle>
 
   <div>
     <div class="flex flex-col gap-4" role="list">
       {#each accounts as account (account.id)}
-        <div class="p-4 shadow-md rounded-md bg-base-100" role="listitem">
-          <h2 class="font-bold text-lg">{account.name}</h2>
+        <div class="p-6 shadow-md rounded-md bg-base-100" role="listitem">
+          <h2 class="font-bold text-lg mb-4">{account.name}</h2>
           <div>
             Balance: {account.balance.display}
           </div>

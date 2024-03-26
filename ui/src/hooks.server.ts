@@ -23,10 +23,11 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.isLoggedIn = isLoggedIn;
 
     if (event.route.id?.startsWith("/budget") && !isLoggedIn) {
-      console.log("redirecting");
       redirect(302, paths.login);
     }
   }
 
-  return await resolve(event);
+  return await resolve(event, {
+    preload: ({ type }) => type === "font" || type === "css" || type === "js",
+  });
 };

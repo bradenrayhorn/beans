@@ -74,6 +74,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract SHA
+        id: sha
+        run: echo "::set-output name=sha::$(echo $GITHUB_SHA | cut -c1-7)"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -82,3 +86,5 @@ jobs:
           context: "{{defaultContext}}:ui"
           tags: "${{ inputs.ui-tags }}"
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            GIT_SHA=${{ steps.sha.outputs.sha }}
