@@ -61,7 +61,7 @@
         <NavItem {...settingsRoute} />
 
         <div class="flex justify-between px-4 py-2 items-center">
-          <div class="text-xs">v.{env.PUBLIC_VERSION ?? "da500aa"}</div>
+          <div class="text-xs">v.{env.PUBLIC_VERSION ?? "local"}</div>
           <Lightswitch />
         </div>
       </div>
