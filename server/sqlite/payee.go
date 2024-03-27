@@ -39,6 +39,7 @@ func (r *payeeRepository) Get(ctx context.Context, budgetID beans.ID, id beans.I
 
 const payeeGetForBudgetSQL = `
 SELECT * FROM payees WHERE budget_id = :budgetID
+ORDER BY payees.name asc, payees.id asc
 `
 
 func (r *payeeRepository) GetForBudget(ctx context.Context, budgetID beans.ID) ([]beans.Payee, error) {

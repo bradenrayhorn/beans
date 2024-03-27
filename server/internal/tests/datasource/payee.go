@@ -74,4 +74,21 @@ func testPayee(t *testing.T, ds beans.DataSource) {
 		require.Nil(t, err)
 		require.Len(t, res, 0)
 	})
+
+	t.Run("sorts by name", func(t *testing.T) {
+		budget, _ := factory.MakeBudgetAndUser()
+
+		payeeB := factory.Payee(beans.Payee{BudgetID: budget.ID, Name: "Bert"})
+		payeeA := factory.Payee(beans.Payee{BudgetID: budget.ID, Name: "Ally"})
+		payeeC := factory.Payee(beans.Payee{BudgetID: budget.ID, Name: "Charlie"})
+
+		// check payees are returned in alphabetical order
+		res, err := payeeRepository.GetForBudget(ctx, budget.ID)
+		require.Nil(t, err)
+		require.Len(t, res, 3)
+
+		assert.Equal(t, payeeA.ID, res[0].ID)
+		assert.Equal(t, payeeB.ID, res[1].ID)
+		assert.Equal(t, payeeC.ID, res[2].ID)
+	})
 }
