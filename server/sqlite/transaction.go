@@ -265,7 +265,7 @@ func getTransactionWithRelationshipsQuery(budgetID string) squirrel.SelectBuilde
 		LeftJoin("payees ON payees.id = transactions.payee_id").
 		LeftJoin("transactions transfer ON transfer.id = transactions.transfer_id").
 		LeftJoin("accounts transfer_account ON transfer.account_id = transfer_account.id").
-		OrderBy("transactions.date DESC")
+		OrderBy("transactions.date DESC, transactions.id DESC")
 }
 
 // mappers
