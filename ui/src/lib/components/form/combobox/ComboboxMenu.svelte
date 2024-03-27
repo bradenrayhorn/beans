@@ -11,7 +11,7 @@
 
 {#if $open}
   <ul
-    class="z-10 flex max-h-select flex-col overflow-hidden rounded-sm bg-white shadow"
+    class="z-10 flex max-h-select flex-col overflow-hidden rounded bg-base-100 shadow-md"
     use:melt={$menu}
     transition:fly={{ duration: 150, y: -5 }}
   >

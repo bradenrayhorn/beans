@@ -2,12 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  @font-face {
+    font-family: "Inter";
+    font-display: swap;
+    src: url("/fonts/inter.woff2") format("woff2");
+  }
+}
+
 .input:focus {
   outline: none;
 }
 
 [type="checkbox"]:focus {
   box-shadow: none;
+}
+
+html {
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
@@ -30,7 +42,6 @@
   }
 
   .text-base-content-light {
-    --tw-text-opacity: 0.8;
-    color: hsl(var(--bc) / var(--tw-text-opacity));
+    color: oklch(var(--bc) / 0.8);
   }
 }

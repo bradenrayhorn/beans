@@ -64,6 +64,6 @@
   </label>
 
   <div class="w-full flex flex-row justify-between">
-    <SubmitButton class="btn btn-success btn-sm" {isLoading}>Save</SubmitButton>
+    <SubmitButton class="btn btn-primary btn-sm" {isLoading}>Save</SubmitButton>
   </div>
 </form>

@@ -18,7 +18,7 @@
 </script>
 
 <div role="table" class="flex flex-col w-full text-sm" aria-label="Expenses">
-  <div role="row" class="flex w-full bg-base-300 font-bold px-4 py-1">
+  <div role="row" class="flex w-full bg-base-200 font-bold px-4 py-1">
     <div role="columnheader" class="flex-1">Category</div>
     <div role="columnheader" class="text-right flex-1">Assigned</div>
     <div role="columnheader" class="text-right flex-1">Spent</div>
@@ -27,7 +27,7 @@
 
   {#each categoryGroups.filter((group) => !group.isIncome) as group (group.id)}
     <div role="rowgroup" aria-label={group.name}>
-      <div aria-hidden="true" class="font-bold mb-1 mt-4 px-4">
+      <div aria-hidden="true" class="font-semibold text-lg mb-1 mt-8 px-4">
         {group.name}
       </div>
 
@@ -35,7 +35,7 @@
         {#each group.categories as category (category.id)}
           <a
             role="row"
-            class="flex items-center w-full mt-1 px-4 hover:bg-base-200 border-accent"
+            class="flex items-center w-full px-4 py-2 hover:bg-base-200 border-accent"
             class:border-y-2={$page.params.categoryID === category.id}
             href={withParameter(paths.budget.budget.category, {
               ...$page.params,
@@ -71,7 +71,7 @@
 >
   <div
     role="row"
-    class="flex w-full bg-base-300 font-bold px-4 py-1 [&>div]:flex-1"
+    class="flex w-full bg-base-200 font-bold px-4 py-1 [&>div]:flex-1"
   >
     <div role="columnheader">Income</div>
     <div role="columnheader" class="text-right">Received</div>

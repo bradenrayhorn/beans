@@ -45,7 +45,7 @@
       >
         <IconBack />Back
       </a>
-      <SubmitButton class="btn btn-success btn-sm" {isLoading}>
+      <SubmitButton class="btn btn-primary btn-sm" {isLoading}>
         Save
       </SubmitButton>
     </div>

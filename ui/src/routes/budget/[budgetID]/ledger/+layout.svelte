@@ -32,7 +32,7 @@
 </script>
 
 <div class="flex h-full">
-  <div class="grow flex-col flex">
+  <div class="grow flex-col flex bg-base-300">
     <PageTitle class="shrink-0 p-4">Ledger</PageTitle>
 
     {#if !isList}
@@ -74,7 +74,7 @@
         {/if}
       </div>
 
-      <div class="grow w-full bg-base-100 px-4 shadow">
+      <div class="grow w-full bg-base-100 px-4">
         <div class="lg:hidden">
           <MobileList {transactionsByDate} />
         </div>
@@ -87,7 +87,7 @@
   </div>
 
   {#if !isList}
-    <div class="hidden lg:block shrink-0 w-64 bg-base-100 h-full shadow-md p-4">
+    <div class="hidden lg:block shrink-0 w-64 bg-base-200 h-full shadow-md p-4">
       <slot />
     </div>
   {/if}
