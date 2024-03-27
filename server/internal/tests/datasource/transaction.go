@@ -312,6 +312,23 @@ func testTransaction(t *testing.T, ds beans.DataSource) {
 			}, transactions[0])
 		})
 
+		t.Run("sorts by date", func(t *testing.T) {
+			budget, _ := factory.MakeBudgetAndUser()
+
+			transaction2 := factory.Transaction(budget.ID, beans.Transaction{Date: testutils.NewDate(t, "2024-03-02")})
+			transaction3 := factory.Transaction(budget.ID, beans.Transaction{Date: testutils.NewDate(t, "2024-03-03")})
+			transaction1 := factory.Transaction(budget.ID, beans.Transaction{Date: testutils.NewDate(t, "2024-03-01")})
+
+			// transactions should be returned with newest first
+			res, err := transactionRepository.GetForBudget(ctx, budget.ID)
+			require.NoError(t, err)
+			require.Equal(t, 3, len(res))
+
+			assert.Equal(t, transaction3.ID, res[0].ID)
+			assert.Equal(t, transaction2.ID, res[1].ID)
+			assert.Equal(t, transaction1.ID, res[2].ID)
+		})
+
 		t.Run("maps off budget variant", func(t *testing.T) {
 			budget, _ := factory.MakeBudgetAndUser()
 
