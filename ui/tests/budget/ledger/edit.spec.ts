@@ -153,8 +153,11 @@ test("can edit transfer transaction", async ({
   await page.getByRole("link", { name: "ledger" }).click();
 
   // select and edit transaction
-  await page.getByRole("row").nth(1).getByRole("checkbox").focus();
-  await page.getByRole("row").nth(1).getByRole("checkbox").press("Space");
+  const transactionOnCheckingAccount = page
+    .getByRole("row")
+    .filter({ has: page.getByRole("cell").nth(4).getByText("Checking") });
+  await transactionOnCheckingAccount.getByRole("checkbox").focus();
+  await transactionOnCheckingAccount.getByRole("checkbox").press("Space");
   await page.getByRole("link", { name: "edit" }).click();
 
   // change account & amount
