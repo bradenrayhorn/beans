@@ -103,7 +103,7 @@ func (c *monthContract) Update(ctx context.Context, auth *beans.BudgetAuthContex
 
 func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.BudgetAuthContext, monthID beans.ID, categoryID beans.ID, amount beans.Amount) error {
 	if err := beans.ValidateFields(
-		beans.Field("Amount", beans.Required(&amount), beans.NonZero(amount), beans.Positive(amount)),
+		beans.Field("Amount", beans.MaxPrecision(amount)),
 	); err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (c *monthContract) SetCategoryAmount(ctx context.Context, auth *beans.Budge
 		return err
 	}
 
-	monthCategory.Amount = amount
+	monthCategory.Amount = amount.OrZero()
 
 	return c.ds().MonthCategoryRepository().UpdateAmount(ctx, monthCategory)
 }

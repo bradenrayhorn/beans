@@ -254,24 +254,35 @@ func testMonth(t *testing.T, interactor Interactor) {
 			testutils.AssertErrorCode(t, err, beans.ENOTFOUND)
 		})
 
-		t.Run("cannot assign a negative amount", func(t *testing.T) {
+		t.Run("cannot assign with too much precision", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
 			category := c.Category(CategoryOpts{})
 			month := c.Month(MonthOpts{Date: "2022-04-01"})
 
-			err := interactor.MonthSetCategoryAmount(t, c.ctx, month.ID, category.ID, beans.NewAmount(-1, 0))
+			// assign an amount with more than max precision
+			err := interactor.MonthSetCategoryAmount(t, c.ctx, month.ID, category.ID, beans.NewAmount(5, -3))
 			testutils.AssertErrorCode(t, err, beans.EINVALID)
 		})
 
-		t.Run("cannot assign nothing", func(t *testing.T) {
+		t.Run("can assign nothing", func(t *testing.T) {
 			c := makeUserAndBudget(t, interactor)
 
 			category := c.Category(CategoryOpts{})
 			month := c.Month(MonthOpts{Date: "2022-04-01"})
 
+			// assign an empty amount
 			err := interactor.MonthSetCategoryAmount(t, c.ctx, month.ID, category.ID, beans.NewEmptyAmount())
-			testutils.AssertErrorCode(t, err, beans.EINVALID)
+			require.NoError(t, err)
+
+			// check month and see if month category is assigned zero
+			res, err := interactor.MonthGetOrCreate(t, c.ctx, testutils.NewMonthDate(t, "2022-04-01"))
+			require.NoError(t, err)
+
+			assert.Equal(t, 2, len(res.Categories)) // income + expense category
+			findMonthCategory(t, res.Categories, category.ID, func(it beans.MonthCategoryWithDetails) {
+				assert.Equal(t, beans.NewAmount(0, 0), it.Amount)
+			})
 		})
 
 		t.Run("can assign an amount", func(t *testing.T) {
