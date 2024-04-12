@@ -15,7 +15,7 @@ require (
 	github.com/knadh/koanf/providers/confmap v0.1.0
 	github.com/knadh/koanf/providers/env v0.1.0
 	github.com/knadh/koanf/providers/file v0.1.0
-	github.com/knadh/koanf/v2 v2.1.0
+	github.com/knadh/koanf/v2 v2.1.1
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.22.0
 	golang.org/x/net v0.24.0
