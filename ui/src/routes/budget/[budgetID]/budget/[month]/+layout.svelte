@@ -7,6 +7,8 @@
   import { page } from "$app/stores";
   import BudgetTable from "./BudgetTable.svelte";
   import BudgetCards from "./BudgetCards.svelte";
+  import { goto } from "$app/navigation";
+  import { keybind } from "$lib/actions/keybind";
 
   export let data: PageData;
 
@@ -15,7 +17,24 @@
     withParameter(paths.budget.budget.month, $page.params);
 
   $: date = dayjs(data.month.date);
-  $: formattedMonth = date.format("YYYY.MM");
+  $: month = date.format("MMMM");
+  $: year = date.format("YYYY");
+
+  $: pastMonthLink = withParameter(paths.budget.budget.month, {
+    ...$page.params,
+    month: date.add(-1, "month").format("YYYY-MM"),
+  });
+  $: nextMonthLink = withParameter(paths.budget.budget.month, {
+    ...$page.params,
+    month: date.add(1, "month").format("YYYY-MM"),
+  });
+
+  function toPastMonth() {
+    goto(pastMonthLink);
+  }
+  function toNextMonth() {
+    goto(nextMonthLink);
+  }
 </script>
 
 <div class="flex h-full">
@@ -34,25 +53,24 @@
     >
       <div class="py-2 md:py-6 flex items-center gap-2">
         <a
-          class="btn btn-xs md:btn-sm btn-ghost"
-          href={withParameter(paths.budget.budget.month, {
-            ...$page.params,
-            month: date.add(-1, "month").format("YYYY-MM"),
-          })}
+          class="btn btn-xs btn-ghost"
+          href={pastMonthLink}
           aria-label="Previous month"
+          use:keybind={{ key: "h", action: toPastMonth }}
         >
           <IconBack />
         </a>
 
-        <h1 class="text-lg md:text-3xl font-bold">{formattedMonth}</h1>
+        <div class="flex gap-2">
+          <h1 class="text-lg md:text-3xl font-bold">{month}</h1>
+          <h2 class="text-lg font-bold md:text-sm md:font-normal">{year}</h2>
+        </div>
 
         <a
-          class="btn btn-xs md:btn-sm btn-ghost"
-          href={withParameter(paths.budget.budget.month, {
-            ...$page.params,
-            month: date.add(1, "month").format("YYYY-MM"),
-          })}
+          class="btn btn-xs btn-ghost"
+          href={nextMonthLink}
           aria-label="Next month"
+          use:keybind={{ key: "l", action: toNextMonth }}
         >
           <IconNext />
         </a>

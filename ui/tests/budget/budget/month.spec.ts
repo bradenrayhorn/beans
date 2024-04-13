@@ -20,12 +20,10 @@ test("can navigate between months", async ({
   const assigned = category.getByRole("cell").nth(1);
 
   const formatMonth = (date: Date) =>
-    `${date.getFullYear()}.${`${date.getMonth() + 1}`.padStart(2, "0")}`;
+    `${date.toLocaleString("default", { month: "long" })} ${date.getFullYear()}`;
 
   // month header is correct
-  await expect(
-    page.getByRole("heading", { name: formatMonth(new Date()) }),
-  ).toBeVisible();
+  await expect(page.getByText(formatMonth(new Date()))).toBeVisible();
 
   // fill out category
   await category.click();
@@ -39,9 +37,7 @@ test("can navigate between months", async ({
   // month header should change
   const nextMonth = new Date();
   nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
-  await expect(
-    page.getByRole("heading", { name: formatMonth(nextMonth) }),
-  ).toBeVisible();
+  await expect(page.getByText(formatMonth(nextMonth))).toBeVisible();
 
   // new month, assigned value should have changed
   await expect(assigned).toHaveText("$0.00");
@@ -50,9 +46,7 @@ test("can navigate between months", async ({
   await page.getByRole("link", { name: "Previous month" }).click();
 
   // month header should change
-  await expect(
-    page.getByRole("heading", { name: formatMonth(new Date()) }),
-  ).toBeVisible();
+  await expect(page.getByText(formatMonth(new Date()))).toBeVisible();
 
   // back to first month, assigned value should have changed back
   await expect(assigned).toBeVisible();
