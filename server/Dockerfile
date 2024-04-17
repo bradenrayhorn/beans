@@ -1,4 +1,4 @@
-FROM golang:1.21@sha256:81811f8a883e238666dbadee6928ae2902243a3cd3f3e860f21c102543c6b5a7 as buildgo
+FROM golang:1.22@sha256:450e3822c7a135e1463cd83e51c8e2eb03b86a02113c89424e6f0f8344bb4168 as buildgo
 
 RUN mkdir /app
 COPY . /app
