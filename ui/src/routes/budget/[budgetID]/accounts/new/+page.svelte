@@ -1,53 +1,76 @@
 <script lang="ts">
   import { paths, withParameter } from "$lib/paths";
-  import IconBack from "~icons/mdi/navigate-before";
-  import { enhance } from "$app/forms";
-  import { navigating, page } from "$app/stores";
-  import FormError from "$lib/components/FormError.svelte";
+  import IconError from "~icons/mdi/alert-circle-outline";
+  import { page } from "$app/stores";
   import SubmitButton from "$lib/components/SubmitButton.svelte";
+  import type { PageData } from "./$types";
+  import { superForm } from "sveltekit-superforms";
+  import { zodClient } from "sveltekit-superforms/adapters";
+  import { schema } from "./schema";
 
-  let isSubmitting = false;
-  $: isLoading = !!$navigating || isSubmitting;
+  export let data: PageData;
+  const { form, errors, message, submitting, enhance } = superForm(data.form, {
+    validators: zodClient(schema),
+    invalidateAll: true,
+  });
 </script>
 
-<div class="max-w-md w-full mx-auto p-4">
-  <h1 class="mb-8 text-2xl font-bold">New Account</h1>
+<div class="w-full bg-base-200 p-8 md:pt-12">
+  <div class="max-w-md w-full mx-auto">
+    <h1 class="mb-8 text-2xl font-bold">New Account</h1>
 
-  <FormError />
+    <form class="flex flex-col gap-8" method="POST" action="?/save" use:enhance>
+      {#if $message}
+        <div
+          role="alert"
+          class="rounded px-4 py-2 flex gap-2 items-center bg-error/20 text-error font-semibold text-sm"
+        >
+          <IconError class="text-lg" />
+          {$message}
+        </div>
+      {/if}
 
-  <form
-    class="flex flex-col gap-8"
-    method="POST"
-    action="?/save"
-    use:enhance={() => {
-      isSubmitting = true;
+      <label class="form-control">
+        <span class="label label-text">Name</span>
+        <input
+          name="name"
+          type="text"
+          class="input input-bordered w-full"
+          autocomplete="off"
+          class:input-error={$errors.name}
+          aria-invalid={$errors.name ? "true" : undefined}
+          bind:value={$form.name}
+        />
+        {#if $errors.name}
+          <div class="text-xs pt-2">
+            <span class="label-text-alt text-error">{$errors.name}</span>
+          </div>
+        {/if}
+      </label>
 
-      return async ({ update }) => {
-        await update();
-        isSubmitting = false;
-      };
-    }}
-  >
-    <label>
-      <span class="label label-text">Name</span>
-      <input name="name" type="text" class="input input-bordered w-full" />
-    </label>
+      <label class="label cursor-pointer max-w-32">
+        <span class="label-text">Off Budget</span>
+        <input
+          name="offBudget"
+          type="checkbox"
+          class="checkbox"
+          bind:checked={$form.offBudget}
+        />
+      </label>
 
-    <label class="label cursor-pointer">
-      <span class="label-text">Off Budget</span>
-      <input name="off_budget" type="checkbox" class="checkbox" value="true" />
-    </label>
-
-    <div class="w-full flex flex-row justify-between">
-      <a
-        href={withParameter(paths.budget.accounts.base, $page.params)}
-        class="btn btn-sm"
+      <SubmitButton
+        class="btn btn-primary btn-sm w-full"
+        isLoading={$submitting}
       >
-        <IconBack />Back
-      </a>
-      <SubmitButton class="btn btn-primary btn-sm" {isLoading}>
         Save
       </SubmitButton>
-    </div>
-  </form>
+    </form>
+
+    <a
+      href={withParameter(paths.budget.accounts.base, $page.params)}
+      class="btn btn-secondary btn-sm w-full mt-4"
+    >
+      Cancel
+    </a>
+  </div>
 </div>

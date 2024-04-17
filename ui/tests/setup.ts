@@ -69,10 +69,7 @@ export const createAccount = async (
   { name, offBudget = false }: { name: string; offBudget?: boolean },
 ): Promise<string> => {
   const response = await request.post(`/api/v1/accounts`, {
-    data: {
-      name,
-      off_budget: offBudget,
-    },
+    data: { name, offBudget },
     headers: { "Budget-ID": budgetID },
   });
 

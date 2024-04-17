@@ -11,7 +11,7 @@
   );
 </script>
 
-<div class="p-4 md:p-12 md:max-w-md md:mx-auto">
+<div class="p-4 grow md:p-12 md:max-w-md md:mx-auto">
   <PageTitle class="mb-8">Accounts</PageTitle>
 
   <div>

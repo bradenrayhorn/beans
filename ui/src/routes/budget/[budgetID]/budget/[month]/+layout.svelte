@@ -37,7 +37,7 @@
   }
 </script>
 
-<div class="flex h-full">
+<div class="flex grow h-full">
   <div class="grow flex flex-col">
     {#if !isList}
       <div class="flex flex-col md:hidden">

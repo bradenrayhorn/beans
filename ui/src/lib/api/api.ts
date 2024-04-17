@@ -45,3 +45,26 @@ export const doAction = async ({
 
   return res;
 };
+
+/** Used to submit forms created with superforms. */
+export const submitForm = async ({
+  method,
+  path,
+  fetch: internalFetch,
+  body,
+  params,
+}: {
+  method: string;
+  path: string;
+  fetch: typeof fetch;
+  body: unknown;
+  params?: { [key: string]: string | undefined };
+}): Promise<Response> => {
+  const res = await internalFetch(path, {
+    method,
+    body: body ? JSON.stringify(body) : null,
+    headers: { "Budget-ID": params?.budgetID ?? "" },
+  });
+
+  return res;
+};

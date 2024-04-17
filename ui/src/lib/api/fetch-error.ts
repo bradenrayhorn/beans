@@ -1,4 +1,5 @@
 import { error, fail, type NumericRange } from "@sveltejs/kit";
+import type { ErrorStatus } from "sveltekit-superforms";
 
 const defaultError = "Unknown error";
 
@@ -28,4 +29,13 @@ export const getErrorForAction = async (res: Response) => {
   } else {
     error(500, msg);
   }
+};
+
+export const getErrorForForm = async (res: Response) => {
+  const errorJson = await res
+    .json()
+    .catch(async () => await res.text().catch(() => defaultError));
+  const msg = errorJson?.error ?? defaultError;
+
+  return { status: res.status as ErrorStatus, error: msg };
 };

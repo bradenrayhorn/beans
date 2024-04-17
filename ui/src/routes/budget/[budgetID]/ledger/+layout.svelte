@@ -31,7 +31,7 @@
       : Object.entries($selectedRows).find(([, isSelected]) => isSelected)?.[0];
 </script>
 
-<div class="flex h-full">
+<div class="flex grow h-full">
   <div class="grow flex-col flex bg-base-300">
     <PageTitle class="shrink-0 p-4">Ledger</PageTitle>
 
