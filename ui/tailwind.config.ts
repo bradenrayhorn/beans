@@ -19,7 +19,7 @@ const config = {
         beans: {
           primary: "#2F855A",
           "primary-content": "#ffffff",
-          secondary: "#ED8936",
+          secondary: "#CBD5E0",
           accent: "#9AE6B4",
           neutral: "#374151",
           error: "#9B2C2C",
@@ -34,12 +34,12 @@ const config = {
       },
       {
         beansDark: {
-          primary: "#2F855A",
+          primary: "#307050",
           "primary-content": "#ffffff",
-          secondary: "#ED8936",
+          secondary: "#343b48",
           accent: "#9AE6B4",
           neutral: "#0E0E12",
-          error: "#9B2C2C",
+          error: "#FC8181",
           success: "#48BB78",
           warning: "#ECC94B",
           "base-100": "#26262E",

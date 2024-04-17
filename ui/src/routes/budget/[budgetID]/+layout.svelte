@@ -71,7 +71,7 @@
   <div class="hidden md:block w-48 h-full shrink-0"></div>
 
   <!-- Content -->
-  <div class="grow bg-base-300">
+  <div class="flex grow bg-base-300">
     <slot />
   </div>
 
@@ -79,13 +79,13 @@
 
   <!-- Bottom navigation (mobile) -->
   <div
-    class="md:hidden flex shrink-0 justify-between items-center h-20 shadow-top bg-base-100 rounded-t-md fixed bottom-0 right-0 left-0"
+    class="md:hidden flex shrink-0 justify-between items-center h-20 shadow-top bg-neutral rounded-t-md fixed bottom-0 right-0 left-0"
   >
     {#each builtRoutes as route (route.name)}
       <a
         class="flex grow flex-col items-center"
-        class:text-primary={route.isActive}
-        class:text-base-content-light={!route.isActive}
+        class:text-accent={route.isActive}
+        class:text-neutral-content={!route.isActive}
         href={route.path}
       >
         <svelte:component this={route.icon} />
