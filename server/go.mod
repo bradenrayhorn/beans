@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.22.0
 	golang.org/x/net v0.24.0
-	zombiezen.com/go/sqlite v1.2.0
+	zombiezen.com/go/sqlite v1.3.0
 )
 
 require (
