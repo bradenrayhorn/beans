@@ -18,8 +18,8 @@
   "devDependencies": {
     "@iconify-json/mdi": "1.1.66",
     "@melt-ui/pp": "0.3.2",
-    "@melt-ui/svelte": "0.79.0",
-    "@playwright/test": "1.43.1",
+    "@melt-ui/svelte": "0.79.1",
+    "@playwright/test": "1.44.0",
     "@sveltejs/adapter-node": "5.0.1",
     "@sveltejs/kit": "2.5.7",
     "@sveltejs/vite-plugin-svelte": "3.1.0",
@@ -30,19 +30,19 @@
     "@typescript-eslint/eslint-plugin": "7.8.0",
     "@typescript-eslint/parser": "7.8.0",
     "autoprefixer": "10.4.19",
-    "daisyui": "4.10.5",
+    "daisyui": "4.11.1",
     "dayjs": "1.11.11",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-plugin-svelte": "2.38.0",
+    "eslint-plugin-svelte": "2.39.0",
     "fraction.js": "4.3.7",
     "jsdom": "24.0.0",
     "postcss": "8.4.38",
     "prettier": "3.2.5",
     "prettier-plugin-svelte": "3.2.3",
-    "svelte": "4.2.15",
+    "svelte": "4.2.16",
     "svelte-check": "3.7.1",
-    "sveltekit-superforms": "2.13.0",
+    "sveltekit-superforms": "2.13.1",
     "tailwindcss": "3.4.3",
     "tslib": "2.6.2",
     "typescript": "5.4.5",
@@ -50,7 +50,7 @@
     "vite": "5.2.11",
     "vitest": "1.6.0",
     "vitest-dom": "0.1.1",
-    "zod": "3.23.6"
+    "zod": "3.23.8"
   },
   "type": "module"
 }
