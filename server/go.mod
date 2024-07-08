@@ -4,7 +4,7 @@ go 1.22
 
 require github.com/segmentio/ksuid v1.0.4
 
-require github.com/go-chi/chi/v5 v5.0.12
+require github.com/go-chi/chi/v5 v5.1.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
