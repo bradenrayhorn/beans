@@ -11,6 +11,19 @@ const config = {
     fontFamily: {
       sans: ["Inter", "ui-sans-serif"],
     },
+
+    keyframes: {
+      progress: {
+        "0%": { transform: "translateX(-100%) scaleX(1)" },
+        "40%": { transform: "translateX(10w) scaleX(0.5)" },
+        "100%": { transform: "translateX(100vw) scaleX(0.7)" },
+      },
+    },
+
+    animation: {
+      progress: "progress 1s linear infinite",
+      progressFast: "progress 0.8s linear infinite",
+    },
   },
   plugins: [require("@tailwindcss/typography"), require("daisyui")],
   daisyui: {
