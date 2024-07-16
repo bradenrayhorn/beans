@@ -13,8 +13,10 @@
     "helpers:pinGitHubActionDigests",
     ":combinePatchMinorReleases",
     ":disableRateLimiting",
-    ":pinDevDependencies"
+    ":pinDevDependencies",
+    ":semanticCommits"
   ],
+  "schedule": ["every 2 week on monday"],
   "minimumReleaseAge": "5 days",
   "internalChecksFilter": "strict",
   "ignorePaths": ["docker/docker-compose.yml"],
