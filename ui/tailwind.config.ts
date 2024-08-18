@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import tailwindTypography from "@tailwindcss/typography";
+import daisyui from "daisyui";
 
 const config = {
   content: ["./src/**/*.{html,js,svelte,ts}"],
@@ -25,7 +27,7 @@ const config = {
       progressFast: "progress 0.8s linear infinite",
     },
   },
-  plugins: [require("@tailwindcss/typography"), require("daisyui")],
+  plugins: [tailwindTypography, daisyui],
   daisyui: {
     themes: [
       {

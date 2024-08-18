@@ -48,7 +48,6 @@ export const test = base.extend<Fixtures>({
 
     await use({});
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   budget: async ({ login: _, request }, use) => {
     const name = `budget-${randomString()}`;
     const response = await request.post(`/api/v1/budgets`, {
