@@ -107,7 +107,7 @@ func getErrorFromResponse(t *testing.T, r *http.Response) error {
 		defer func() { _ = r.Body.Close() }()
 		var resp response.ErrorResponse
 		if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-			if errors.Is(io.EOF, err) {
+			if errors.Is(err, io.EOF) {
 				return fmt.Errorf("request error, no body. status code %d", r.StatusCode)
 			}
 
