@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 import { test } from "../setup.js";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 test("can add and go to budget", async ({ login: _, page }) => {
   await page.goto("/budget");
 
