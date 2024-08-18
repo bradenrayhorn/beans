@@ -14,7 +14,7 @@
 
   // Show value in input when it is box is not open
   $: if (!$open) {
-    $inputValue = $selected?.value ? $selected.label ?? "" : "";
+    $inputValue = $selected?.value ? ($selected.label ?? "") : "";
   } else {
     $inputValue = "";
   }
