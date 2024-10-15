@@ -1,4 +1,4 @@
-FROM golang:1.22@sha256:829eff99a4b2abffe68f6a3847337bf6455d69d17e49ec1a97dac78834754bd6 as buildgo
+FROM golang:1.23@sha256:a7f2fc9834049c1f5df787690026a53738e55fc097cd8a4a93faa3e06c67ee32 as buildgo
 
 RUN mkdir /app
 COPY . /app
@@ -6,7 +6,7 @@ WORKDIR /app
 
 RUN CGO_ENABLED=0 go build ./cmd/beansd
 
-FROM alpine@sha256:0a4eaa0eecf5f8c050e5bba433f58c052be7587ee8af3e8b3910ef9ab5fbe9f5
+FROM alpine@sha256:beefdbd8a1da6d2915566fde36db9db0b524eb737fc57cd1367effd16dc0d06d
 
 RUN mkdir /app
 COPY --from=buildgo /app/beansd /app/
