@@ -11,7 +11,7 @@ require (
 	github.com/cockroachdb/apd/v3 v3.2.1
 	github.com/knadh/koanf/parsers/dotenv v1.0.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
-	github.com/knadh/koanf/providers/env v0.1.0
+	github.com/knadh/koanf/providers/env v1.0.0
 	github.com/knadh/koanf/providers/file v1.1.0
 	github.com/knadh/koanf/v2 v2.1.1
 	github.com/stretchr/testify v1.9.0
